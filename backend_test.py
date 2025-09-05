@@ -1523,7 +1523,7 @@ class VerselinkAPITester:
 
     def run_all_tests(self):
         """Run all test suites"""
-        print("🚀 Starting VerseLink Backend API Tests - Phase 4 Tournament System")
+        print("🚀 Starting VerseLink Backend API Tests - Phase 5 Discord Integration System")
         print(f"📡 Testing against: {self.base_url}")
         print(f"⏰ Started at: {datetime.now().isoformat()}")
         
@@ -1531,19 +1531,19 @@ class VerselinkAPITester:
         self.test_health_endpoints()
         self.test_auth_endpoints()
         
-        # Run comprehensive tournament system tests
-        self.test_tournament_api_comprehensive()
-        self.test_tournament_team_management_without_auth()
-        self.test_match_score_reporting_without_auth()
-        self.test_file_upload_api_without_auth()
-        self.test_tournament_creation_without_auth()
-        self.test_tournament_api_structure()
-        self.test_tournament_data_validation()
-        self.test_tournament_state_transitions()
-        self.test_match_score_validation()
-        self.test_file_upload_validation()
-        self.test_tournament_bracket_generation()
-        self.test_authentication_edge_cases()
+        # Run comprehensive Discord integration system tests
+        self.test_discord_integration_endpoints()
+        self.test_discord_webhook_endpoints()
+        self.test_discord_announcement_endpoints()
+        self.test_discord_message_sync_endpoints()
+        self.test_discord_reminder_endpoints()
+        self.test_discord_job_management_endpoints()
+        self.test_discord_bot_auth_endpoints()
+        self.test_discord_legacy_endpoints()
+        self.test_discord_data_validation()
+        self.test_discord_error_handling()
+        self.test_discord_webhook_signature_verification()
+        self.test_discord_api_structure()
         
         # Print summary
         self.print_summary()
