@@ -701,7 +701,7 @@ class VerselinkAPITester:
             "Create Report With Invalid Token",
             "POST",
             "/api/v1/moderation/reports",
-            403,
+            401,  # Invalid token returns 401, not 403
             data={
                 "reported_user_id": "test-user-id",
                 "type": "harassment",
