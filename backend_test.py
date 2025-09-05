@@ -2126,8 +2126,10 @@ class VerselinkAPITester:
                 403,  # Will fail auth first
                 data=message_data
             )
+
+    def run_all_tests(self):
         """Run all test suites"""
-        print("🚀 Starting VerseLink Backend API Tests - Phase 5 Discord Integration System")
+        print("🚀 Starting VerseLink Backend API Tests - Phase 6 Notifications, Moderation & Auto-Moderation System")
         print(f"📡 Testing against: {self.base_url}")
         print(f"⏰ Started at: {datetime.now().isoformat()}")
         
@@ -2135,19 +2137,23 @@ class VerselinkAPITester:
         self.test_health_endpoints()
         self.test_auth_endpoints()
         
-        # Run comprehensive Discord integration system tests
-        self.test_discord_integration_endpoints()
-        self.test_discord_webhook_endpoints()
-        self.test_discord_announcement_endpoints()
-        self.test_discord_message_sync_endpoints()
-        self.test_discord_reminder_endpoints()
-        self.test_discord_job_management_endpoints()
-        self.test_discord_bot_auth_endpoints()
-        self.test_discord_legacy_endpoints()
-        self.test_discord_data_validation()
-        self.test_discord_error_handling()
-        self.test_discord_webhook_signature_verification()
-        self.test_discord_api_structure()
+        # Run Phase 6 comprehensive testing
+        print("\n🔔 TESTING PHASE 6 - NOTIFICATIONS SYSTEM")
+        self.test_notifications_endpoints()
+        self.test_notifications_data_validation()
+        
+        print("\n🛡️ TESTING PHASE 6 - MODERATION SYSTEM")
+        self.test_moderation_endpoints()
+        self.test_moderation_data_validation()
+        
+        print("\n🤖 TESTING PHASE 6 - AUTO-MODERATION SYSTEM (NEW)")
+        self.test_auto_moderation_endpoints()
+        self.test_auto_moderation_data_validation()
+        self.test_auto_moderation_toggle_functionality()
+        
+        print("\n🔗 TESTING PHASE 6 - API STRUCTURE & INTEGRATION")
+        self.test_phase6_api_structure()
+        self.test_phase6_integration_scenarios()
         
         # Print summary
         self.print_summary()
