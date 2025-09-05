@@ -824,8 +824,11 @@ class VerselinkAPITester:
         self.test_events_endpoints()
         self.test_tournaments_endpoints()
         self.test_discord_integration_endpoints()
-        self.test_notifications_endpoints()
-        self.test_moderation_endpoints()
+        
+        # Phase 4 comprehensive testing
+        self.test_notifications_endpoints_comprehensive()
+        self.test_moderation_endpoints_comprehensive()
+        self.test_phase4_api_structure()
         
         # Print summary
         self.print_summary()
