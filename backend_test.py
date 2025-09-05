@@ -525,27 +525,480 @@ class VerselinkAPITester:
         )
 
     def test_discord_integration_endpoints(self):
-        """Test Discord integration endpoints"""
-        print("\n" + "="*50)
-        print("TESTING DISCORD INTEGRATION ENDPOINTS")
-        print("="*50)
+        """Test Phase 5 Discord integration endpoints"""
+        print("\n" + "="*60)
+        print("TESTING PHASE 5 DISCORD INTEGRATION ENDPOINTS")
+        print("="*60)
         
-        # Test webhook endpoints (should accept POST)
+        # Test Discord health check
+        success, response = self.run_test(
+            "Discord Integration Health Check",
+            "GET",
+            "/api/v1/discord/health",
+            200
+        )
+        
+        if success:
+            self.log_test("Discord Health Response Format", True, f"Health check returned: {response}")
+        
+        # Test Discord stats (admin only - should fail without auth)
         self.run_test(
-            "Discord Event Announce Webhook",
-            "POST",
-            "/api/v1/integrations/discord/events/announce",
-            200,
-            data={"test": "payload"}
+            "Discord Stats Without Auth",
+            "GET",
+            "/api/v1/discord/stats",
+            403
+        )
+        
+        # Test guild management endpoints without auth (should fail)
+        self.run_test(
+            "List Discord Guilds Without Auth",
+            "GET",
+            "/api/v1/discord/guilds",
+            403
         )
         
         self.run_test(
-            "Discord Match Announce Webhook", 
+            "Register Discord Guild Without Auth",
             "POST",
-            "/api/v1/integrations/discord/matches/announce",
-            200,
-            data={"test": "payload"}
+            "/api/v1/discord/guilds",
+            403,
+            data={
+                "guild_id": "123456789012345678",
+                "guild_name": "Test Guild",
+                "owner_id": "987654321098765432",
+                "webhook_url": "https://discord.com/api/webhooks/test",
+                "announcement_channel_id": "111111111111111111",
+                "reminder_channel_id": "222222222222222222"
+            }
         )
+        
+        self.run_test(
+            "Get Discord Guild Without Auth",
+            "GET",
+            "/api/v1/discord/guilds/123456789012345678",
+            403
+        )
+
+    def test_discord_webhook_endpoints(self):
+        """Test Discord webhook endpoints"""
+        print("\n" + "="*60)
+        print("TESTING DISCORD WEBHOOK ENDPOINTS")
+        print("="*60)
+        
+        # Test incoming webhook without signature
+        webhook_payload = {
+            "event_type": "message_create",
+            "guild_id": "123456789012345678",
+            "timestamp": "2025-01-27T10:00:00Z",
+            "data": {
+                "message": {
+                    "id": "987654321098765432",
+                    "content": "[SYNC] Important announcement from leadership",
+                    "author": {
+                        "id": "111111111111111111",
+                        "username": "TestUser"
+                    },
+                    "channel_id": "222222222222222222"
+                }
+            }
+        }
+        
+        success, response = self.run_test(
+            "Discord Incoming Webhook Without Signature",
+            "POST",
+            "/api/v1/discord/webhooks/incoming",
+            200,
+            data=webhook_payload
+        )
+        
+        if success:
+            self.log_test("Webhook Response Format", True, f"Webhook processed: {response}")
+        
+        # Test incoming webhook with invalid signature
+        self.run_test(
+            "Discord Incoming Webhook With Invalid Signature",
+            "POST",
+            "/api/v1/discord/webhooks/incoming",
+            401,
+            data=webhook_payload,
+            headers={"X-Signature-256": "sha256=invalid_signature"}
+        )
+        
+        # Test webhook with invalid JSON
+        self.run_test(
+            "Discord Incoming Webhook Invalid JSON",
+            "POST",
+            "/api/v1/discord/webhooks/incoming",
+            400,
+            data="invalid json"
+        )
+
+    def test_discord_announcement_endpoints(self):
+        """Test Discord announcement endpoints"""
+        print("\n" + "="*60)
+        print("TESTING DISCORD ANNOUNCEMENT ENDPOINTS")
+        print("="*60)
+        
+        # Test event announcement without auth
+        event_announcement = {
+            "event_id": "test-event-id-12345",
+            "guild_ids": ["123456789012345678", "876543210987654321"],
+            "announcement_type": "created",
+            "custom_message": "Join us for an epic Star Citizen event!"
+        }
+        
+        self.run_test(
+            "Announce Event Without Auth",
+            "POST",
+            "/api/v1/discord/announce/event",
+            403,
+            data=event_announcement
+        )
+        
+        # Test tournament announcement without auth
+        tournament_announcement = {
+            "tournament_id": "test-tournament-id-12345",
+            "guild_ids": ["123456789012345678", "876543210987654321"],
+            "announcement_type": "started",
+            "custom_message": "The championship tournament has begun!"
+        }
+        
+        self.run_test(
+            "Announce Tournament Without Auth",
+            "POST",
+            "/api/v1/discord/announce/tournament",
+            403,
+            data=tournament_announcement
+        )
+
+    def test_discord_message_sync_endpoints(self):
+        """Test Discord message synchronization endpoints"""
+        print("\n" + "="*60)
+        print("TESTING DISCORD MESSAGE SYNC ENDPOINTS")
+        print("="*60)
+        
+        # Test message sync without auth
+        message_sync = {
+            "source_guild_id": "123456789012345678",
+            "target_guild_ids": ["876543210987654321", "555666777888999000"],
+            "message_content": "Important announcement: Fleet operations scheduled for tomorrow at 20:00 UTC",
+            "author_name": "Fleet Commander",
+            "channel_type": "announcement"
+        }
+        
+        self.run_test(
+            "Sync Message Without Auth",
+            "POST",
+            "/api/v1/discord/sync/message",
+            403,
+            data=message_sync
+        )
+
+    def test_discord_reminder_endpoints(self):
+        """Test Discord reminder endpoints"""
+        print("\n" + "="*60)
+        print("TESTING DISCORD REMINDER ENDPOINTS")
+        print("="*60)
+        
+        # Test schedule reminders without auth
+        test_event_id = "test-event-id-12345"
+        
+        self.run_test(
+            "Schedule Event Reminders Without Auth",
+            "POST",
+            f"/api/v1/discord/reminders/schedule/{test_event_id}",
+            403
+        )
+
+    def test_discord_job_management_endpoints(self):
+        """Test Discord job management endpoints (admin only)"""
+        print("\n" + "="*60)
+        print("TESTING DISCORD JOB MANAGEMENT ENDPOINTS")
+        print("="*60)
+        
+        # Test list jobs without auth (admin only)
+        self.run_test(
+            "List Discord Jobs Without Auth",
+            "GET",
+            "/api/v1/discord/jobs",
+            403
+        )
+        
+        # Test list jobs with filters
+        self.run_test(
+            "List Discord Jobs With Status Filter",
+            "GET",
+            "/api/v1/discord/jobs?status=pending&limit=10",
+            403
+        )
+        
+        # Test manual job processing without auth (admin only)
+        self.run_test(
+            "Process Discord Jobs Without Auth",
+            "POST",
+            "/api/v1/discord/jobs/process",
+            403
+        )
+
+    def test_discord_bot_auth_endpoints(self):
+        """Test Discord bot authentication endpoints"""
+        print("\n" + "="*60)
+        print("TESTING DISCORD BOT AUTHENTICATION ENDPOINTS")
+        print("="*60)
+        
+        # Test bot verification with invalid credentials
+        self.run_test(
+            "Verify Bot Auth Invalid Credentials",
+            "POST",
+            "/api/v1/discord/bot/verify",
+            401,
+            data={
+                "guild_id": "123456789012345678",
+                "api_key": "invalid-api-key"
+            }
+        )
+        
+        # Test get guild config with invalid credentials
+        self.run_test(
+            "Get Bot Guild Config Invalid Credentials",
+            "GET",
+            "/api/v1/discord/bot/guild/123456789012345678/config?api_key=invalid-key",
+            401
+        )
+
+    def test_discord_legacy_endpoints(self):
+        """Test Discord legacy endpoints for backward compatibility"""
+        print("\n" + "="*60)
+        print("TESTING DISCORD LEGACY ENDPOINTS")
+        print("="*60)
+        
+        # Test legacy event announce endpoint
+        legacy_event_payload = {
+            "event_id": "test-event-legacy",
+            "guild_id": "123456789012345678",
+            "event_data": {
+                "title": "Legacy Event Test",
+                "description": "Testing legacy webhook endpoint"
+            }
+        }
+        
+        success, response = self.run_test(
+            "Legacy Event Announce Webhook",
+            "POST",
+            "/api/v1/discord/events/announce",
+            200,
+            data=legacy_event_payload
+        )
+        
+        if success:
+            self.log_test("Legacy Event Response", True, f"Legacy endpoint working: {response}")
+        
+        # Test legacy match announce endpoint
+        legacy_match_payload = {
+            "match_id": "test-match-legacy",
+            "guild_id": "123456789012345678",
+            "match_data": {
+                "team_a": "Alpha Squadron",
+                "team_b": "Beta Wing",
+                "result": "2-1"
+            }
+        }
+        
+        success, response = self.run_test(
+            "Legacy Match Announce Webhook",
+            "POST",
+            "/api/v1/discord/matches/announce",
+            200,
+            data=legacy_match_payload
+        )
+        
+        if success:
+            self.log_test("Legacy Match Response", True, f"Legacy endpoint working: {response}")
+
+    def test_discord_data_validation(self):
+        """Test Discord integration data validation"""
+        print("\n" + "="*60)
+        print("TESTING DISCORD DATA VALIDATION")
+        print("="*60)
+        
+        # Test invalid guild registration data
+        invalid_guild_data = {
+            "guild_id": "invalid",  # Too short
+            "guild_name": "",  # Empty name
+            "owner_id": "123"  # Too short
+        }
+        
+        self.run_test(
+            "Register Guild Invalid Data",
+            "POST",
+            "/api/v1/discord/guilds",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=invalid_guild_data
+        )
+        
+        # Test invalid event announcement data
+        invalid_event_announcement = {
+            "event_id": "",  # Empty event ID
+            "guild_ids": [],  # Empty guild list
+            "announcement_type": "invalid_type"  # Invalid type
+        }
+        
+        self.run_test(
+            "Announce Event Invalid Data",
+            "POST",
+            "/api/v1/discord/announce/event",
+            403,  # Will fail auth first
+            data=invalid_event_announcement
+        )
+        
+        # Test invalid message sync data
+        invalid_message_sync = {
+            "source_guild_id": "",  # Empty source
+            "target_guild_ids": [],  # Empty targets
+            "message_content": "",  # Empty content
+            "author_name": ""  # Empty author
+        }
+        
+        self.run_test(
+            "Sync Message Invalid Data",
+            "POST",
+            "/api/v1/discord/sync/message",
+            403,  # Will fail auth first
+            data=invalid_message_sync
+        )
+
+    def test_discord_error_handling(self):
+        """Test Discord integration error handling"""
+        print("\n" + "="*60)
+        print("TESTING DISCORD ERROR HANDLING")
+        print("="*60)
+        
+        # Test non-existent event announcement
+        non_existent_event = {
+            "event_id": "non-existent-event-id",
+            "guild_ids": ["123456789012345678"],
+            "announcement_type": "created"
+        }
+        
+        self.run_test(
+            "Announce Non-existent Event",
+            "POST",
+            "/api/v1/discord/announce/event",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=non_existent_event
+        )
+        
+        # Test non-existent tournament announcement
+        non_existent_tournament = {
+            "tournament_id": "non-existent-tournament-id",
+            "guild_ids": ["123456789012345678"],
+            "announcement_type": "started"
+        }
+        
+        self.run_test(
+            "Announce Non-existent Tournament",
+            "POST",
+            "/api/v1/discord/announce/tournament",
+            403,  # Will fail auth first
+            data=non_existent_tournament
+        )
+        
+        # Test schedule reminders for non-existent event
+        self.run_test(
+            "Schedule Reminders Non-existent Event",
+            "POST",
+            "/api/v1/discord/reminders/schedule/non-existent-event",
+            403  # Will fail auth first
+        )
+
+    def test_discord_webhook_signature_verification(self):
+        """Test Discord webhook signature verification scenarios"""
+        print("\n" + "="*60)
+        print("TESTING DISCORD WEBHOOK SIGNATURE VERIFICATION")
+        print("="*60)
+        
+        webhook_payload = {
+            "event_type": "guild_member_add",
+            "guild_id": "123456789012345678",
+            "data": {
+                "user": {
+                    "id": "987654321098765432",
+                    "username": "NewMember"
+                }
+            }
+        }
+        
+        # Test with various signature formats
+        signature_tests = [
+            ("sha256=valid_looking_signature", 401),
+            ("invalid_format_signature", 401),
+            ("", 200),  # No signature should work (if verification is optional)
+        ]
+        
+        for signature, expected_status in signature_tests:
+            headers = {"X-Signature-256": signature} if signature else {}
+            self.run_test(
+                f"Webhook Signature Test ({signature[:20]}...)",
+                "POST",
+                "/api/v1/discord/webhooks/incoming",
+                expected_status,
+                data=webhook_payload,
+                headers=headers
+            )
+
+    def test_discord_api_structure(self):
+        """Test Discord API structure and endpoint availability"""
+        print("\n" + "="*60)
+        print("TESTING DISCORD API STRUCTURE")
+        print("="*60)
+        
+        # Test that all Discord endpoints exist and return proper error codes
+        discord_endpoints = [
+            # Guild management
+            ("GET", "/api/v1/discord/guilds", "List Discord Guilds", 403),
+            ("POST", "/api/v1/discord/guilds", "Register Discord Guild", 403),
+            ("GET", "/api/v1/discord/guilds/test-guild-id", "Get Discord Guild", 403),
+            
+            # Webhooks
+            ("POST", "/api/v1/discord/webhooks/incoming", "Incoming Webhook", 200),
+            
+            # Announcements
+            ("POST", "/api/v1/discord/announce/event", "Announce Event", 403),
+            ("POST", "/api/v1/discord/announce/tournament", "Announce Tournament", 403),
+            
+            # Message sync
+            ("POST", "/api/v1/discord/sync/message", "Sync Message", 403),
+            
+            # Reminders
+            ("POST", "/api/v1/discord/reminders/schedule/test-event", "Schedule Reminders", 403),
+            
+            # Job management (admin only)
+            ("GET", "/api/v1/discord/jobs", "List Jobs", 403),
+            ("POST", "/api/v1/discord/jobs/process", "Process Jobs", 403),
+            
+            # Bot API
+            ("POST", "/api/v1/discord/bot/verify", "Bot Verify", 401),
+            ("GET", "/api/v1/discord/bot/guild/test-guild/config", "Bot Guild Config", 401),
+            
+            # Stats and health
+            ("GET", "/api/v1/discord/stats", "Discord Stats", 403),
+            ("GET", "/api/v1/discord/health", "Discord Health", 200),
+            
+            # Legacy endpoints
+            ("POST", "/api/v1/discord/events/announce", "Legacy Event Announce", 200),
+            ("POST", "/api/v1/discord/matches/announce", "Legacy Match Announce", 200),
+        ]
+        
+        for method, endpoint, name, expected_status in discord_endpoints:
+            data = {} if method in ["POST", "PUT", "PATCH"] else None
+            
+            self.run_test(
+                f"Discord API Structure - {name}",
+                method,
+                endpoint,
+                expected_status,
+                data=data
+            )
 
     def test_tournament_api_comprehensive(self):
         """Test Phase 4 Tournament API endpoints comprehensively"""
