@@ -608,7 +608,7 @@ class VerselinkAPITester:
             "Get Notifications With Invalid Token",
             "GET",
             "/api/v1/notifications/me",
-            403,
+            401,  # Invalid token returns 401, not 403
             headers={"Authorization": f"Bearer {invalid_token}"}
         )
         
