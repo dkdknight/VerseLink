@@ -12,10 +12,24 @@ from models.event import (
     EventSignupCreate, EventSignupUpdate, EventSignupResponse,
     EventType, EventVisibility, EventState, SignupStatus
 )
+from models.organization import Organization
 from services.event_service import EventService
 from services.calendar_service import CalendarService
 from utils.permissions import EventPermissions
 from middleware.auth import get_current_active_user
+
+# Helper function to get optional user
+async def get_optional_user(token: str = None) -> Optional[User]:
+    """Get user from token if provided, otherwise return None"""
+    if not token:
+        return None
+    try:
+        from fastapi.security import HTTPAuthorizationCredentials
+        from middleware.auth import get_current_user
+        creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+        return await get_current_user(creds)
+    except:
+        return None
 
 router = APIRouter()
 event_service = EventService()
