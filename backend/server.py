@@ -60,6 +60,7 @@ app.include_router(tournaments.router, prefix="/api/v1/tournaments", tags=["Tour
 app.include_router(discord_integration.router, prefix="/api/v1/integrations/discord", tags=["Discord Integration Legacy"])
 app.include_router(discord_integration_v2.router, prefix="/api/v1/discord", tags=["Discord Integration"])
 app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["Notifications"])
+app.include_router(auto_moderation.router, prefix="/api/v1/auto-moderation", tags=["Auto Moderation"])
 app.include_router(moderation.router, prefix="/api/v1/moderation", tags=["Moderation"])
 
 @app.get("/")
