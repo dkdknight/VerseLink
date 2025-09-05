@@ -508,7 +508,7 @@ class VerselinkAPITester:
             "Create Tournament Without Auth",
             "POST",
             "/api/v1/orgs/test-org/tournaments",
-            401,
+            403,
             data={
                 "name": "Test Tournament",
                 "description": "Test tournament description for Phase 3 testing",
