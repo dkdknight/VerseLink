@@ -200,6 +200,14 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
+              <Route 
+                path="/discord" 
+                element={
+                  <ProtectedRoute>
+                    <DiscordIntegrationPage />
+                  </ProtectedRoute>
+                } 
+              />
               
               {/* Catch all redirect */}
               <Route path="*" element={<Navigate to="/" replace />} />
