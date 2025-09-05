@@ -16,6 +16,7 @@ import TournamentsPage from './pages/TournamentsPage';
 import TournamentDetailPage from './pages/TournamentDetailPage';
 import NotificationsPage from './pages/NotificationsPage';
 import NotificationPreferencesPage from './pages/NotificationPreferencesPage';
+import ModerationDashboardPage from './pages/ModerationDashboardPage';
 
 // Import services
 import { authService } from './services/authService';
