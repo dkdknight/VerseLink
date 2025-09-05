@@ -101,7 +101,7 @@ class FileUploadService:
             "attachment_type": self._get_attachment_type(mime_type)
         }
     
-    async def save_file(self, file: UploadFile, match_id: str, user_id: str, description: Optional[str] = None) -> Attachment:
+    async def save_file(self, match_id: str, user_id: str, file: UploadFile, description: Optional[str] = None) -> Attachment:
         """Save uploaded file and create attachment record"""
         # Validate file
         file_info = await self.validate_file(file)
