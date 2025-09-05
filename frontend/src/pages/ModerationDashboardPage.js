@@ -18,10 +18,13 @@ import { useAuth } from '../App';
 const ModerationDashboardPage = () => {
   const [reports, setReports] = useState([]);
   const [stats, setStats] = useState({});
+  const [autoModerationConfig, setAutoModerationConfig] = useState({});
+  const [autoModerationStats, setAutoModerationStats] = useState({});
   const [loading, setLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedReport, setSelectedReport] = useState(null);
   const [actionModalOpen, setActionModalOpen] = useState(false);
+  const [autoModerationModalOpen, setAutoModerationModalOpen] = useState(false);
   const { user } = useAuth();
 
   const statusOptions = [
