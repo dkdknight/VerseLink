@@ -330,7 +330,7 @@ async def upload_match_attachment(
 ):
     """Upload attachment for match (screenshot, video, etc.)"""
     try:
-        attachment = await file_service.save_file(match_id, current_user.id, description)
+        attachment = await file_service.save_file(match_id, current_user.id, file, description)
         
         return AttachmentResponse(
             id=attachment.id,
