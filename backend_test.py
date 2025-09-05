@@ -285,7 +285,7 @@ class VerselinkAPITester:
             "Signup Without Auth",
             "POST",
             f"/api/v1/events/{test_event_id}/signups",
-            401,
+            403,
             data={"role_id": None, "notes": "Test signup"}
         )
         
@@ -293,14 +293,14 @@ class VerselinkAPITester:
             "Withdraw Without Auth",
             "DELETE",
             f"/api/v1/events/{test_event_id}/signups/me",
-            401
+            403
         )
         
         self.run_test(
             "Checkin Without Auth",
             "POST",
             f"/api/v1/events/{test_event_id}/checkin",
-            401
+            403
         )
         
         # Test create event without auth (should fail)
@@ -308,7 +308,7 @@ class VerselinkAPITester:
             "Create Event Without Auth",
             "POST",
             "/api/v1/orgs/test-org/events",
-            401,
+            403,
             data={
                 "title": "Test Event",
                 "description": "Test event description",
