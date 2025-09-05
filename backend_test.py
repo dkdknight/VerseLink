@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-VerseLink Backend API Test Suite - Phase 5 Discord Integration System Testing
-Tests Discord Integration system for VerseLink application including webhooks, job queues, and bot API
+VerseLink Backend API Test Suite - Phase 6 Notifications, Moderation & Auto-Moderation System Testing
+Tests Phase 6 features: Notifications, Moderation, and Auto-Moderation systems for VerseLink application
 """
 
 import requests
