@@ -1572,8 +1572,8 @@ class VerselinkAPITester:
 
 def main():
     """Main test runner"""
-    # Use the public endpoint from frontend .env
-    base_url = "https://citizen-connect-2.preview.emergentagent.com"
+    # Use local backend for testing
+    base_url = "http://localhost:8001"
     
     print("VerseLink Phase 5 Backend API Test Suite - Discord Integration System")
     print("=" * 80)
