@@ -24,6 +24,8 @@ const TournamentDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('bracket');
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [selectedMatch, setSelectedMatch] = useState(null);
   const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
