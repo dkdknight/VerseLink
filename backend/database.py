@@ -135,6 +135,38 @@ async def create_indexes():
     await database.discord_messages.create_index([("owner_type", 1), ("owner_id", 1)])
     await database.discord_messages.create_index([("guild_id", 1), ("channel_id", 1), ("message_id", 1)], unique=True)
     
+    # Discord integration indexes (Phase 5)
+    await database.discord_guilds.create_index("guild_id", unique=True)
+    await database.discord_guilds.create_index("org_id", sparse=True)
+    await database.discord_guilds.create_index("owner_id")
+    await database.discord_guilds.create_index("status")
+    await database.discord_guilds.create_index("api_key", unique=True)
+    
+    # Discord jobs indexes
+    await database.discord_jobs.create_index("status")
+    await database.discord_jobs.create_index("scheduled_at")
+    await database.discord_jobs.create_index("guild_id")
+    await database.discord_jobs.create_index("job_type")
+    await database.discord_jobs.create_index([("status", 1), ("scheduled_at", 1)])
+    await database.discord_jobs.create_index("created_at")
+    
+    # Webhook logs indexes
+    await database.webhook_logs.create_index("guild_id")
+    await database.webhook_logs.create_index("webhook_type")
+    await database.webhook_logs.create_index("event_type")
+    await database.webhook_logs.create_index("created_at")
+    await database.webhook_logs.create_index("processed")
+    await database.webhook_logs.create_index([("processed", 1), ("retry_count", 1)])
+    
+    # Synced messages indexes
+    await database.synced_messages.create_index("original_guild_id")
+    await database.synced_messages.create_index([("original_guild_id", 1), ("original_message_id", 1)], unique=True)
+    await database.synced_messages.create_index("created_at")
+    
+    # Reminder configs indexes
+    await database.reminder_configs.create_index("guild_id")
+    await database.reminder_configs.create_index([("guild_id", 1), ("reminder_type", 1)], unique=True)
+    
     # Notifications indexes
     await database.notifications.create_index("user_id")
     await database.notifications.create_index("created_at")
