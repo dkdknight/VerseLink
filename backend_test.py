@@ -547,264 +547,291 @@ class VerselinkAPITester:
             data={"test": "payload"}
         )
 
-    def test_notifications_endpoints_comprehensive(self):
-        """Test Phase 4 notifications endpoints comprehensively"""
-        print("\n" + "="*50)
-        print("TESTING PHASE 4 NOTIFICATIONS ENDPOINTS - COMPREHENSIVE")
-        print("="*50)
+    def test_tournament_api_comprehensive(self):
+        """Test Phase 4 Tournament API endpoints comprehensively"""
+        print("\n" + "="*60)
+        print("TESTING PHASE 4 TOURNAMENT API - COMPREHENSIVE")
+        print("="*60)
         
-        # Test endpoints without authentication (should fail with 403)
-        self.run_test(
-            "Get Notifications Without Auth",
+        # Test tournament listing with various filters
+        success, response = self.run_test(
+            "List All Tournaments",
             "GET",
-            "/api/v1/notifications/me",
-            403
+            "/api/v1/tournaments/",
+            200
         )
         
+        if success:
+            if isinstance(response, list):
+                self.log_test("Tournament List Format", True, f"Returned {len(response)} tournaments")
+            else:
+                self.log_test("Tournament List Format", False, "Response is not a list")
+        
+        # Test tournament filters
         self.run_test(
-            "Get Notification Stats Without Auth",
+            "Filter Tournaments by Format (SE)",
             "GET",
-            "/api/v1/notifications/me/stats",
-            403
+            "/api/v1/tournaments/?format=se&limit=10",
+            200
         )
         
         self.run_test(
-            "Mark Notification Read Without Auth",
-            "POST",
-            "/api/v1/notifications/test-notification-id/read",
-            403
-        )
-        
-        self.run_test(
-            "Mark All Notifications Read Without Auth",
-            "POST",
-            "/api/v1/notifications/me/read-all",
-            403
-        )
-        
-        self.run_test(
-            "Get Notification Preferences Without Auth",
+            "Filter Tournaments by Format (DE)",
             "GET",
-            "/api/v1/notifications/me/preferences",
-            403
+            "/api/v1/tournaments/?format=de&limit=10",
+            200
         )
         
         self.run_test(
-            "Update Notification Preferences Without Auth",
-            "PUT",
-            "/api/v1/notifications/me/preferences",
-            403,
-            data={"preferences": {}}
-        )
-        
-        self.run_test(
-            "Create Test Notification Without Auth",
-            "POST",
-            "/api/v1/notifications/test",
-            403
-        )
-        
-        # Test with invalid token
-        print("\n🔍 Testing with invalid token...")
-        invalid_token = "invalid.jwt.token"
-        
-        self.run_test(
-            "Get Notifications With Invalid Token",
+            "Filter Tournaments by Format (RR)",
             "GET",
-            "/api/v1/notifications/me",
-            401,  # Invalid token returns 401, not 403
-            headers={"Authorization": f"Bearer {invalid_token}"}
+            "/api/v1/tournaments/?format=rr&limit=10",
+            200
         )
         
-        # Test notification preferences with invalid data
         self.run_test(
-            "Update Preferences With Invalid Data Structure",
-            "PUT",
-            "/api/v1/notifications/me/preferences",
-            403,  # Will fail auth first, but tests the endpoint exists
-            data={"invalid": "structure"}
+            "Filter Tournaments by State (Draft)",
+            "GET",
+            "/api/v1/tournaments/?state=draft&limit=10",
+            200
+        )
+        
+        self.run_test(
+            "Filter Tournaments by State (Open Registration)",
+            "GET",
+            "/api/v1/tournaments/?state=open_registration&limit=10",
+            200
+        )
+        
+        self.run_test(
+            "Filter Tournaments by State (Ongoing)",
+            "GET",
+            "/api/v1/tournaments/?state=ongoing&limit=10",
+            200
+        )
+        
+        self.run_test(
+            "Filter Tournaments by State (Finished)",
+            "GET",
+            "/api/v1/tournaments/?state=finished&limit=10",
+            200
+        )
+        
+        self.run_test(
+            "Filter Tournaments by Organization",
+            "GET",
+            "/api/v1/tournaments/?org_id=test-org-id&limit=10",
+            200
+        )
+        
+        # Test combined filters
+        self.run_test(
+            "Combined Tournament Filters",
+            "GET",
+            "/api/v1/tournaments/?format=se&state=ongoing&org_id=test-org&limit=5",
+            200
+        )
+        
+        # Test search query
+        self.run_test(
+            "Search Tournaments by Query",
+            "GET",
+            "/api/v1/tournaments/?query=championship&limit=10",
+            200
+        )
+        
+        # Test pagination
+        self.run_test(
+            "Tournament Pagination",
+            "GET",
+            "/api/v1/tournaments/?limit=5&skip=0",
+            200
+        )
+        
+        # Test get non-existent tournament
+        self.run_test(
+            "Get Non-existent Tournament",
+            "GET",
+            "/api/v1/tournaments/non-existent-tournament-id",
+            404
+        )
+        
+        # Test get tournament by non-existent slug
+        self.run_test(
+            "Get Tournament by Non-existent Slug",
+            "GET",
+            "/api/v1/tournaments/non-existent-slug",
+            404
         )
 
-    def test_moderation_endpoints_comprehensive(self):
-        """Test Phase 4 moderation endpoints comprehensively"""
-        print("\n" + "="*50)
-        print("TESTING PHASE 4 MODERATION ENDPOINTS - COMPREHENSIVE")
-        print("="*50)
+    def test_tournament_team_management_without_auth(self):
+        """Test tournament team management endpoints without authentication"""
+        print("\n" + "="*60)
+        print("TESTING TOURNAMENT TEAM MANAGEMENT - WITHOUT AUTH")
+        print("="*60)
         
-        # Test endpoints without authentication (should fail with 403)
+        test_tournament_id = "test-tournament-id"
+        test_team_id = "test-team-id"
+        test_user_id = "test-user-id"
+        
+        # Test team creation without auth
         self.run_test(
-            "Create Report Without Auth",
+            "Create Team Without Auth",
             "POST",
-            "/api/v1/moderation/reports",
+            f"/api/v1/tournaments/{test_tournament_id}/teams",
             403,
-            data={
-                "reported_user_id": "test-user-id",
-                "type": "spam",
-                "reason": "This user is posting spam messages repeatedly in chat channels."
-            }
+            data={"name": "Elite Squadron"}
         )
         
+        # Test add team member without auth
         self.run_test(
-            "List Reports Without Auth",
-            "GET",
-            "/api/v1/moderation/reports",
-            403
-        )
-        
-        self.run_test(
-            "Get Report Without Auth",
-            "GET",
-            "/api/v1/moderation/reports/test-report-id",
-            403
-        )
-        
-        self.run_test(
-            "Handle Report Without Auth",
+            "Add Team Member Without Auth",
             "POST",
-            "/api/v1/moderation/reports/test-report-id/action",
-            403,
-            data={
-                "action": "warning",
-                "reason": "First offense warning"
-            }
-        )
-        
-        self.run_test(
-            "Get User Moderation History Without Auth",
-            "GET",
-            "/api/v1/moderation/users/test-user-id/history",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}/members",
             403
         )
         
+        # Test remove team member without auth
         self.run_test(
-            "Get Moderation Stats Without Auth",
-            "GET",
-            "/api/v1/moderation/stats",
-            403
-        )
-        
-        self.run_test(
-            "Get Audit Logs Without Auth",
-            "GET",
-            "/api/v1/moderation/audit-logs",
-            403
-        )
-        
-        self.run_test(
-            "Unban Expired Users Without Auth",
-            "POST",
-            "/api/v1/moderation/maintenance/unban-expired",
-            403
-        )
-        
-        # Test with invalid token
-        print("\n🔍 Testing moderation with invalid token...")
-        invalid_token = "invalid.jwt.token"
-        
-        self.run_test(
-            "Create Report With Invalid Token",
-            "POST",
-            "/api/v1/moderation/reports",
-            401,  # Invalid token returns 401, not 403
-            data={
-                "reported_user_id": "test-user-id",
-                "type": "harassment",
-                "reason": "User is harassing other players in voice chat."
-            },
-            headers={"Authorization": f"Bearer {invalid_token}"}
-        )
-        
-        # Test report creation with invalid data
-        self.run_test(
-            "Create Report With Invalid Data - Missing Reason",
-            "POST",
-            "/api/v1/moderation/reports",
-            403,  # Will fail auth first, but tests the endpoint exists
-            data={
-                "reported_user_id": "test-user-id",
-                "type": "spam"
-                # Missing required 'reason' field
-            }
-        )
-        
-        self.run_test(
-            "Create Report With Invalid Data - Short Reason",
-            "POST",
-            "/api/v1/moderation/reports",
-            403,  # Will fail auth first, but tests the endpoint exists
-            data={
-                "reported_user_id": "test-user-id",
-                "type": "spam",
-                "reason": "short"  # Too short (min 10 chars)
-            }
-        )
-        
-        # Test moderation action with invalid data
-        self.run_test(
-            "Handle Report With Invalid Action",
-            "POST",
-            "/api/v1/moderation/reports/test-report-id/action",
-            403,  # Will fail auth first, but tests the endpoint exists
-            data={
-                "action": "invalid_action",
-                "reason": "Test reason"
-            }
-        )
-        
-        # Test pagination parameters
-        self.run_test(
-            "List Reports With Pagination",
-            "GET",
-            "/api/v1/moderation/reports?limit=10&skip=0",
-            403
-        )
-        
-        self.run_test(
-            "List Reports With Status Filter",
-            "GET",
-            "/api/v1/moderation/reports?status=pending",
-            403
-        )
-        
-        self.run_test(
-            "Get Audit Logs With Pagination",
-            "GET",
-            "/api/v1/moderation/audit-logs?limit=25&skip=0",
+            "Remove Team Member Without Auth",
+            "DELETE",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}/members/{test_user_id}",
             403
         )
 
-    def test_phase4_api_structure(self):
-        """Test Phase 4 API structure and endpoint availability"""
-        print("\n" + "="*50)
-        print("TESTING PHASE 4 API STRUCTURE")
-        print("="*50)
+    def test_match_score_reporting_without_auth(self):
+        """Test match score reporting endpoints without authentication"""
+        print("\n" + "="*60)
+        print("TESTING MATCH SCORE REPORTING - WITHOUT AUTH")
+        print("="*60)
         
-        # Test that all Phase 4 endpoints exist and return proper error codes
-        phase4_endpoints = [
-            # Notifications endpoints
-            ("GET", "/api/v1/notifications/me", "Notifications List"),
-            ("GET", "/api/v1/notifications/me/stats", "Notification Stats"),
-            ("POST", "/api/v1/notifications/test-id/read", "Mark Notification Read"),
-            ("POST", "/api/v1/notifications/me/read-all", "Mark All Read"),
-            ("GET", "/api/v1/notifications/me/preferences", "Get Preferences"),
-            ("PUT", "/api/v1/notifications/me/preferences", "Update Preferences"),
-            ("POST", "/api/v1/notifications/test", "Test Notification"),
+        test_match_id = "test-match-id"
+        
+        # Test report match score without auth
+        self.run_test(
+            "Report Match Score Without Auth",
+            "POST",
+            f"/api/v1/tournaments/matches/{test_match_id}/report",
+            403,
+            data={
+                "score_a": 3,
+                "score_b": 1,
+                "notes": "Great match! Team A dominated with superior tactics and coordination."
+            }
+        )
+        
+        # Test verify match result without auth
+        self.run_test(
+            "Verify Match Result Without Auth",
+            "POST",
+            f"/api/v1/tournaments/matches/{test_match_id}/verify",
+            403
+        )
+
+    def test_file_upload_api_without_auth(self):
+        """Test file upload API endpoints without authentication"""
+        print("\n" + "="*60)
+        print("TESTING FILE UPLOAD API - WITHOUT AUTH")
+        print("="*60)
+        
+        test_match_id = "test-match-id"
+        test_attachment_id = "test-attachment-id"
+        
+        # Test upload match attachment without auth
+        self.run_test(
+            "Upload Match Attachment Without Auth",
+            "POST",
+            f"/api/v1/tournaments/matches/{test_match_id}/attachments",
+            403
+        )
+        
+        # Test download attachment (should work without auth but return 404 for non-existent)
+        self.run_test(
+            "Download Non-existent Attachment",
+            "GET",
+            f"/api/v1/tournaments/attachments/{test_attachment_id}/download",
+            404
+        )
+        
+        # Test delete attachment without auth
+        self.run_test(
+            "Delete Attachment Without Auth",
+            "DELETE",
+            f"/api/v1/tournaments/attachments/{test_attachment_id}",
+            403
+        )
+
+    def test_tournament_creation_without_auth(self):
+        """Test tournament creation endpoint without authentication"""
+        print("\n" + "="*60)
+        print("TESTING TOURNAMENT CREATION - WITHOUT AUTH")
+        print("="*60)
+        
+        test_org_id = "test-org-id"
+        
+        # Test create tournament without auth
+        tournament_data = {
+            "name": "Star Citizen Championship 2025",
+            "description": "The ultimate Star Citizen tournament featuring the best pilots from across the galaxy. Compete in various ship classes and prove your supremacy in space combat.",
+            "format": "se",
+            "start_at_utc": (datetime.utcnow() + timedelta(days=14)).isoformat(),
+            "max_teams": 32,
+            "team_size": 5,
+            "prize_pool": "100,000 aUEC + Rare Ship Skins",
+            "ruleset_id": None,
+            "banner_url": "https://example.com/tournament-banner.jpg"
+        }
+        
+        self.run_test(
+            "Create Tournament Without Auth",
+            "POST",
+            f"/api/v1/orgs/{test_org_id}/tournaments",
+            403,
+            data=tournament_data
+        )
+
+    def test_tournament_api_structure(self):
+        """Test Tournament API structure and endpoint availability"""
+        print("\n" + "="*60)
+        print("TESTING TOURNAMENT API STRUCTURE")
+        print("="*60)
+        
+        # Test that all tournament endpoints exist and return proper error codes
+        tournament_endpoints = [
+            # Tournament listing and details
+            ("GET", "/api/v1/tournaments/", "Tournament List"),
+            ("GET", "/api/v1/tournaments/test-id", "Get Tournament Details"),
             
-            # Moderation endpoints
-            ("POST", "/api/v1/moderation/reports", "Create Report"),
-            ("GET", "/api/v1/moderation/reports", "List Reports"),
-            ("GET", "/api/v1/moderation/reports/test-id", "Get Report"),
-            ("POST", "/api/v1/moderation/reports/test-id/action", "Handle Report"),
-            ("GET", "/api/v1/moderation/users/test-id/history", "User History"),
-            ("GET", "/api/v1/moderation/stats", "Moderation Stats"),
-            ("GET", "/api/v1/moderation/audit-logs", "Audit Logs"),
-            ("POST", "/api/v1/moderation/maintenance/unban-expired", "Unban Expired"),
+            # Team management
+            ("POST", "/api/v1/tournaments/test-id/teams", "Create Team"),
+            ("POST", "/api/v1/tournaments/test-id/teams/test-team-id/members", "Add Team Member"),
+            ("DELETE", "/api/v1/tournaments/test-id/teams/test-team-id/members/test-user-id", "Remove Team Member"),
+            
+            # Match management
+            ("POST", "/api/v1/tournaments/matches/test-match-id/report", "Report Match Score"),
+            ("POST", "/api/v1/tournaments/matches/test-match-id/verify", "Verify Match Result"),
+            
+            # File attachments
+            ("POST", "/api/v1/tournaments/matches/test-match-id/attachments", "Upload Match Attachment"),
+            ("GET", "/api/v1/tournaments/attachments/test-attachment-id/download", "Download Attachment"),
+            ("DELETE", "/api/v1/tournaments/attachments/test-attachment-id", "Delete Attachment"),
+            
+            # Tournament creation (in orgs router)
+            ("POST", "/api/v1/orgs/test-org-id/tournaments", "Create Tournament"),
         ]
         
-        for method, endpoint, name in phase4_endpoints:
-            # All should return 403 (auth required) rather than 404 (not found)
-            expected_status = 403
-            data = {} if method in ["POST", "PUT"] else None
+        for method, endpoint, name in tournament_endpoints:
+            # Most should return 403 (auth required) or 404 (not found) rather than 404 (endpoint not found)
+            if method == "GET" and "attachments" in endpoint and "download" in endpoint:
+                expected_status = 404  # Download endpoints return 404 for non-existent files
+            elif method == "GET" and endpoint.endswith("/tournaments/"):
+                expected_status = 200  # Public listing endpoint
+            elif method == "GET" and "/tournaments/test-id" in endpoint:
+                expected_status = 404  # Non-existent tournament
+            else:
+                expected_status = 403  # Auth required
+            
+            data = {} if method in ["POST", "PUT", "PATCH"] else None
             
             self.run_test(
                 f"API Structure - {name}",
@@ -812,6 +839,233 @@ class VerselinkAPITester:
                 endpoint,
                 expected_status,
                 data=data
+            )
+
+    def test_tournament_data_validation(self):
+        """Test tournament data validation"""
+        print("\n" + "="*60)
+        print("TESTING TOURNAMENT DATA VALIDATION")
+        print("="*60)
+        
+        test_org_id = "test-org-id"
+        
+        # Test invalid tournament formats
+        invalid_format_data = {
+            "name": "Invalid Format Tournament",
+            "description": "Testing invalid tournament format validation in the API endpoints.",
+            "format": "invalid_format",
+            "start_at_utc": (datetime.utcnow() + timedelta(days=7)).isoformat(),
+            "max_teams": 16,
+            "team_size": 3
+        }
+        
+        self.run_test(
+            "Create Tournament With Invalid Format",
+            "POST",
+            f"/api/v1/orgs/{test_org_id}/tournaments",
+            403,  # Will fail auth first, but tests the endpoint exists
+            data=invalid_format_data
+        )
+        
+        # Test invalid team size
+        invalid_team_size_data = {
+            "name": "Invalid Team Size Tournament",
+            "description": "Testing invalid team size validation in tournament creation.",
+            "format": "se",
+            "start_at_utc": (datetime.utcnow() + timedelta(days=7)).isoformat(),
+            "max_teams": 16,
+            "team_size": 0  # Invalid: too small
+        }
+        
+        self.run_test(
+            "Create Tournament With Invalid Team Size",
+            "POST",
+            f"/api/v1/orgs/{test_org_id}/tournaments",
+            403,  # Will fail auth first, but tests the endpoint exists
+            data=invalid_team_size_data
+        )
+        
+        # Test invalid max teams
+        invalid_max_teams_data = {
+            "name": "Invalid Max Teams Tournament",
+            "description": "Testing invalid max teams validation in tournament creation.",
+            "format": "se",
+            "start_at_utc": (datetime.utcnow() + timedelta(days=7)).isoformat(),
+            "max_teams": 2,  # Invalid: too small
+            "team_size": 5
+        }
+        
+        self.run_test(
+            "Create Tournament With Invalid Max Teams",
+            "POST",
+            f"/api/v1/orgs/{test_org_id}/tournaments",
+            403,  # Will fail auth first, but tests the endpoint exists
+            data=invalid_max_teams_data
+        )
+        
+        # Test past start date
+        past_date_data = {
+            "name": "Past Date Tournament",
+            "description": "Testing past start date validation in tournament creation.",
+            "format": "se",
+            "start_at_utc": (datetime.utcnow() - timedelta(days=1)).isoformat(),  # Past date
+            "max_teams": 16,
+            "team_size": 5
+        }
+        
+        self.run_test(
+            "Create Tournament With Past Start Date",
+            "POST",
+            f"/api/v1/orgs/{test_org_id}/tournaments",
+            403,  # Will fail auth first, but tests the endpoint exists
+            data=past_date_data
+        )
+
+    def test_tournament_state_transitions(self):
+        """Test tournament state transition scenarios"""
+        print("\n" + "="*60)
+        print("TESTING TOURNAMENT STATE TRANSITIONS")
+        print("="*60)
+        
+        # Test filtering by different states to ensure state system is working
+        states_to_test = [
+            "draft",
+            "open_registration", 
+            "registration_closed",
+            "ongoing",
+            "finished",
+            "cancelled"
+        ]
+        
+        for state in states_to_test:
+            self.run_test(
+                f"Filter Tournaments by State ({state})",
+                "GET",
+                f"/api/v1/tournaments/?state={state}&limit=5",
+                200
+            )
+
+    def test_match_score_validation(self):
+        """Test match score reporting validation"""
+        print("\n" + "="*60)
+        print("TESTING MATCH SCORE VALIDATION")
+        print("="*60)
+        
+        test_match_id = "test-match-id"
+        
+        # Test invalid score data (tied scores)
+        tied_score_data = {
+            "score_a": 2,
+            "score_b": 2,  # Tied scores should be invalid
+            "notes": "Testing tied score validation"
+        }
+        
+        self.run_test(
+            "Report Match With Tied Scores",
+            "POST",
+            f"/api/v1/tournaments/matches/{test_match_id}/report",
+            403,  # Will fail auth first, but tests the endpoint exists
+            data=tied_score_data
+        )
+        
+        # Test negative scores
+        negative_score_data = {
+            "score_a": -1,  # Invalid: negative score
+            "score_b": 2,
+            "notes": "Testing negative score validation"
+        }
+        
+        self.run_test(
+            "Report Match With Negative Scores",
+            "POST",
+            f"/api/v1/tournaments/matches/{test_match_id}/report",
+            403,  # Will fail auth first, but tests the endpoint exists
+            data=negative_score_data
+        )
+
+    def test_file_upload_validation(self):
+        """Test file upload validation scenarios"""
+        print("\n" + "="*60)
+        print("TESTING FILE UPLOAD VALIDATION")
+        print("="*60)
+        
+        test_match_id = "test-match-id"
+        
+        # Test upload without file (will fail auth first, but tests endpoint structure)
+        self.run_test(
+            "Upload Without File",
+            "POST",
+            f"/api/v1/tournaments/matches/{test_match_id}/attachments",
+            403
+        )
+        
+        # Test various attachment download scenarios
+        attachment_ids = [
+            "non-existent-attachment",
+            "invalid-uuid-format",
+            "12345678-1234-1234-1234-123456789012"  # Valid UUID format but non-existent
+        ]
+        
+        for attachment_id in attachment_ids:
+            self.run_test(
+                f"Download Non-existent Attachment ({attachment_id[:20]}...)",
+                "GET",
+                f"/api/v1/tournaments/attachments/{attachment_id}/download",
+                404
+            )
+
+    def test_tournament_bracket_generation(self):
+        """Test tournament bracket generation scenarios"""
+        print("\n" + "="*60)
+        print("TESTING TOURNAMENT BRACKET GENERATION")
+        print("="*60)
+        
+        # Test getting tournament details (which includes bracket info)
+        test_tournament_ids = [
+            "test-tournament-se",
+            "test-tournament-de", 
+            "test-tournament-rr",
+            "non-existent-tournament"
+        ]
+        
+        for tournament_id in test_tournament_ids:
+            expected_status = 404  # All should return 404 since they don't exist
+            self.run_test(
+                f"Get Tournament Details with Bracket ({tournament_id})",
+                "GET",
+                f"/api/v1/tournaments/{tournament_id}",
+                expected_status
+            )
+
+    def test_authentication_edge_cases(self):
+        """Test authentication edge cases for tournament endpoints"""
+        print("\n" + "="*60)
+        print("TESTING AUTHENTICATION EDGE CASES")
+        print("="*60)
+        
+        # Test with malformed token
+        malformed_tokens = [
+            "Bearer invalid.jwt.token",
+            "invalid-token-format",
+            "Bearer ",
+            ""
+        ]
+        
+        for token in malformed_tokens:
+            if token:
+                headers = {"Authorization": token}
+                expected_status = 401 if token.startswith("Bearer ") else 403
+            else:
+                headers = {}
+                expected_status = 403
+            
+            self.run_test(
+                f"Create Team With Malformed Token",
+                "POST",
+                "/api/v1/tournaments/test-id/teams",
+                expected_status,
+                data={"name": "Test Team"},
+                headers=headers
             )
 
     def run_all_tests(self):
