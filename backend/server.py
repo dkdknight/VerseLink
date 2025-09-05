@@ -6,7 +6,7 @@ import motor.motor_asyncio
 from decouple import config
 import logging
 
-from routers import auth, users, organizations, events, tournaments, discord_integration
+from routers import auth, users, organizations, events, tournaments, discord_integration, notifications, moderation
 from database import init_db
 from middleware.auth import get_current_user
 
