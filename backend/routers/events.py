@@ -132,8 +132,8 @@ async def get_event(event_id: str):
     if not event_doc:
         raise HTTPException(status_code=404, detail="Event not found")
     
-    # Check visibility permissions
-    if event_doc["visibility"] == "private" and not current_user:
+    # Check visibility permissions (simplified for Phase 2)
+    if event_doc["visibility"] == "private":
         raise HTTPException(status_code=404, detail="Event not found")
     
     # Extract org info
