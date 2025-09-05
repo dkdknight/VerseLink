@@ -484,6 +484,18 @@ const TournamentDetailPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Match Report Modal */}
+      <MatchReportModal
+        isOpen={reportModalOpen}
+        onClose={() => {
+          setReportModalOpen(false);
+          setSelectedMatch(null);
+        }}
+        match={selectedMatch}
+        currentUser={user}
+        onMatchUpdated={loadTournament}
+      />
     </div>
   );
 };
