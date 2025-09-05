@@ -174,6 +174,22 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
+              <Route 
+                path="/notifications" 
+                element={
+                  <ProtectedRoute>
+                    <NotificationsPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/notifications/preferences" 
+                element={
+                  <ProtectedRoute>
+                    <NotificationPreferencesPage />
+                  </ProtectedRoute>
+                } 
+              />
               
               {/* Catch all redirect */}
               <Route path="*" element={<Navigate to="/" replace />} />
