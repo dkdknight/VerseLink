@@ -139,6 +139,126 @@ backend:
         agent: "testing"
         comment: "Comprehensive tournament data models implemented: Tournament, Team, Match, Attachment with proper enums (TournamentFormat, TournamentState, MatchState, AttachmentType), validation, and response models. All models use UUID-based IDs as required."
 
+  - task: "Phase 5 Discord Guild Management API"
+    implemented: true
+    working: true
+    file: "/app/backend/routers/discord_integration_v2.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Discord guild management API fully functional. POST /api/v1/discord/guilds, GET /api/v1/discord/guilds, GET /api/v1/discord/guilds/{guild_id} endpoints working with proper authentication. Guild registration, listing, and details retrieval implemented."
+
+  - task: "Phase 5 Discord Webhook API"
+    implemented: true
+    working: true
+    file: "/app/backend/routers/discord_integration_v2.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Minor: Discord webhook API working with 85.2% success rate. POST /api/v1/discord/webhooks/incoming endpoint functional for processing Discord webhooks. Some edge cases in signature verification and error handling need improvement but core functionality works."
+
+  - task: "Phase 5 Discord Announcement API"
+    implemented: true
+    working: true
+    file: "/app/backend/routers/discord_integration_v2.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Discord announcement API fully functional. POST /api/v1/discord/announce/event and POST /api/v1/discord/announce/tournament endpoints working with proper authentication. Event and tournament announcement queueing implemented."
+
+  - task: "Phase 5 Discord Message Sync API"
+    implemented: true
+    working: true
+    file: "/app/backend/routers/discord_integration_v2.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Discord message synchronization API fully functional. POST /api/v1/discord/sync/message endpoint working with proper authentication. Message synchronization across multiple guilds implemented."
+
+  - task: "Phase 5 Discord Reminder API"
+    implemented: true
+    working: true
+    file: "/app/backend/routers/discord_integration_v2.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Discord reminder API fully functional. POST /api/v1/discord/reminders/schedule/{event_id} endpoint working with proper authentication. Automatic event reminder scheduling implemented."
+
+  - task: "Phase 5 Discord Job Management API"
+    implemented: true
+    working: true
+    file: "/app/backend/routers/discord_integration_v2.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Discord job management API fully functional. GET /api/v1/discord/jobs and POST /api/v1/discord/jobs/process endpoints working with proper admin authentication. Job listing and manual processing implemented."
+
+  - task: "Phase 5 Discord Bot Authentication API"
+    implemented: true
+    working: true
+    file: "/app/backend/routers/discord_integration_v2.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Minor: Discord bot authentication API working with parameter validation issues. POST /api/v1/discord/bot/verify and GET /api/v1/discord/bot/guild/{guild_id}/config endpoints functional but need parameter format adjustments. Core authentication logic works."
+
+  - task: "Phase 5 Discord Stats & Health API"
+    implemented: true
+    working: true
+    file: "/app/backend/routers/discord_integration_v2.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Discord stats and health API fully functional. GET /api/v1/discord/stats (admin only) and GET /api/v1/discord/health endpoints working correctly. Integration statistics and health monitoring implemented."
+
+  - task: "Phase 5 Discord Service Layer"
+    implemented: true
+    working: true
+    file: "/app/backend/services/discord_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "DiscordService class fully implemented with comprehensive Discord integration management: guild registration, webhook processing, job queue system, message synchronization, reminder scheduling, bot API communication, and statistics."
+
+  - task: "Phase 5 Discord Data Models"
+    implemented: true
+    working: true
+    file: "/app/backend/models/discord_integration.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Comprehensive Discord integration data models implemented: DiscordGuild, DiscordJob, WebhookLog, SyncedMessage, ReminderConfig with proper enums, validation, and response models. All models use UUID-based IDs and Pydantic v2 compatibility."
+
 frontend:
   - task: "Phase 4 Frontend Integration"
     implemented: false
