@@ -77,42 +77,43 @@ const Navbar = () => {
                 <NotificationBell />
                 
                 <div className="relative">
-                <button
-                  onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center space-x-2 text-gray-300 hover:text-white focus:outline-none"
-                >
-                  {user?.avatar_url ? (
-                    <img
-                      src={user.avatar_url}
-                      alt={user.handle}
-                      className="w-8 h-8 rounded-full"
-                    />
-                  ) : (
-                    <UserCircleIcon className="w-8 h-8" />
-                  )}
-                  <span className="font-medium">{user?.handle}</span>
-                </button>
+                  <button
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    className="flex items-center space-x-2 text-gray-300 hover:text-white focus:outline-none"
+                  >
+                    {user?.avatar_url ? (
+                      <img
+                        src={user.avatar_url}
+                        alt={user.handle}
+                        className="w-8 h-8 rounded-full"
+                      />
+                    ) : (
+                      <UserCircleIcon className="w-8 h-8" />
+                    )}
+                    <span className="font-medium">{user?.handle}</span>
+                  </button>
 
-                {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-dark-800 rounded-md shadow-lg border border-dark-700 py-1 z-50">
-                    <Link
-                      to="/profile"
-                      className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-dark-700 hover:text-white"
-                      onClick={() => setUserMenuOpen(false)}
-                    >
-                      <Cog6ToothIcon className="w-4 h-4 mr-2" />
-                      Profil
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-dark-700 hover:text-white"
-                    >
-                      <ArrowRightOnRectangleIcon className="w-4 h-4 mr-2" />
-                      Déconnexion
-                    </button>
-                  </div>
-                )}
-              </div>
+                  {userMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-dark-800 rounded-md shadow-lg border border-dark-700 py-1 z-50">
+                      <Link
+                        to="/profile"
+                        className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-dark-700 hover:text-white"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        <Cog6ToothIcon className="w-4 h-4 mr-2" />
+                        Profil
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-dark-700 hover:text-white"
+                      >
+                        <ArrowRightOnRectangleIcon className="w-4 h-4 mr-2" />
+                        Déconnexion
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
             ) : (
               <Link
                 to="/login"
