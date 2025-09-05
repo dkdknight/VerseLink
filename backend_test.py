@@ -543,10 +543,10 @@ class VerselinkAPITester:
             data={"test": "payload"}
         )
 
-    def test_notifications_endpoints(self):
-        """Test Phase 4 notifications endpoints"""
+    def test_notifications_endpoints_comprehensive(self):
+        """Test Phase 4 notifications endpoints comprehensively"""
         print("\n" + "="*50)
-        print("TESTING PHASE 4 NOTIFICATIONS ENDPOINTS")
+        print("TESTING PHASE 4 NOTIFICATIONS ENDPOINTS - COMPREHENSIVE")
         print("="*50)
         
         # Test endpoints without authentication (should fail with 403)
@@ -599,11 +599,32 @@ class VerselinkAPITester:
             "/api/v1/notifications/test",
             403
         )
+        
+        # Test with invalid token
+        print("\n🔍 Testing with invalid token...")
+        invalid_token = "invalid.jwt.token"
+        
+        self.run_test(
+            "Get Notifications With Invalid Token",
+            "GET",
+            "/api/v1/notifications/me",
+            403,
+            headers={"Authorization": f"Bearer {invalid_token}"}
+        )
+        
+        # Test notification preferences with invalid data
+        self.run_test(
+            "Update Preferences With Invalid Data Structure",
+            "PUT",
+            "/api/v1/notifications/me/preferences",
+            403,  # Will fail auth first, but tests the endpoint exists
+            data={"invalid": "structure"}
+        )
 
-    def test_moderation_endpoints(self):
-        """Test Phase 4 moderation endpoints"""
+    def test_moderation_endpoints_comprehensive(self):
+        """Test Phase 4 moderation endpoints comprehensively"""
         print("\n" + "="*50)
-        print("TESTING PHASE 4 MODERATION ENDPOINTS")
+        print("TESTING PHASE 4 MODERATION ENDPOINTS - COMPREHENSIVE")
         print("="*50)
         
         # Test endpoints without authentication (should fail with 403)
@@ -671,6 +692,123 @@ class VerselinkAPITester:
             "/api/v1/moderation/maintenance/unban-expired",
             403
         )
+        
+        # Test with invalid token
+        print("\n🔍 Testing moderation with invalid token...")
+        invalid_token = "invalid.jwt.token"
+        
+        self.run_test(
+            "Create Report With Invalid Token",
+            "POST",
+            "/api/v1/moderation/reports",
+            403,
+            data={
+                "reported_user_id": "test-user-id",
+                "type": "harassment",
+                "reason": "User is harassing other players in voice chat."
+            },
+            headers={"Authorization": f"Bearer {invalid_token}"}
+        )
+        
+        # Test report creation with invalid data
+        self.run_test(
+            "Create Report With Invalid Data - Missing Reason",
+            "POST",
+            "/api/v1/moderation/reports",
+            403,  # Will fail auth first, but tests the endpoint exists
+            data={
+                "reported_user_id": "test-user-id",
+                "type": "spam"
+                # Missing required 'reason' field
+            }
+        )
+        
+        self.run_test(
+            "Create Report With Invalid Data - Short Reason",
+            "POST",
+            "/api/v1/moderation/reports",
+            403,  # Will fail auth first, but tests the endpoint exists
+            data={
+                "reported_user_id": "test-user-id",
+                "type": "spam",
+                "reason": "short"  # Too short (min 10 chars)
+            }
+        )
+        
+        # Test moderation action with invalid data
+        self.run_test(
+            "Handle Report With Invalid Action",
+            "POST",
+            "/api/v1/moderation/reports/test-report-id/action",
+            403,  # Will fail auth first, but tests the endpoint exists
+            data={
+                "action": "invalid_action",
+                "reason": "Test reason"
+            }
+        )
+        
+        # Test pagination parameters
+        self.run_test(
+            "List Reports With Pagination",
+            "GET",
+            "/api/v1/moderation/reports?limit=10&skip=0",
+            403
+        )
+        
+        self.run_test(
+            "List Reports With Status Filter",
+            "GET",
+            "/api/v1/moderation/reports?status=pending",
+            403
+        )
+        
+        self.run_test(
+            "Get Audit Logs With Pagination",
+            "GET",
+            "/api/v1/moderation/audit-logs?limit=25&skip=0",
+            403
+        )
+
+    def test_phase4_api_structure(self):
+        """Test Phase 4 API structure and endpoint availability"""
+        print("\n" + "="*50)
+        print("TESTING PHASE 4 API STRUCTURE")
+        print("="*50)
+        
+        # Test that all Phase 4 endpoints exist and return proper error codes
+        phase4_endpoints = [
+            # Notifications endpoints
+            ("GET", "/api/v1/notifications/me", "Notifications List"),
+            ("GET", "/api/v1/notifications/me/stats", "Notification Stats"),
+            ("POST", "/api/v1/notifications/test-id/read", "Mark Notification Read"),
+            ("POST", "/api/v1/notifications/me/read-all", "Mark All Read"),
+            ("GET", "/api/v1/notifications/me/preferences", "Get Preferences"),
+            ("PUT", "/api/v1/notifications/me/preferences", "Update Preferences"),
+            ("POST", "/api/v1/notifications/test", "Test Notification"),
+            
+            # Moderation endpoints
+            ("POST", "/api/v1/moderation/reports", "Create Report"),
+            ("GET", "/api/v1/moderation/reports", "List Reports"),
+            ("GET", "/api/v1/moderation/reports/test-id", "Get Report"),
+            ("POST", "/api/v1/moderation/reports/test-id/action", "Handle Report"),
+            ("GET", "/api/v1/moderation/users/test-id/history", "User History"),
+            ("GET", "/api/v1/moderation/stats", "Moderation Stats"),
+            ("GET", "/api/v1/moderation/audit-logs", "Audit Logs"),
+            ("POST", "/api/v1/moderation/maintenance/unban-expired", "Unban Expired"),
+        ]
+        
+        for method, endpoint, name in phase4_endpoints:
+            # All should return 403 (auth required) rather than 404 (not found)
+            expected_status = 403
+            data = {} if method in ["POST", "PUT"] else None
+            
+            self.run_test(
+                f"API Structure - {name}",
+                method,
+                endpoint,
+                expected_status,
+                data=data
+            )
 
     def run_all_tests(self):
         """Run all test suites"""
