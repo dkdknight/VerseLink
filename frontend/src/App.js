@@ -158,6 +158,7 @@ function App() {
               <Route path="/organizations" element={<OrganizationsPage />} />
               <Route path="/organizations/:id" element={<OrganizationDetailPage />} />
               <Route path="/events" element={<EventsPage />} />
+              <Route path="/events/:id" element={<EventDetailPage />} />
               <Route path="/tournaments" element={<TournamentsPage />} />
               
               {/* Protected routes */}
