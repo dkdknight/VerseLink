@@ -12,7 +12,7 @@ from typing import Dict, Any, Optional
 import io
 
 class VerselinkAPITester:
-    def __init__(self, base_url: str = "http://localhost:8001"):
+    def __init__(self, base_url: str = "https://cosmic-verselink.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.tests_run = 0
