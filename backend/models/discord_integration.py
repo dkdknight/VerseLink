@@ -240,7 +240,7 @@ class EventAnnouncementRequest(BaseModel):
 class TournamentAnnouncementRequest(BaseModel):
     tournament_id: str
     guild_ids: List[str] = Field(..., min_items=1)
-    announcement_type: str = Field(..., regex="^(created|started|finished|match_result)$")
+    announcement_type: str = Field(..., pattern="^(created|started|finished|match_result)$")
     custom_message: Optional[str] = Field(None, max_length=2000)
 
 class MessageSyncRequest(BaseModel):
