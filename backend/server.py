@@ -49,6 +49,8 @@ app.include_router(organizations.router, prefix="/api/v1/orgs", tags=["Organizat
 app.include_router(events.router, prefix="/api/v1/events", tags=["Events"])
 app.include_router(tournaments.router, prefix="/api/v1/tournaments", tags=["Tournaments"])
 app.include_router(discord_integration.router, prefix="/api/v1/integrations/discord", tags=["Discord Integration"])
+app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["Notifications"])
+app.include_router(moderation.router, prefix="/api/v1/moderation", tags=["Moderation"])
 
 @app.get("/")
 async def root():
