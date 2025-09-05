@@ -1575,7 +1575,7 @@ def main():
     # Use the public endpoint from frontend .env
     base_url = "https://citizen-connect-2.preview.emergentagent.com"
     
-    print("VerseLink Phase 4 Backend API Test Suite - Tournament & Brackets System")
+    print("VerseLink Phase 5 Backend API Test Suite - Discord Integration System")
     print("=" * 80)
     
     tester = VerselinkAPITester(base_url)
