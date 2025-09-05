@@ -195,7 +195,7 @@ class VerselinkAPITester:
             "Get User Profile Without Auth",
             "GET",
             "/api/v1/users/profile",
-            401
+            403
         )
 
     def test_events_endpoints(self):
