@@ -96,6 +96,24 @@ const ModerationDashboardPage = () => {
     }
   };
 
+  const loadAutoModerationConfig = async () => {
+    try {
+      const configData = await autoModerationService.getConfig();
+      setAutoModerationConfig(configData.config);
+    } catch (error) {
+      console.error('Failed to load auto-moderation config:', error);
+    }
+  };
+
+  const loadAutoModerationStats = async () => {
+    try {
+      const statsData = await autoModerationService.getStats();
+      setAutoModerationStats(statsData);
+    } catch (error) {
+      console.error('Failed to load auto-moderation stats:', error);
+    }
+  };
+
   const handleReport = async (reportId, action, reason, additionalData = {}) => {
     try {
       await moderationService.handleReport(reportId, {
