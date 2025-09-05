@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 
 from database import get_database
-from middleware.auth import get_current_active_user, get_admin_user
+from middleware.auth import get_current_active_user, require_site_admin
 from services.discord_service import DiscordService
 from models.discord_integration import (
     DiscordGuildCreate, DiscordGuildResponse, DiscordJobResponse,
@@ -257,7 +257,7 @@ async def schedule_event_reminders(
 async def list_discord_jobs(
     limit: int = 50,
     status: Optional[str] = None,
-    admin_user: User = Depends(get_admin_user)
+    admin_user: User = Depends(require_site_admin)
 ):
     """List Discord jobs (admin only)"""
     db = get_database()
@@ -288,7 +288,7 @@ async def list_discord_jobs(
 
 @router.post("/jobs/process")
 async def process_discord_jobs(
-    admin_user: User = Depends(get_admin_user)
+    admin_user: User = Depends(require_site_admin)
 ):
     """Manually trigger job processing (admin only)"""
     try:
@@ -364,7 +364,7 @@ async def get_bot_guild_config(
 # Statistics and Monitoring
 @router.get("/stats", response_model=DiscordIntegrationStats)
 async def get_discord_integration_stats(
-    admin_user: User = Depends(get_admin_user)
+    admin_user: User = Depends(require_site_admin)
 ):
     """Get Discord integration statistics (admin only)"""
     stats = await discord_service.get_integration_stats()
