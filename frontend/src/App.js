@@ -191,6 +191,14 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
+              <Route 
+                path="/admin/moderation" 
+                element={
+                  <ProtectedRoute>
+                    <ModerationDashboardPage />
+                  </ProtectedRoute>
+                } 
+              />
               
               {/* Catch all redirect */}
               <Route path="*" element={<Navigate to="/" replace />} />
