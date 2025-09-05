@@ -549,47 +549,47 @@ class VerselinkAPITester:
         print("TESTING PHASE 4 NOTIFICATIONS ENDPOINTS")
         print("="*50)
         
-        # Test endpoints without authentication (should fail with 401)
+        # Test endpoints without authentication (should fail with 403)
         self.run_test(
             "Get Notifications Without Auth",
             "GET",
             "/api/v1/notifications/me",
-            401
+            403
         )
         
         self.run_test(
             "Get Notification Stats Without Auth",
             "GET",
             "/api/v1/notifications/me/stats",
-            401
+            403
         )
         
         self.run_test(
             "Mark Notification Read Without Auth",
             "POST",
             "/api/v1/notifications/test-notification-id/read",
-            401
+            403
         )
         
         self.run_test(
             "Mark All Notifications Read Without Auth",
             "POST",
             "/api/v1/notifications/me/read-all",
-            401
+            403
         )
         
         self.run_test(
             "Get Notification Preferences Without Auth",
             "GET",
             "/api/v1/notifications/me/preferences",
-            401
+            403
         )
         
         self.run_test(
             "Update Notification Preferences Without Auth",
             "PUT",
             "/api/v1/notifications/me/preferences",
-            401,
+            403,
             data={"preferences": {}}
         )
         
@@ -597,7 +597,7 @@ class VerselinkAPITester:
             "Create Test Notification Without Auth",
             "POST",
             "/api/v1/notifications/test",
-            401
+            403
         )
 
     def test_moderation_endpoints(self):
