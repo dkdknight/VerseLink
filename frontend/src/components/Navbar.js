@@ -72,7 +72,11 @@ const Navbar = () => {
           {/* Desktop User Menu */}
           <div className="hidden md:flex items-center space-x-4">
             {isAuthenticated ? (
-              <div className="relative">
+              <>
+                {/* Notification Bell */}
+                <NotificationBell />
+                
+                <div className="relative">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center space-x-2 text-gray-300 hover:text-white focus:outline-none"
