@@ -61,6 +61,8 @@ const ModerationDashboardPage = () => {
     
     loadReports();
     loadStats();
+    loadAutoModerationConfig();
+    loadAutoModerationStats();
   }, [user, selectedStatus]);
 
   const loadReports = async () => {
