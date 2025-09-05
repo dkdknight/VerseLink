@@ -222,26 +222,10 @@ async def get_event(event_id: str):
     can_edit = False
     can_checkin = False
     
-    if current_user:
-        my_signup_doc = await db.event_signups.find_one({
-            "event_id": event_doc["id"],
-            "user_id": current_user.id,
-            "status": {"$ne": SignupStatus.WITHDRAWN}
-        })
-        
-        if my_signup_doc:
-            # Find matching signup in the list
-            my_signup = next((s for s in signups if s.user_id == current_user.id), None)
-            can_checkin = (my_signup_doc["status"] == SignupStatus.CONFIRMED and 
-                          _is_checkin_available(event_doc["start_at_utc"]))
-        else:
-            can_signup = (event_doc["state"] == EventState.PUBLISHED and 
-                         event_doc["start_at_utc"] > datetime.utcnow())
-        
-        # Check edit permissions
-        can_edit = await EventPermissions.can_edit_event(
-            current_user, event_doc["org_id"], event_doc["created_by"]
-        )
+    # For Phase 2, we'll handle user-specific data in frontend
+    # This endpoint is public but signup actions require auth
+    can_signup = (event_doc["state"] == EventState.PUBLISHED and 
+                 event_doc["start_at_utc"] > datetime.utcnow())
     
     return EventDetailResponse(
         **event_doc,
