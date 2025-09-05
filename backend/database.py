@@ -171,6 +171,14 @@ async def create_indexes():
     await database.notifications.create_index("user_id")
     await database.notifications.create_index("created_at")
     
+    # Auto-moderation indexes
+    await database.user_messages.create_index("user_id")
+    await database.user_messages.create_index("created_at")
+    await database.auto_moderation_logs.create_index("user_id")
+    await database.auto_moderation_logs.create_index("created_at")
+    await database.notification_preferences.create_index("user_id")
+    await database.notification_preferences.create_index([("user_id", 1), ("notification_type", 1)], unique=True)
+    
     logger.info("All database indexes created successfully")
 
 def get_database():
