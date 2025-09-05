@@ -234,7 +234,7 @@ class BotAuthToken(BaseModel):
 class EventAnnouncementRequest(BaseModel):
     event_id: str
     guild_ids: List[str] = Field(..., min_items=1)
-    announcement_type: str = Field(..., regex="^(created|updated|cancelled|reminder)$")
+    announcement_type: str = Field(..., pattern="^(created|updated|cancelled|reminder)$")
     custom_message: Optional[str] = Field(None, max_length=2000)
 
 class TournamentAnnouncementRequest(BaseModel):
