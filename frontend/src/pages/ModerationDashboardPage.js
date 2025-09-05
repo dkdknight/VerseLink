@@ -12,6 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
 import { moderationService } from '../services/moderationService';
+import { autoModerationService } from '../services/autoModerationService';
 import { useAuth } from '../App';
 
 const ModerationDashboardPage = () => {
