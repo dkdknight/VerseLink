@@ -606,12 +606,12 @@ class VerselinkAPITester:
         print("TESTING PHASE 4 MODERATION ENDPOINTS")
         print("="*50)
         
-        # Test endpoints without authentication (should fail with 401)
+        # Test endpoints without authentication (should fail with 403)
         self.run_test(
             "Create Report Without Auth",
             "POST",
             "/api/v1/moderation/reports",
-            401,
+            403,
             data={
                 "reported_user_id": "test-user-id",
                 "type": "spam",
@@ -623,21 +623,21 @@ class VerselinkAPITester:
             "List Reports Without Auth",
             "GET",
             "/api/v1/moderation/reports",
-            401
+            403
         )
         
         self.run_test(
             "Get Report Without Auth",
             "GET",
             "/api/v1/moderation/reports/test-report-id",
-            401
+            403
         )
         
         self.run_test(
             "Handle Report Without Auth",
             "POST",
             "/api/v1/moderation/reports/test-report-id/action",
-            401,
+            403,
             data={
                 "action": "warning",
                 "reason": "First offense warning"
@@ -648,28 +648,28 @@ class VerselinkAPITester:
             "Get User Moderation History Without Auth",
             "GET",
             "/api/v1/moderation/users/test-user-id/history",
-            401
+            403
         )
         
         self.run_test(
             "Get Moderation Stats Without Auth",
             "GET",
             "/api/v1/moderation/stats",
-            401
+            403
         )
         
         self.run_test(
             "Get Audit Logs Without Auth",
             "GET",
             "/api/v1/moderation/audit-logs",
-            401
+            403
         )
         
         self.run_test(
             "Unban Expired Users Without Auth",
             "POST",
             "/api/v1/moderation/maintenance/unban-expired",
-            401
+            403
         )
 
     def run_all_tests(self):
