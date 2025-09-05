@@ -194,7 +194,7 @@ class VerselinkAPITester:
         self.run_test(
             "Get User Profile Without Auth",
             "GET",
-            "/api/v1/users/profile",
+            "/api/v1/users/me",
             403
         )
 
