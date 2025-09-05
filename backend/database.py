@@ -45,7 +45,17 @@ async def create_indexes():
     await database.events.create_index("start_at_utc")
     await database.events.create_index("type")
     await database.events.create_index("visibility")
+    await database.events.create_index("state")
+    await database.events.create_index("created_by")
     await database.events.create_index([("start_at_utc", 1), ("type", 1)])
+    await database.events.create_index([("org_id", 1), ("state", 1)])
+    
+    # Event roles indexes
+    await database.event_roles.create_index("event_id")
+    await database.event_roles.create_index([("event_id", 1), ("name", 1)])
+    
+    # Fleet ships indexes
+    await database.fleet_ships.create_index("event_id")
     
     # Event signups indexes
     await database.event_signups.create_index([("event_id", 1), ("user_id", 1)], unique=True)
