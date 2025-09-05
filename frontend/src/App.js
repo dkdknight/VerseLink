@@ -13,6 +13,7 @@ import OrganizationDetailPage from './pages/OrganizationDetailPage';
 import EventsPage from './pages/EventsPage';
 import EventDetailPage from './pages/EventDetailPage';
 import TournamentsPage from './pages/TournamentsPage';
+import TournamentDetailPage from './pages/TournamentDetailPage';
 
 // Import services
 import { authService } from './services/authService';
