@@ -15,6 +15,8 @@ import {
 } from '@heroicons/react/24/outline';
 import { tournamentService } from '../services/tournamentService';
 import { useAuth } from '../App';
+import MatchReportModal from '../components/MatchReportModal';
+import TournamentBracket from '../components/TournamentBracket';
 
 const TournamentDetailPage = () => {
   const { id } = useParams();
