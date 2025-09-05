@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """
-VerseLink Backend API Test Suite
-Tests all Phase 1 endpoints for VerseLink application
+VerseLink Backend API Test Suite - Phase 4 Tournament System Testing
+Tests Tournament & Brackets system for VerseLink application
 """
 
 import requests
 import sys
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
+import io
 
 class VerselinkAPITester:
     def __init__(self, base_url: str = "http://localhost:8001"):
@@ -17,6 +18,9 @@ class VerselinkAPITester:
         self.tests_run = 0
         self.tests_passed = 0
         self.test_results = []
+        self.created_tournament_id = None
+        self.created_team_id = None
+        self.created_match_id = None
 
     def log_test(self, name: str, success: bool, details: str = ""):
         """Log test result"""
