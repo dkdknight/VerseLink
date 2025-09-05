@@ -234,10 +234,10 @@ async def get_event(event_id: str):
         roles=roles,
         fleet_ships=fleet_ships,
         signups=signups,
-        my_signup=my_signup,
+        my_signup=None,  # Will be handled in frontend
         can_signup=can_signup,
-        can_edit=can_edit,
-        can_checkin=can_checkin,
+        can_edit=False,  # Will be handled in frontend
+        can_checkin=False,  # Will be handled in frontend
         is_full=event_doc.get("confirmed_count", 0) >= event_doc.get("max_participants", float('inf')) if event_doc.get("max_participants") else False,
         checkin_available=_is_checkin_available(event_doc.get("start_at_utc"))
     )
