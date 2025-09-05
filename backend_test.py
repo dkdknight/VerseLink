@@ -197,17 +197,123 @@ class VerselinkAPITester:
         )
 
     def test_events_endpoints(self):
-        """Test events endpoints"""
+        """Test Phase 2 events endpoints"""
         print("\n" + "="*50)
-        print("TESTING EVENTS ENDPOINTS")
+        print("TESTING PHASE 2 EVENTS ENDPOINTS")
         print("="*50)
         
         # Test events listing (should work even without auth for public events)
-        self.run_test(
+        success, response = self.run_test(
             "List Events",
             "GET",
             "/api/v1/events/",
             200
+        )
+        
+        if success:
+            if isinstance(response, list):
+                self.log_test("Events List Format", True, f"Returned {len(response)} events")
+            else:
+                self.log_test("Events List Format", False, "Response is not a list")
+        
+        # Test events with search query
+        self.run_test(
+            "Search Events with Query",
+            "GET",
+            "/api/v1/events/?query=test&limit=10",
+            200
+        )
+        
+        # Test events with type filter
+        self.run_test(
+            "Filter Events by Type",
+            "GET",
+            "/api/v1/events/?type=raid&limit=10",
+            200
+        )
+        
+        # Test events with org filter
+        self.run_test(
+            "Filter Events by Organization",
+            "GET",
+            "/api/v1/events/?org_id=test-org&limit=10",
+            200
+        )
+        
+        # Test events with date filters
+        from datetime import datetime, timedelta
+        start_date = datetime.utcnow().isoformat()
+        end_date = (datetime.utcnow() + timedelta(days=30)).isoformat()
+        
+        self.run_test(
+            "Filter Events by Date Range",
+            "GET",
+            f"/api/v1/events/?start_date={start_date}&end_date={end_date}",
+            200
+        )
+        
+        # Test pagination
+        self.run_test(
+            "Events Pagination",
+            "GET",
+            "/api/v1/events/?limit=5&skip=0",
+            200
+        )
+        
+        # Test get non-existent event
+        self.run_test(
+            "Get Non-existent Event",
+            "GET",
+            "/api/v1/events/non-existent-id",
+            404
+        )
+        
+        # Test ICS download for non-existent event
+        self.run_test(
+            "Download ICS for Non-existent Event",
+            "GET",
+            "/api/v1/events/non-existent-id/ics",
+            404
+        )
+        
+        # Test protected endpoints without auth (should fail)
+        test_event_id = "test-event-id"
+        
+        self.run_test(
+            "Signup Without Auth",
+            "POST",
+            f"/api/v1/events/{test_event_id}/signups",
+            401,
+            data={"role_id": None, "notes": "Test signup"}
+        )
+        
+        self.run_test(
+            "Withdraw Without Auth",
+            "DELETE",
+            f"/api/v1/events/{test_event_id}/signups/me",
+            401
+        )
+        
+        self.run_test(
+            "Checkin Without Auth",
+            "POST",
+            f"/api/v1/events/{test_event_id}/checkin",
+            401
+        )
+        
+        # Test create event without auth (should fail)
+        self.run_test(
+            "Create Event Without Auth",
+            "POST",
+            "/api/v1/orgs/test-org/events",
+            401,
+            data={
+                "title": "Test Event",
+                "description": "Test event description",
+                "type": "raid",
+                "start_at_utc": (datetime.utcnow() + timedelta(days=1)).isoformat(),
+                "duration_minutes": 120
+            }
         )
 
     def test_tournaments_endpoints(self):
