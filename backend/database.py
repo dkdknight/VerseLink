@@ -87,6 +87,32 @@ async def create_indexes():
     await database.attachments.create_index("user_id")
     await database.attachments.create_index("uploaded_at")
     
+    # Notifications indexes
+    await database.notifications.create_index("user_id")
+    await database.notifications.create_index([("user_id", 1), ("read_at", 1)])
+    await database.notifications.create_index("created_at")
+    await database.notifications.create_index("expires_at", sparse=True)
+    await database.notifications.create_index("type")
+    await database.notifications.create_index("priority")
+    
+    # Notification preferences indexes
+    await database.notification_preferences.create_index([("user_id", 1), ("notification_type", 1)], unique=True)
+    await database.notification_preferences.create_index("user_id")
+    
+    # Reports indexes
+    await database.reports.create_index("reported_user_id")
+    await database.reports.create_index("reporter_user_id")
+    await database.reports.create_index("status")
+    await database.reports.create_index("created_at")
+    await database.reports.create_index([("reporter_user_id", 1), ("reported_user_id", 1), ("created_at", 1)])
+    
+    # Audit logs indexes
+    await database.audit_logs.create_index("actor_user_id")
+    await database.audit_logs.create_index("target_user_id")
+    await database.audit_logs.create_index("action")
+    await database.audit_logs.create_index("created_at")
+    await database.audit_logs.create_index([("target_user_id", 1), ("action", 1)])
+    
     # Event signups indexes
     await database.event_signups.create_index([("event_id", 1), ("user_id", 1)], unique=True)
     await database.event_signups.create_index("event_id")
