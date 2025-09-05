@@ -317,17 +317,205 @@ class VerselinkAPITester:
         )
 
     def test_tournaments_endpoints(self):
-        """Test tournaments endpoints"""
+        """Test Phase 3 tournaments endpoints"""
         print("\n" + "="*50)
-        print("TESTING TOURNAMENTS ENDPOINTS")
+        print("TESTING PHASE 3 TOURNAMENTS ENDPOINTS")
         print("="*50)
         
-        # Test tournaments listing
-        self.run_test(
+        # Test tournaments listing (should work without auth)
+        success, response = self.run_test(
             "List Tournaments",
             "GET",
             "/api/v1/tournaments/",
             200
+        )
+        
+        if success:
+            if isinstance(response, list):
+                self.log_test("Tournaments List Format", True, f"Returned {len(response)} tournaments")
+            else:
+                self.log_test("Tournaments List Format", False, "Response is not a list")
+        
+        # Test tournaments with search query
+        self.run_test(
+            "Search Tournaments with Query",
+            "GET",
+            "/api/v1/tournaments/?query=test&limit=10",
+            200
+        )
+        
+        # Test tournaments with format filter
+        self.run_test(
+            "Filter Tournaments by Format (SE)",
+            "GET",
+            "/api/v1/tournaments/?format=se&limit=10",
+            200
+        )
+        
+        self.run_test(
+            "Filter Tournaments by Format (DE)",
+            "GET",
+            "/api/v1/tournaments/?format=de&limit=10",
+            200
+        )
+        
+        self.run_test(
+            "Filter Tournaments by Format (RR)",
+            "GET",
+            "/api/v1/tournaments/?format=rr&limit=10",
+            200
+        )
+        
+        # Test tournaments with state filter
+        self.run_test(
+            "Filter Tournaments by State (Open Registration)",
+            "GET",
+            "/api/v1/tournaments/?state=open_registration&limit=10",
+            200
+        )
+        
+        self.run_test(
+            "Filter Tournaments by State (Ongoing)",
+            "GET",
+            "/api/v1/tournaments/?state=ongoing&limit=10",
+            200
+        )
+        
+        self.run_test(
+            "Filter Tournaments by State (Finished)",
+            "GET",
+            "/api/v1/tournaments/?state=finished&limit=10",
+            200
+        )
+        
+        # Test tournaments with org filter
+        self.run_test(
+            "Filter Tournaments by Organization",
+            "GET",
+            "/api/v1/tournaments/?org_id=test-org&limit=10",
+            200
+        )
+        
+        # Test combined filters
+        self.run_test(
+            "Combined Filters (Format + State)",
+            "GET",
+            "/api/v1/tournaments/?format=se&state=ongoing&limit=10",
+            200
+        )
+        
+        # Test pagination
+        self.run_test(
+            "Tournaments Pagination",
+            "GET",
+            "/api/v1/tournaments/?limit=5&skip=0",
+            200
+        )
+        
+        # Test get non-existent tournament
+        self.run_test(
+            "Get Non-existent Tournament",
+            "GET",
+            "/api/v1/tournaments/non-existent-id",
+            404
+        )
+        
+        # Test get tournament by slug (should also return 404 for non-existent)
+        self.run_test(
+            "Get Tournament by Non-existent Slug",
+            "GET",
+            "/api/v1/tournaments/non-existent-slug",
+            404
+        )
+        
+        # Test protected endpoints without auth (should fail with 401)
+        test_tournament_id = "test-tournament-id"
+        test_team_id = "test-team-id"
+        test_match_id = "test-match-id"
+        test_attachment_id = "test-attachment-id"
+        
+        # Team creation without auth
+        self.run_test(
+            "Create Team Without Auth",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/teams",
+            401,
+            data={"name": "Test Team"}
+        )
+        
+        # Add team member without auth
+        self.run_test(
+            "Add Team Member Without Auth",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}/members",
+            401
+        )
+        
+        # Remove team member without auth
+        self.run_test(
+            "Remove Team Member Without Auth",
+            "DELETE",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}/members/test-user-id",
+            401
+        )
+        
+        # Report match score without auth
+        self.run_test(
+            "Report Match Score Without Auth",
+            "POST",
+            f"/api/v1/tournaments/matches/{test_match_id}/report",
+            401,
+            data={"score_a": 2, "score_b": 1, "notes": "Test match"}
+        )
+        
+        # Verify match result without auth
+        self.run_test(
+            "Verify Match Result Without Auth",
+            "POST",
+            f"/api/v1/tournaments/matches/{test_match_id}/verify",
+            401
+        )
+        
+        # Upload match attachment without auth
+        self.run_test(
+            "Upload Match Attachment Without Auth",
+            "POST",
+            f"/api/v1/tournaments/matches/{test_match_id}/attachments",
+            401
+        )
+        
+        # Delete attachment without auth
+        self.run_test(
+            "Delete Attachment Without Auth",
+            "DELETE",
+            f"/api/v1/tournaments/attachments/{test_attachment_id}",
+            401
+        )
+        
+        # Test attachment download (should work without auth but return 404 for non-existent)
+        self.run_test(
+            "Download Non-existent Attachment",
+            "GET",
+            f"/api/v1/tournaments/attachments/{test_attachment_id}/download",
+            404
+        )
+        
+        # Test create tournament without auth (should fail)
+        from datetime import datetime, timedelta
+        self.run_test(
+            "Create Tournament Without Auth",
+            "POST",
+            "/api/v1/orgs/test-org/tournaments",
+            401,
+            data={
+                "name": "Test Tournament",
+                "description": "Test tournament description for Phase 3 testing",
+                "format": "se",
+                "start_at_utc": (datetime.utcnow() + timedelta(days=7)).isoformat(),
+                "max_teams": 16,
+                "team_size": 5,
+                "prize_pool": "1000 aUEC"
+            }
         )
 
     def test_discord_integration_endpoints(self):
