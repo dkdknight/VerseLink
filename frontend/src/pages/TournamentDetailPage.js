@@ -69,6 +69,22 @@ const TournamentDetailPage = () => {
     }
   };
 
+  const handleMatchClick = (match) => {
+    setSelectedMatch(match);
+    if (match.state === 'pending' && canReportScore(match)) {
+      setReportModalOpen(true);
+    }
+  };
+
+  const canReportScore = (match) => {
+    if (!isAuthenticated || !user) return false;
+    
+    // Check if user is captain of one of the teams
+    return match.can_report || 
+           (match.team_a_captain_id === user.id) ||
+           (match.team_b_captain_id === user.id);
+  };
+
   const formatTournamentFormat = (format) => {
     const formats = {
       se: 'Simple Élimination',
