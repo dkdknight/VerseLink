@@ -20,8 +20,16 @@ async def lifespan(app: FastAPI):
     # Startup
     await init_db()
     logger.info("Database initialized")
+    
+    # Start Discord scheduler
+    await start_discord_scheduler()
+    logger.info("Discord scheduler started")
+    
     yield
+    
     # Shutdown
+    await stop_discord_scheduler()
+    logger.info("Discord scheduler stopped")
     logger.info("Application shutting down")
 
 app = FastAPI(
