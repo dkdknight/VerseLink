@@ -2182,11 +2182,11 @@ class VerselinkAPITester:
 
 def main():
     """Main test runner"""
-    # Use local backend for testing
-    base_url = "http://localhost:8001"
+    # Use the external URL from frontend/.env for testing
+    base_url = "https://cosmic-verselink.preview.emergentagent.com"
     
-    print("VerseLink Phase 5 Backend API Test Suite - Discord Integration System")
-    print("=" * 80)
+    print("VerseLink Phase 6 Backend API Test Suite - Notifications, Moderation & Auto-Moderation System")
+    print("=" * 90)
     
     tester = VerselinkAPITester(base_url)
     
