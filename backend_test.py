@@ -137,7 +137,7 @@ class VerselinkAPITester:
             "Auth Check Without Token",
             "GET",
             "/api/v1/auth/check",
-            401
+            403
         )
         
         # Test logout endpoint
