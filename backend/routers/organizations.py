@@ -362,3 +362,56 @@ async def create_organization_event(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create event"
         )
+
+@router.post("/{org_id}/tournaments", response_model=dict)
+async def create_organization_tournament(
+    org_id: str,
+    tournament_data: dict,  # Will be converted to TournamentCreate in the route
+    current_user: User = Depends(get_current_active_user)
+):
+    """Create tournament for organization"""
+    from models.tournament import TournamentCreate
+    from services.tournament_service import TournamentService
+    from utils.permissions import EventPermissions
+    
+    # Check permissions (reuse event permissions for now)
+    can_create = await EventPermissions.can_create_event(current_user, org_id)
+    if not can_create:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to create tournaments for this organization"
+        )
+    
+    # Validate organization exists
+    db = get_database()
+    org_doc = await db.organizations.find_one({"id": org_id})
+    if not org_doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Organization not found"
+        )
+    
+    try:
+        # Create tournament data model
+        tournament_create = TournamentCreate(**tournament_data)
+        
+        # Create tournament
+        tournament_service = TournamentService()
+        tournament = await tournament_service.create_tournament(tournament_create, org_id, current_user.id)
+        
+        return {
+            "message": "Tournament created successfully",
+            "tournament_id": tournament.id,
+            "slug": tournament.slug
+        }
+        
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create tournament"
+        )
