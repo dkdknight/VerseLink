@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-VerseLink Backend API Test Suite - Phase 4 Tournament System Testing
-Tests Tournament & Brackets system for VerseLink application
+VerseLink Backend API Test Suite - Phase 5 Discord Integration System Testing
+Tests Discord Integration system for VerseLink application including webhooks, job queues, and bot API
 """
 
 import requests
