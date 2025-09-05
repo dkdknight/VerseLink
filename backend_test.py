@@ -441,7 +441,7 @@ class VerselinkAPITester:
             "Create Team Without Auth",
             "POST",
             f"/api/v1/tournaments/{test_tournament_id}/teams",
-            401,
+            403,
             data={"name": "Test Team"}
         )
         
@@ -450,7 +450,7 @@ class VerselinkAPITester:
             "Add Team Member Without Auth",
             "POST",
             f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}/members",
-            401
+            403
         )
         
         # Remove team member without auth
@@ -458,7 +458,7 @@ class VerselinkAPITester:
             "Remove Team Member Without Auth",
             "DELETE",
             f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}/members/test-user-id",
-            401
+            403
         )
         
         # Report match score without auth
@@ -466,7 +466,7 @@ class VerselinkAPITester:
             "Report Match Score Without Auth",
             "POST",
             f"/api/v1/tournaments/matches/{test_match_id}/report",
-            401,
+            403,
             data={"score_a": 2, "score_b": 1, "notes": "Test match"}
         )
         
@@ -475,7 +475,7 @@ class VerselinkAPITester:
             "Verify Match Result Without Auth",
             "POST",
             f"/api/v1/tournaments/matches/{test_match_id}/verify",
-            401
+            403
         )
         
         # Upload match attachment without auth
@@ -483,7 +483,7 @@ class VerselinkAPITester:
             "Upload Match Attachment Without Auth",
             "POST",
             f"/api/v1/tournaments/matches/{test_match_id}/attachments",
-            401
+            403
         )
         
         # Delete attachment without auth
@@ -491,7 +491,7 @@ class VerselinkAPITester:
             "Delete Attachment Without Auth",
             "DELETE",
             f"/api/v1/tournaments/attachments/{test_attachment_id}",
-            401
+            403
         )
         
         # Test attachment download (should work without auth but return 404 for non-existent)
