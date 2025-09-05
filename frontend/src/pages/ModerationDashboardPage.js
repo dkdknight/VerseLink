@@ -133,6 +133,17 @@ const ModerationDashboardPage = () => {
     }
   };
 
+  const toggleAutoModeration = async (enabled) => {
+    try {
+      const result = await autoModerationService.toggle(enabled);
+      setAutoModerationConfig(prev => ({ ...prev, enabled }));
+      toast.success(result.message);
+    } catch (error) {
+      console.error('Failed to toggle auto-moderation:', error);
+      toast.error('Erreur lors du basculement de l\'auto-modération');
+    }
+  };
+
   if (!user || user.role !== 'admin') {
     return (
       <div className="min-h-screen bg-dark-950 flex items-center justify-center">
