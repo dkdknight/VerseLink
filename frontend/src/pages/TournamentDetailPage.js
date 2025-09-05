@@ -235,6 +235,18 @@ const TournamentDetailPage = () => {
           {match.notes}
         </div>
       )}
+      
+      {/* Actions */}
+      {canReportScore(match) && match.state === 'pending' && (
+        <div className="mt-3 text-center">
+          <button
+            onClick={() => handleMatchClick(match)}
+            className="text-sm text-primary-400 hover:text-primary-300 font-medium"
+          >
+            Reporter le score →
+          </button>
+        </div>
+      )}
     </div>
   );
 
