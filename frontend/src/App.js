@@ -11,6 +11,7 @@ import ProfilePage from './pages/ProfilePage';
 import OrganizationsPage from './pages/OrganizationsPage';
 import OrganizationDetailPage from './pages/OrganizationDetailPage';
 import EventsPage from './pages/EventsPage';
+import EventDetailPage from './pages/EventDetailPage';
 import TournamentsPage from './pages/TournamentsPage';
 
 // Import services
