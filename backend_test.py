@@ -398,8 +398,8 @@ def main():
     # Use the public endpoint from frontend .env
     base_url = "http://localhost:8001"
     
-    print("VerseLink Phase 1 Backend API Test Suite")
-    print("=" * 50)
+    print("VerseLink Phase 2 Backend API Test Suite - Event System")
+    print("=" * 60)
     
     tester = VerselinkAPITester(base_url)
     
