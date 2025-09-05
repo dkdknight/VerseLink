@@ -106,10 +106,7 @@ async def list_events(
     return events
 
 @router.get("/{event_id}", response_model=EventDetailResponse)
-async def get_event(
-    event_id: str,
-    current_user: Optional[User] = Depends(lambda: None)  # Optional user
-):
+async def get_event(event_id: str):
     """Get event details"""
     db = get_database()
     
