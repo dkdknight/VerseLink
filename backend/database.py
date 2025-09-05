@@ -57,6 +57,36 @@ async def create_indexes():
     # Fleet ships indexes
     await database.fleet_ships.create_index("event_id")
     
+    # Tournaments indexes
+    await database.tournaments.create_index("slug", unique=True)
+    await database.tournaments.create_index("org_id")
+    await database.tournaments.create_index("start_at_utc")
+    await database.tournaments.create_index("format")
+    await database.tournaments.create_index("state")
+    await database.tournaments.create_index("created_by")
+    await database.tournaments.create_index([("org_id", 1), ("state", 1)])
+    
+    # Teams indexes
+    await database.teams.create_index("tournament_id")
+    await database.teams.create_index("captain_user_id")
+    await database.teams.create_index([("tournament_id", 1), ("name", 1)], unique=True)
+    
+    # Team members indexes
+    await database.team_members.create_index([("team_id", 1), ("user_id", 1)], unique=True)
+    await database.team_members.create_index("team_id")
+    await database.team_members.create_index("user_id")
+    
+    # Matches indexes
+    await database.matches.create_index("tournament_id")
+    await database.matches.create_index([("tournament_id", 1), ("round", 1), ("bracket_position", 1)])
+    await database.matches.create_index("state")
+    await database.matches.create_index([("team_a_id", 1), ("team_b_id", 1)])
+    
+    # Attachments indexes
+    await database.attachments.create_index("match_id")
+    await database.attachments.create_index("user_id")
+    await database.attachments.create_index("uploaded_at")
+    
     # Event signups indexes
     await database.event_signups.create_index([("event_id", 1), ("user_id", 1)], unique=True)
     await database.event_signups.create_index("event_id")
