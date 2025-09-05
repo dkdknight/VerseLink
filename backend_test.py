@@ -1070,23 +1070,27 @@ class VerselinkAPITester:
 
     def run_all_tests(self):
         """Run all test suites"""
-        print("🚀 Starting VerseLink Backend API Tests - Phase 4 Focus")
+        print("🚀 Starting VerseLink Backend API Tests - Phase 4 Tournament System")
         print(f"📡 Testing against: {self.base_url}")
         print(f"⏰ Started at: {datetime.now().isoformat()}")
         
-        # Run test suites
+        # Run basic health and auth tests first
         self.test_health_endpoints()
         self.test_auth_endpoints()
-        self.test_organizations_endpoints()
-        self.test_users_endpoints()
-        self.test_events_endpoints()
-        self.test_tournaments_endpoints()
-        self.test_discord_integration_endpoints()
         
-        # Phase 4 comprehensive testing
-        self.test_notifications_endpoints_comprehensive()
-        self.test_moderation_endpoints_comprehensive()
-        self.test_phase4_api_structure()
+        # Run comprehensive tournament system tests
+        self.test_tournament_api_comprehensive()
+        self.test_tournament_team_management_without_auth()
+        self.test_match_score_reporting_without_auth()
+        self.test_file_upload_api_without_auth()
+        self.test_tournament_creation_without_auth()
+        self.test_tournament_api_structure()
+        self.test_tournament_data_validation()
+        self.test_tournament_state_transitions()
+        self.test_match_score_validation()
+        self.test_file_upload_validation()
+        self.test_tournament_bracket_generation()
+        self.test_authentication_edge_cases()
         
         # Print summary
         self.print_summary()
