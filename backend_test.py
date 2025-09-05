@@ -1521,7 +1521,611 @@ class VerselinkAPITester:
                 headers=headers
             )
 
-    def run_all_tests(self):
+    def test_notifications_endpoints(self):
+        """Test Phase 6 Notifications system endpoints"""
+        print("\n" + "="*60)
+        print("TESTING PHASE 6 NOTIFICATIONS SYSTEM ENDPOINTS")
+        print("="*60)
+        
+        # Test get notifications without auth (should fail)
+        self.run_test(
+            "Get My Notifications Without Auth",
+            "GET",
+            "/api/v1/notifications/me",
+            403
+        )
+        
+        # Test get notification stats without auth (should fail)
+        self.run_test(
+            "Get My Notification Stats Without Auth",
+            "GET",
+            "/api/v1/notifications/me/stats",
+            403
+        )
+        
+        # Test mark notification as read without auth (should fail)
+        self.run_test(
+            "Mark Notification as Read Without Auth",
+            "POST",
+            "/api/v1/notifications/test-notification-id/read",
+            403
+        )
+        
+        # Test mark all notifications as read without auth (should fail)
+        self.run_test(
+            "Mark All Notifications as Read Without Auth",
+            "POST",
+            "/api/v1/notifications/me/read-all",
+            403
+        )
+        
+        # Test get notification preferences without auth (should fail)
+        self.run_test(
+            "Get Notification Preferences Without Auth",
+            "GET",
+            "/api/v1/notifications/me/preferences",
+            403
+        )
+        
+        # Test update notification preferences without auth (should fail)
+        preferences_update = {
+            "preferences": {
+                "event_created": {
+                    "in_app_enabled": True,
+                    "email_enabled": False,
+                    "discord_dm_enabled": False
+                }
+            }
+        }
+        
+        self.run_test(
+            "Update Notification Preferences Without Auth",
+            "PUT",
+            "/api/v1/notifications/me/preferences",
+            403,
+            data=preferences_update
+        )
+        
+        # Test create test notification without auth (should fail)
+        self.run_test(
+            "Create Test Notification Without Auth",
+            "POST",
+            "/api/v1/notifications/test",
+            403
+        )
+
+    def test_notifications_data_validation(self):
+        """Test notifications data validation"""
+        print("\n" + "="*60)
+        print("TESTING NOTIFICATIONS DATA VALIDATION")
+        print("="*60)
+        
+        # Test invalid notification preferences update
+        invalid_preferences = {
+            "preferences": {
+                "invalid_notification_type": {
+                    "in_app_enabled": True,
+                    "email_enabled": "invalid_boolean",  # Should be boolean
+                    "discord_dm_enabled": None
+                }
+            }
+        }
+        
+        self.run_test(
+            "Update Preferences Invalid Data",
+            "PUT",
+            "/api/v1/notifications/me/preferences",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=invalid_preferences
+        )
+        
+        # Test notification filtering with query parameters
+        self.run_test(
+            "Get Notifications With Filters",
+            "GET",
+            "/api/v1/notifications/me?limit=10&skip=0&unread_only=true",
+            403  # Will fail auth first
+        )
+        
+        # Test invalid limit values
+        self.run_test(
+            "Get Notifications Invalid Limit",
+            "GET",
+            "/api/v1/notifications/me?limit=200",  # Exceeds max limit
+            403  # Will fail auth first
+        )
+
+    def test_moderation_endpoints(self):
+        """Test Phase 6 Moderation system endpoints"""
+        print("\n" + "="*60)
+        print("TESTING PHASE 6 MODERATION SYSTEM ENDPOINTS")
+        print("="*60)
+        
+        # Test create report without auth (should fail)
+        report_data = {
+            "reported_user_id": "test-reported-user-id",
+            "type": "harassment",
+            "reason": "This user has been sending inappropriate messages and harassing other players during events.",
+            "context_url": "/events/test-event-id",
+            "additional_info": {
+                "incident_time": "2025-01-27T15:30:00Z",
+                "witnesses": ["user1", "user2"]
+            }
+        }
+        
+        self.run_test(
+            "Create Report Without Auth",
+            "POST",
+            "/api/v1/moderation/reports",
+            403,
+            data=report_data
+        )
+        
+        # Test list reports without admin auth (should fail)
+        self.run_test(
+            "List Reports Without Admin Auth",
+            "GET",
+            "/api/v1/moderation/reports",
+            403
+        )
+        
+        # Test list reports with filters
+        self.run_test(
+            "List Reports With Status Filter",
+            "GET",
+            "/api/v1/moderation/reports?status=pending&limit=10&skip=0",
+            403  # Will fail auth first
+        )
+        
+        # Test get specific report without admin auth (should fail)
+        self.run_test(
+            "Get Report Details Without Admin Auth",
+            "GET",
+            "/api/v1/moderation/reports/test-report-id",
+            403
+        )
+        
+        # Test handle report without admin auth (should fail)
+        moderation_action = {
+            "action": "warning",
+            "reason": "First offense - inappropriate language in chat",
+            "duration_hours": None,
+            "reputation_change": None
+        }
+        
+        self.run_test(
+            "Handle Report Without Admin Auth",
+            "POST",
+            "/api/v1/moderation/reports/test-report-id/action",
+            403,
+            data=moderation_action
+        )
+        
+        # Test get user moderation history without admin auth (should fail)
+        self.run_test(
+            "Get User Moderation History Without Admin Auth",
+            "GET",
+            "/api/v1/moderation/users/test-user-id/history",
+            403
+        )
+        
+        # Test get moderation stats without admin auth (should fail)
+        self.run_test(
+            "Get Moderation Stats Without Admin Auth",
+            "GET",
+            "/api/v1/moderation/stats",
+            403
+        )
+        
+        # Test get audit logs without admin auth (should fail)
+        self.run_test(
+            "Get Audit Logs Without Admin Auth",
+            "GET",
+            "/api/v1/moderation/audit-logs",
+            403
+        )
+        
+        # Test audit logs with pagination
+        self.run_test(
+            "Get Audit Logs With Pagination",
+            "GET",
+            "/api/v1/moderation/audit-logs?limit=25&skip=0",
+            403  # Will fail auth first
+        )
+        
+        # Test maintenance endpoint without admin auth (should fail)
+        self.run_test(
+            "Unban Expired Users Without Admin Auth",
+            "POST",
+            "/api/v1/moderation/maintenance/unban-expired",
+            403
+        )
+
+    def test_moderation_data_validation(self):
+        """Test moderation data validation"""
+        print("\n" + "="*60)
+        print("TESTING MODERATION DATA VALIDATION")
+        print("="*60)
+        
+        # Test invalid report data
+        invalid_report_data = {
+            "reported_user_id": "",  # Empty user ID
+            "type": "invalid_type",  # Invalid report type
+            "reason": "Too short",  # Too short (min 10 chars)
+            "context_url": "invalid-url"
+        }
+        
+        self.run_test(
+            "Create Report Invalid Data",
+            "POST",
+            "/api/v1/moderation/reports",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=invalid_report_data
+        )
+        
+        # Test invalid moderation action
+        invalid_action = {
+            "action": "invalid_action",  # Invalid action type
+            "reason": "X",  # Too short (min 5 chars)
+            "duration_hours": -1,  # Invalid duration
+            "reputation_change": "not_a_number"  # Should be integer
+        }
+        
+        self.run_test(
+            "Handle Report Invalid Action",
+            "POST",
+            "/api/v1/moderation/reports/test-report-id/action",
+            403,  # Will fail auth first
+            data=invalid_action
+        )
+        
+        # Test various report types
+        report_types = ["spam", "harassment", "inappropriate_content", "cheating", "no_show", "griefing", "other"]
+        
+        for report_type in report_types:
+            valid_report = {
+                "reported_user_id": "test-user-id",
+                "type": report_type,
+                "reason": f"Testing {report_type} report type with sufficient detail for validation.",
+                "context_url": "/events/test-event"
+            }
+            
+            self.run_test(
+                f"Create Report Type ({report_type})",
+                "POST",
+                "/api/v1/moderation/reports",
+                403,  # Will fail auth first
+                data=valid_report
+            )
+
+    def test_auto_moderation_endpoints(self):
+        """Test Phase 6 Auto-Moderation system endpoints (NEW)"""
+        print("\n" + "="*60)
+        print("TESTING PHASE 6 AUTO-MODERATION SYSTEM ENDPOINTS (NEW)")
+        print("="*60)
+        
+        # Test get auto-moderation config without admin auth (should fail)
+        self.run_test(
+            "Get Auto-Moderation Config Without Admin Auth",
+            "GET",
+            "/api/v1/auto-moderation/config",
+            403
+        )
+        
+        # Test update auto-moderation config without admin auth (should fail)
+        config_update = {
+            "enabled": True,
+            "spam_detection": {
+                "enabled": True,
+                "max_duplicate_messages": 5,
+                "time_window_minutes": 10,
+                "similarity_threshold": 0.9
+            },
+            "profanity_filter": {
+                "enabled": True,
+                "action": "strike"
+            },
+            "harassment_detection": {
+                "enabled": True,
+                "max_reports_per_user": 2,
+                "time_window_hours": 12,
+                "action": "temporary_ban",
+                "ban_duration_hours": 48
+            }
+        }
+        
+        self.run_test(
+            "Update Auto-Moderation Config Without Admin Auth",
+            "PUT",
+            "/api/v1/auto-moderation/config",
+            403,
+            data=config_update
+        )
+        
+        # Test toggle auto-moderation without admin auth (should fail)
+        self.run_test(
+            "Toggle Auto-Moderation Without Admin Auth",
+            "POST",
+            "/api/v1/auto-moderation/toggle?enabled=true",
+            403
+        )
+        
+        # Test check message content (should work with user auth, but we don't have auth)
+        message_check = {
+            "content": "This is a test message to check for auto-moderation violations.",
+            "context": "chat_message"
+        }
+        
+        self.run_test(
+            "Check Message Content Without Auth",
+            "POST",
+            "/api/v1/auto-moderation/check-message",
+            403,
+            data=message_check
+        )
+        
+        # Test get auto-moderation stats without admin auth (should fail)
+        self.run_test(
+            "Get Auto-Moderation Stats Without Admin Auth",
+            "GET",
+            "/api/v1/auto-moderation/stats",
+            403
+        )
+        
+        # Test get auto-moderation logs without admin auth (should fail)
+        self.run_test(
+            "Get Auto-Moderation Logs Without Admin Auth",
+            "GET",
+            "/api/v1/auto-moderation/logs",
+            403
+        )
+        
+        # Test auto-moderation logs with pagination
+        self.run_test(
+            "Get Auto-Moderation Logs With Pagination",
+            "GET",
+            "/api/v1/auto-moderation/logs?limit=25&skip=0",
+            403  # Will fail auth first
+        )
+        
+        # Test clear old auto-moderation logs without admin auth (should fail)
+        self.run_test(
+            "Clear Old Auto-Moderation Logs Without Admin Auth",
+            "DELETE",
+            "/api/v1/auto-moderation/logs?days_old=30",
+            403
+        )
+
+    def test_auto_moderation_data_validation(self):
+        """Test auto-moderation data validation"""
+        print("\n" + "="*60)
+        print("TESTING AUTO-MODERATION DATA VALIDATION")
+        print("="*60)
+        
+        # Test invalid config update (empty data)
+        empty_config = {}
+        
+        self.run_test(
+            "Update Auto-Moderation Config Empty Data",
+            "PUT",
+            "/api/v1/auto-moderation/config",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=empty_config
+        )
+        
+        # Test invalid message check data
+        invalid_message_checks = [
+            {"content": ""},  # Empty content
+            {"content": "x" * 10000},  # Too long content
+            {"context": "invalid_context_type"}  # Invalid context
+        ]
+        
+        for i, invalid_data in enumerate(invalid_message_checks):
+            self.run_test(
+                f"Check Message Invalid Data ({i+1})",
+                "POST",
+                "/api/v1/auto-moderation/check-message",
+                403,  # Will fail auth first
+                data=invalid_data
+            )
+        
+        # Test various message content scenarios
+        test_messages = [
+            {
+                "content": "Hello everyone, looking forward to the event!",
+                "context": "event_chat"
+            },
+            {
+                "content": "GG everyone, great match!",
+                "context": "tournament_chat"
+            },
+            {
+                "content": "When is the next mining operation scheduled?",
+                "context": "org_chat"
+            },
+            {
+                "content": "Thanks for organizing this awesome tournament!",
+                "context": "general_chat"
+            }
+        ]
+        
+        for i, message_data in enumerate(test_messages):
+            self.run_test(
+                f"Check Valid Message Content ({i+1})",
+                "POST",
+                "/api/v1/auto-moderation/check-message",
+                403,  # Will fail auth first
+                data=message_data
+            )
+
+    def test_auto_moderation_toggle_functionality(self):
+        """Test auto-moderation toggle functionality"""
+        print("\n" + "="*60)
+        print("TESTING AUTO-MODERATION TOGGLE FUNCTIONALITY")
+        print("="*60)
+        
+        # Test toggle enable
+        self.run_test(
+            "Toggle Auto-Moderation Enable",
+            "POST",
+            "/api/v1/auto-moderation/toggle",
+            403,
+            data={"enabled": True}
+        )
+        
+        # Test toggle disable
+        self.run_test(
+            "Toggle Auto-Moderation Disable",
+            "POST",
+            "/api/v1/auto-moderation/toggle",
+            403,
+            data={"enabled": False}
+        )
+        
+        # Test toggle with invalid data
+        self.run_test(
+            "Toggle Auto-Moderation Invalid Data",
+            "POST",
+            "/api/v1/auto-moderation/toggle",
+            403,
+            data={"enabled": "not_a_boolean"}
+        )
+
+    def test_phase6_api_structure(self):
+        """Test Phase 6 API structure and endpoint availability"""
+        print("\n" + "="*60)
+        print("TESTING PHASE 6 API STRUCTURE")
+        print("="*60)
+        
+        # Test that all Phase 6 endpoints exist and return proper error codes
+        phase6_endpoints = [
+            # Notifications endpoints
+            ("GET", "/api/v1/notifications/me", "Get My Notifications", 403),
+            ("GET", "/api/v1/notifications/me/stats", "Get Notification Stats", 403),
+            ("POST", "/api/v1/notifications/test-id/read", "Mark Notification Read", 403),
+            ("POST", "/api/v1/notifications/me/read-all", "Mark All Notifications Read", 403),
+            ("GET", "/api/v1/notifications/me/preferences", "Get Notification Preferences", 403),
+            ("PUT", "/api/v1/notifications/me/preferences", "Update Notification Preferences", 403),
+            ("POST", "/api/v1/notifications/test", "Create Test Notification", 403),
+            
+            # Moderation endpoints
+            ("POST", "/api/v1/moderation/reports", "Create Report", 403),
+            ("GET", "/api/v1/moderation/reports", "List Reports", 403),
+            ("GET", "/api/v1/moderation/reports/test-id", "Get Report Details", 403),
+            ("POST", "/api/v1/moderation/reports/test-id/action", "Handle Report", 403),
+            ("GET", "/api/v1/moderation/users/test-id/history", "Get User Moderation History", 403),
+            ("GET", "/api/v1/moderation/stats", "Get Moderation Stats", 403),
+            ("GET", "/api/v1/moderation/audit-logs", "Get Audit Logs", 403),
+            ("POST", "/api/v1/moderation/maintenance/unban-expired", "Unban Expired Users", 403),
+            
+            # Auto-moderation endpoints (NEW)
+            ("GET", "/api/v1/auto-moderation/config", "Get Auto-Moderation Config", 403),
+            ("PUT", "/api/v1/auto-moderation/config", "Update Auto-Moderation Config", 403),
+            ("POST", "/api/v1/auto-moderation/toggle", "Toggle Auto-Moderation", 403),
+            ("POST", "/api/v1/auto-moderation/check-message", "Check Message Content", 403),
+            ("GET", "/api/v1/auto-moderation/stats", "Get Auto-Moderation Stats", 403),
+            ("GET", "/api/v1/auto-moderation/logs", "Get Auto-Moderation Logs", 403),
+            ("DELETE", "/api/v1/auto-moderation/logs", "Clear Auto-Moderation Logs", 403),
+        ]
+        
+        for method, endpoint, name, expected_status in phase6_endpoints:
+            data = {} if method in ["POST", "PUT", "PATCH"] else None
+            
+            self.run_test(
+                f"Phase 6 API Structure - {name}",
+                method,
+                endpoint,
+                expected_status,
+                data=data
+            )
+
+    def test_phase6_integration_scenarios(self):
+        """Test Phase 6 integration scenarios"""
+        print("\n" + "="*60)
+        print("TESTING PHASE 6 INTEGRATION SCENARIOS")
+        print("="*60)
+        
+        # Test notification and moderation integration
+        # (These would normally work together when a user is moderated)
+        
+        # Test report creation with various types
+        report_scenarios = [
+            {
+                "type": "spam",
+                "reason": "User is sending repetitive promotional messages in event chat channels.",
+                "context": "event_chat_spam"
+            },
+            {
+                "type": "harassment", 
+                "reason": "User is targeting specific players with offensive language and threats.",
+                "context": "harassment_incident"
+            },
+            {
+                "type": "cheating",
+                "reason": "Suspected use of third-party tools during tournament matches.",
+                "context": "tournament_cheating"
+            },
+            {
+                "type": "griefing",
+                "reason": "Intentionally disrupting organized events and preventing others from participating.",
+                "context": "event_griefing"
+            }
+        ]
+        
+        for i, scenario in enumerate(report_scenarios):
+            report_data = {
+                "reported_user_id": f"test-user-{i+1}",
+                "type": scenario["type"],
+                "reason": scenario["reason"],
+                "context_url": f"/events/test-event-{i+1}",
+                "additional_info": {"scenario": scenario["context"]}
+            }
+            
+            self.run_test(
+                f"Integration Test - Report {scenario['type'].title()}",
+                "POST",
+                "/api/v1/moderation/reports",
+                403,  # Will fail auth first
+                data=report_data
+            )
+        
+        # Test auto-moderation message checking scenarios
+        auto_mod_scenarios = [
+            {
+                "content": "Looking forward to the mining operation tomorrow!",
+                "context": "positive_message",
+                "expected": "clean"
+            },
+            {
+                "content": "Great job everyone in the tournament finals!",
+                "context": "tournament_praise",
+                "expected": "clean"
+            },
+            {
+                "content": "When is the next org meeting scheduled?",
+                "context": "org_question",
+                "expected": "clean"
+            },
+            {
+                "content": "Thanks for the help with the cargo run!",
+                "context": "gratitude_message",
+                "expected": "clean"
+            }
+        ]
+        
+        for i, scenario in enumerate(auto_mod_scenarios):
+            message_data = {
+                "content": scenario["content"],
+                "context": scenario["context"]
+            }
+            
+            self.run_test(
+                f"Integration Test - Auto-Mod Check ({scenario['expected']})",
+                "POST",
+                "/api/v1/auto-moderation/check-message",
+                403,  # Will fail auth first
+                data=message_data
+            )
         """Run all test suites"""
         print("🚀 Starting VerseLink Backend API Tests - Phase 5 Discord Integration System")
         print(f"📡 Testing against: {self.base_url}")
