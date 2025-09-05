@@ -251,96 +251,11 @@ const TournamentDetailPage = () => {
   );
 
   const BracketView = () => {
-    if (!tournament.bracket || !tournament.bracket.rounds) {
-      return (
-        <div className="text-center py-8">
-          <TrophyIcon className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-          <p className="text-gray-400">Bracket non disponible</p>
-        </div>
-      );
-    }
-
-    if (tournament.format === 'rr') {
-      // Round Robin - Show standings
-      return (
-        <div className="space-y-6">
-          <h3 className="text-xl font-bold text-white">Classement</h3>
-          {tournament.bracket.standings && tournament.bracket.standings.length > 0 ? (
-            <div className="space-y-2">
-              {tournament.bracket.standings.map((standing) => (
-                <div key={standing.team_id} className="glass-effect rounded-lg p-4 flex items-center justify-between">
-                  <div className="flex items-center">
-                    <span className="bg-primary-600 text-white text-sm rounded-full w-8 h-8 flex items-center justify-center mr-3">
-                      {standing.position}
-                    </span>
-                    <div>
-                      <h4 className="text-white font-medium">{standing.team_name}</h4>
-                      <p className="text-gray-400 text-sm">
-                        {(standing.win_percentage * 100).toFixed(1)}% de victoires
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-white font-bold">{standing.points} pts</div>
-                    <div className="text-gray-400 text-sm">
-                      {standing.wins}V - {standing.losses}D
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-400">Aucun classement disponible</p>
-          )}
-        </div>
-      );
-    }
-
-    // Single/Double Elimination - Show bracket
-    const rounds = Object.entries(tournament.bracket.rounds).sort(([a], [b]) => parseInt(a) - parseInt(b));
-    
     return (
-      <div className="space-y-6">
-        <h3 className="text-xl font-bold text-white">Bracket {formatTournamentFormat(tournament.format)}</h3>
-        <div className="grid gap-6" style={{ gridTemplateColumns: `repeat(${rounds.length}, 1fr)` }}>
-          {rounds.map(([roundNum, matches]) => (
-            <div key={roundNum} className="space-y-4">
-              <h4 className="text-center text-gray-300 font-medium">
-                {roundNum === '1' ? 'Premier Tour' : 
-                 roundNum === String(tournament.rounds_total) ? 'Finale' :
-                 `Round ${roundNum}`}
-              </h4>
-              <div className="space-y-2">
-                {matches.map((match, index) => (
-                  <div key={index} className="bg-dark-800 rounded-lg p-3 border border-dark-600">
-                    <div className="space-y-1">
-                      <div className={`text-sm ${match.winner?.id === match.team_a?.id ? 'text-green-400 font-bold' : 'text-gray-300'}`}>
-                        {match.team_a?.name || 'TBD'}
-                        {match.score_a !== null && <span className="ml-2">({match.score_a})</span>}
-                      </div>
-                      <div className={`text-sm ${match.winner?.id === match.team_b?.id ? 'text-green-400 font-bold' : 'text-gray-300'}`}>
-                        {match.team_b?.name || 'TBD'}
-                        {match.score_b !== null && <span className="ml-2">({match.score_b})</span>}
-                      </div>
-                    </div>
-                    {match.state !== 'pending' && (
-                      <div className={`text-xs mt-1 px-2 py-1 rounded ${
-                        match.state === 'verified' ? 'bg-green-600' :
-                        match.state === 'reported' ? 'bg-yellow-600' :
-                        'bg-gray-600'
-                      } text-white`}>
-                        {match.state === 'verified' ? 'Terminé' :
-                         match.state === 'reported' ? 'Reporté' :
-                         match.state}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <TournamentBracket 
+        tournament={tournament} 
+        onMatchClick={handleMatchClick}
+      />
     );
   };
 
