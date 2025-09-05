@@ -34,6 +34,7 @@ const Navbar = () => {
     { name: 'Organisations', path: '/organizations', public: true },
     { name: 'Événements', path: '/events', public: true },
     { name: 'Tournois', path: '/tournaments', public: true },
+    { name: 'Discord', path: '/discord', public: true },
   ];
 
   const isActivePath = (path) => {
