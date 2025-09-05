@@ -541,9 +541,138 @@ class VerselinkAPITester:
             data={"test": "payload"}
         )
 
+    def test_notifications_endpoints(self):
+        """Test Phase 4 notifications endpoints"""
+        print("\n" + "="*50)
+        print("TESTING PHASE 4 NOTIFICATIONS ENDPOINTS")
+        print("="*50)
+        
+        # Test endpoints without authentication (should fail with 401)
+        self.run_test(
+            "Get Notifications Without Auth",
+            "GET",
+            "/api/v1/notifications/me",
+            401
+        )
+        
+        self.run_test(
+            "Get Notification Stats Without Auth",
+            "GET",
+            "/api/v1/notifications/me/stats",
+            401
+        )
+        
+        self.run_test(
+            "Mark Notification Read Without Auth",
+            "POST",
+            "/api/v1/notifications/test-notification-id/read",
+            401
+        )
+        
+        self.run_test(
+            "Mark All Notifications Read Without Auth",
+            "POST",
+            "/api/v1/notifications/me/read-all",
+            401
+        )
+        
+        self.run_test(
+            "Get Notification Preferences Without Auth",
+            "GET",
+            "/api/v1/notifications/me/preferences",
+            401
+        )
+        
+        self.run_test(
+            "Update Notification Preferences Without Auth",
+            "PUT",
+            "/api/v1/notifications/me/preferences",
+            401,
+            data={"preferences": {}}
+        )
+        
+        self.run_test(
+            "Create Test Notification Without Auth",
+            "POST",
+            "/api/v1/notifications/test",
+            401
+        )
+
+    def test_moderation_endpoints(self):
+        """Test Phase 4 moderation endpoints"""
+        print("\n" + "="*50)
+        print("TESTING PHASE 4 MODERATION ENDPOINTS")
+        print("="*50)
+        
+        # Test endpoints without authentication (should fail with 401)
+        self.run_test(
+            "Create Report Without Auth",
+            "POST",
+            "/api/v1/moderation/reports",
+            401,
+            data={
+                "reported_user_id": "test-user-id",
+                "type": "spam",
+                "reason": "This user is posting spam messages repeatedly in chat channels."
+            }
+        )
+        
+        self.run_test(
+            "List Reports Without Auth",
+            "GET",
+            "/api/v1/moderation/reports",
+            401
+        )
+        
+        self.run_test(
+            "Get Report Without Auth",
+            "GET",
+            "/api/v1/moderation/reports/test-report-id",
+            401
+        )
+        
+        self.run_test(
+            "Handle Report Without Auth",
+            "POST",
+            "/api/v1/moderation/reports/test-report-id/action",
+            401,
+            data={
+                "action": "warning",
+                "reason": "First offense warning"
+            }
+        )
+        
+        self.run_test(
+            "Get User Moderation History Without Auth",
+            "GET",
+            "/api/v1/moderation/users/test-user-id/history",
+            401
+        )
+        
+        self.run_test(
+            "Get Moderation Stats Without Auth",
+            "GET",
+            "/api/v1/moderation/stats",
+            401
+        )
+        
+        self.run_test(
+            "Get Audit Logs Without Auth",
+            "GET",
+            "/api/v1/moderation/audit-logs",
+            401
+        )
+        
+        self.run_test(
+            "Unban Expired Users Without Auth",
+            "POST",
+            "/api/v1/moderation/maintenance/unban-expired",
+            401
+        )
+
     def run_all_tests(self):
         """Run all test suites"""
-        print("🚀 Starting VerseLink Backend API Tests")
+        print("🚀 Starting VerseLink Backend API Tests - Phase 4 Focus")
         print(f"📡 Testing against: {self.base_url}")
         print(f"⏰ Started at: {datetime.now().isoformat()}")
         
@@ -555,6 +684,8 @@ class VerselinkAPITester:
         self.test_events_endpoints()
         self.test_tournaments_endpoints()
         self.test_discord_integration_endpoints()
+        self.test_notifications_endpoints()
+        self.test_moderation_endpoints()
         
         # Print summary
         self.print_summary()
