@@ -500,6 +500,133 @@ const ModerationDashboardPage = () => {
           </div>
         </div>
       )}
+
+      {/* Auto-Moderation Configuration Modal */}
+      {autoModerationModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-dark-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-dark-600">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-white">Configuration Auto-modération</h3>
+                <button
+                  onClick={() => setAutoModerationModalOpen(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <XCircleIcon className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="space-y-6">
+                {/* Global Toggle */}
+                <div className="bg-dark-700 rounded-lg p-4">
+                  <label className="flex items-center justify-between">
+                    <div>
+                      <span className="text-white font-medium">Auto-modération globale</span>
+                      <p className="text-gray-400 text-sm">Active ou désactive complètement l'auto-modération</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={autoModerationConfig.enabled || false}
+                      onChange={(e) => toggleAutoModeration(e.target.checked)}
+                      className="form-checkbox h-5 w-5 text-primary-600 rounded"
+                    />
+                  </label>
+                </div>
+                
+                {/* Spam Detection */}
+                <div className="bg-dark-700 rounded-lg p-4">
+                  <h4 className="text-white font-medium mb-3">Détection de spam</h4>
+                  <div className="space-y-3">
+                    <label className="flex items-center justify-between">
+                      <span className="text-gray-300">Activer la détection de spam</span>
+                      <input
+                        type="checkbox"
+                        checked={autoModerationConfig.spam_detection?.enabled || false}
+                        className="form-checkbox h-4 w-4 text-blue-600 rounded"
+                        disabled={!autoModerationConfig.enabled}
+                      />
+                    </label>
+                    <div className="text-gray-400 text-sm">
+                      <p>Max messages similaires: {autoModerationConfig.spam_detection?.max_duplicate_messages || 3}</p>
+                      <p>Fenêtre temporelle: {autoModerationConfig.spam_detection?.time_window_minutes || 5} minutes</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Profanity Filter */}
+                <div className="bg-dark-700 rounded-lg p-4">
+                  <h4 className="text-white font-medium mb-3">Filtre de grossièretés</h4>
+                  <div className="space-y-3">
+                    <label className="flex items-center justify-between">
+                      <span className="text-gray-300">Activer le filtre de grossièretés</span>
+                      <input
+                        type="checkbox"
+                        checked={autoModerationConfig.profanity_filter?.enabled || false}
+                        className="form-checkbox h-4 w-4 text-red-600 rounded"
+                        disabled={!autoModerationConfig.enabled}
+                      />
+                    </label>
+                    <div className="text-gray-400 text-sm">
+                      <p>Action: {autoModerationConfig.profanity_filter?.action || 'warning'}</p>
+                      <p>Mots surveillés: {autoModerationConfig.profanity_filter?.words?.length || 0} mots</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Harassment Detection */}
+                <div className="bg-dark-700 rounded-lg p-4">
+                  <h4 className="text-white font-medium mb-3">Détection de harcèlement</h4>
+                  <div className="space-y-3">
+                    <label className="flex items-center justify-between">
+                      <span className="text-gray-300">Activer la détection de harcèlement</span>
+                      <input
+                        type="checkbox"
+                        checked={autoModerationConfig.harassment_detection?.enabled || false}
+                        className="form-checkbox h-4 w-4 text-orange-600 rounded"
+                        disabled={!autoModerationConfig.enabled}
+                      />
+                    </label>
+                    <div className="text-gray-400 text-sm">
+                      <p>Max signalements par utilisateur: {autoModerationConfig.harassment_detection?.max_reports_per_user || 3}</p>
+                      <p>Fenêtre temporelle: {autoModerationConfig.harassment_detection?.time_window_hours || 24}h</p>
+                      <p>Action: {autoModerationConfig.harassment_detection?.action || 'temporary_ban'}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4">
+                  <p className="text-yellow-300 text-sm">
+                    ⚠️ L'auto-modération est un système automatisé qui peut avoir des faux positifs. 
+                    Vérifiez régulièrement les actions prises et ajustez les paramètres si nécessaire.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-end space-x-4 mt-6 pt-4 border-t border-dark-600">
+                <button
+                  onClick={() => setAutoModerationModalOpen(false)}
+                  className="px-4 py-2 text-gray-300 hover:text-white transition-colors duration-200"
+                >
+                  Fermer
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      await loadAutoModerationConfig();
+                      toast.success('Configuration rechargée');
+                    } catch (error) {
+                      toast.error('Erreur lors du rechargement');
+                    }
+                  }}
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200"
+                >
+                  Actualiser
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
