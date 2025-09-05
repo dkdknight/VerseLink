@@ -248,6 +248,84 @@ const ModerationDashboardPage = () => {
           </div>
         </div>
 
+        {/* Auto-Moderation Section */}
+        <div className="bg-dark-800 rounded-lg p-6 border border-dark-700 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-white">Auto-modération</h3>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <span className="text-gray-400 text-sm">Statut:</span>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  autoModerationConfig.enabled 
+                    ? 'bg-green-900/20 text-green-400 border border-green-500/30'
+                    : 'bg-red-900/20 text-red-400 border border-red-500/30'
+                }`}>
+                  {autoModerationConfig.enabled ? 'Activé' : 'Désactivé'}
+                </span>
+              </div>
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={autoModerationConfig.enabled || false}
+                  onChange={(e) => toggleAutoModeration(e.target.checked)}
+                  className="form-checkbox h-5 w-5 text-primary-600 rounded focus:ring-primary-500 focus:ring-offset-0"
+                />
+                <span className="ml-2 text-white">Activer l'auto-modération</span>
+              </label>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div className="bg-dark-700 rounded-lg p-4">
+              <p className="text-2xl font-semibold text-blue-400">
+                {autoModerationStats.total_actions || 0}
+              </p>
+              <p className="text-gray-400 text-sm">Actions auto (7j)</p>
+            </div>
+            <div className="bg-dark-700 rounded-lg p-4">
+              <p className="text-2xl font-semibold text-yellow-400">
+                {autoModerationStats.actions_by_type?.warning || 0}
+              </p>
+              <p className="text-gray-400 text-sm">Avertissements auto</p>
+            </div>
+            <div className="bg-dark-700 rounded-lg p-4">
+              <p className="text-2xl font-semibold text-orange-400">
+                {autoModerationStats.actions_by_type?.strike || 0}
+              </p>
+              <p className="text-gray-400 text-sm">Strikes auto</p>
+            </div>
+            <div className="bg-dark-700 rounded-lg p-4">
+              <p className="text-2xl font-semibold text-red-400">
+                {autoModerationStats.actions_by_type?.temporary_ban || 0}
+              </p>
+              <p className="text-gray-400 text-sm">Bans temporaires auto</p>
+            </div>
+          </div>
+          
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setAutoModerationModalOpen(true)}
+              className="inline-flex items-center px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 text-sm"
+            >
+              Configurer l'auto-modération
+            </button>
+            
+            <button
+              onClick={async () => {
+                try {
+                  await loadAutoModerationStats();
+                  toast.success('Statistiques mises à jour');
+                } catch (error) {
+                  toast.error('Erreur lors de la mise à jour');
+                }
+              }}
+              className="inline-flex items-center px-3 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors duration-200 text-sm"
+            >
+              Actualiser les stats
+            </button>
+          </div>
+        </div>
+
         {/* Filters */}
         <div className="bg-dark-800 rounded-lg p-6 border border-dark-700 mb-6">
           <div className="flex items-center justify-between">
