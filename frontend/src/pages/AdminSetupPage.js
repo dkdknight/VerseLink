@@ -6,7 +6,8 @@ import { api } from '../services/authService';
 const AdminSetupPage = () => {
   const [loading, setLoading] = useState(false);
   const [discordId, setDiscordId] = useState('');
-  const { user, isAuthenticated } = useAuth();
+  const [showTestAdmin, setShowTestAdmin] = useState(false);
+  const { user, isAuthenticated, setUser, setIsAuthenticated } = useAuth();
 
   const initializeFirstAdmin = async () => {
     setLoading(true);
