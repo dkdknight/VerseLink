@@ -161,6 +161,7 @@ function App() {
               {/* Public routes */}
               <Route path="/" element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/auth/discord/callback" element={<DiscordCallbackPage />} />
               <Route path="/organizations" element={<OrganizationsPage />} />
               <Route path="/organizations/:id" element={<OrganizationDetailPage />} />
               <Route path="/events" element={<EventsPage />} />
