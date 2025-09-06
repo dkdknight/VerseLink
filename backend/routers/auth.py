@@ -22,6 +22,15 @@ DISCORD_CLIENT_ID = config("DISCORD_CLIENT_ID")
 DISCORD_CLIENT_SECRET = config("DISCORD_CLIENT_SECRET")  
 DISCORD_REDIRECT_URI = config("DISCORD_REDIRECT_URI")
 
+# Validation de la configuration
+if DISCORD_CLIENT_SECRET in ["dummy", "VOTRE_DISCORD_CLIENT_SECRET", "VOTRE_VRAI_CLIENT_SECRET_ICI"]:
+    print("❌ ERREUR: DISCORD_CLIENT_SECRET n'est pas configuré correctement!")
+    print("❌ Veuillez mettre à jour le fichier .env avec le vrai Client Secret Discord")
+
+print(f"🔍 Discord Config - Client ID: {DISCORD_CLIENT_ID}")
+print(f"🔍 Discord Config - Redirect URI: {DISCORD_REDIRECT_URI}")
+print(f"🔍 Discord Config - Client Secret: {'✅ Configuré' if DISCORD_CLIENT_SECRET not in ['dummy', 'VOTRE_DISCORD_CLIENT_SECRET', 'VOTRE_VRAI_CLIENT_SECRET_ICI'] else '❌ Non configuré'}")
+
 oauth = OAuth()
 oauth.register(
     name='discord',
