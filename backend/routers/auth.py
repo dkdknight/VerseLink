@@ -7,6 +7,7 @@ import httpx
 from typing import Dict, Any
 from datetime import datetime
 from pydantic import BaseModel
+import uuid
 
 from database import get_database
 from models.user import User, UserCreate, UserResponse, UserProfile
