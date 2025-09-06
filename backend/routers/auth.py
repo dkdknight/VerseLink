@@ -166,9 +166,12 @@ async def get_current_user(current_user: User = Depends(get_current_active_user)
     }
 
 @router.post("/logout")
-async def logout():
-    """Logout user (client should remove token)"""
-    return {"message": "Successfully logged out"}
+async def logout_user():
+    """Handle user logout (client-side token clearing)"""
+    return {
+        "message": "Déconnexion réussie",
+        "success": True
+    }
 
 @router.get("/check")
 async def check_auth(current_user: User = Depends(get_current_active_user)):
