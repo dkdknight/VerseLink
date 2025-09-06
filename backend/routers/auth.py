@@ -49,6 +49,10 @@ async def discord_auth_redirect():
 async def discord_auth_callback(request: DiscordCallbackRequest):
     """Handle Discord OAuth callback"""
     try:
+        print(f"🔍 Discord callback received - Code: {request.code[:10]}...")
+        print(f"🔍 Client ID: {DISCORD_CLIENT_ID}")
+        print(f"🔍 Redirect URI: {DISCORD_REDIRECT_URI}")
+        
         # Exchange code for access token
         token_data = {
             "client_id": DISCORD_CLIENT_ID,
