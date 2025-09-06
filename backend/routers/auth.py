@@ -46,7 +46,7 @@ async def discord_auth_redirect():
     return {"auth_url": discord_auth_url}
 
 @router.post("/discord/callback")
-async def discord_auth_callback(code: str):
+async def discord_auth_callback(request: DiscordCallbackRequest):
     """Handle Discord OAuth callback"""
     try:
         # Exchange code for access token
@@ -54,7 +54,7 @@ async def discord_auth_callback(code: str):
             "client_id": DISCORD_CLIENT_ID,
             "client_secret": DISCORD_CLIENT_SECRET,
             "grant_type": "authorization_code",
-            "code": code,
+            "code": request.code,
             "redirect_uri": DISCORD_REDIRECT_URI,
         }
         
