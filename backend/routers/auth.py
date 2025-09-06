@@ -254,6 +254,73 @@ async def initialize_first_admin():
         "instructions": "Cet utilisateur peut maintenant promouvoir d'autres administrateurs via /auth/promote-admin"
     }
 
+@router.post("/create-test-admin")
+async def create_test_admin():
+    """Create a test admin user for development (DEVELOPMENT ONLY)"""
+    
+    if ENVIRONMENT == "production":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cette fonction n'est disponible qu'en développement"
+        )
+    
+    db = get_database()
+    
+    # Check if test admin already exists
+    existing_test_admin = await db.users.find_one({"discord_id": "test_admin_123"})
+    if existing_test_admin:
+        # Just promote to admin if exists
+        await db.users.update_one(
+            {"discord_id": "test_admin_123"},
+            {"$set": {"is_site_admin": True, "updated_at": datetime.utcnow()}}
+        )
+        
+        # Create access token for this user
+        user = User(**existing_test_admin)
+        access_token = create_access_token(data={"sub": user.id})
+        
+        return {
+            "message": "Test admin user ready",
+            "access_token": access_token,
+            "user": UserResponse(**user.dict()),
+            "instructions": "Utilisez ce token pour vous connecter temporairement"
+        }
+    
+    # Create test admin user
+    test_user_id = str(uuid.uuid4())
+    
+    test_user_data = {
+        "id": test_user_id,
+        "discord_id": "test_admin_123",
+        "discord_username": "TestAdmin#0000",
+        "handle": "TestAdmin",
+        "email": "admin@verselink.test",
+        "avatar_url": None,
+        "is_site_admin": True,
+        "is_active": True,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow(),
+        "last_login": datetime.utcnow(),
+        "strikes": 0,
+        "is_banned": False,
+        "ban_reason": None,
+        "ban_expires_at": None,
+        "banned_at": None
+    }
+    
+    await db.users.insert_one(test_user_data)
+    
+    # Create access token
+    user = User(**test_user_data)
+    access_token = create_access_token(data={"sub": user.id})
+    
+    return {
+        "message": "Test admin user created successfully",
+        "access_token": access_token,
+        "user": UserResponse(**user.dict()),
+        "instructions": "Sauvegardez ce token et utilisez-le pour vous connecter. Configurez ensuite Discord OAuth correctement."
+    }
+
 @router.get("/check")
 async def check_auth(current_user: User = Depends(get_current_active_user)):
     """Check if user is authenticated"""
