@@ -90,15 +90,20 @@ const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
+      // Call backend logout endpoint
       await authService.logout();
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error('Logout API call failed:', error);
+      // Continue with client-side logout even if API fails
     } finally {
-      // Clear local state regardless
+      // Always clear client-side auth state
       localStorage.removeItem('auth_token');
       authService.clearAuthToken();
       setUser(null);
       setIsAuthenticated(false);
+      
+      // Optional: redirect to home page
+      window.location.href = '/';
     }
   };
 
