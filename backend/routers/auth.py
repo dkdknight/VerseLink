@@ -23,6 +23,9 @@ DISCORD_CLIENT_ID = config("DISCORD_CLIENT_ID")
 DISCORD_CLIENT_SECRET = config("DISCORD_CLIENT_SECRET")  
 DISCORD_REDIRECT_URI = config("DISCORD_REDIRECT_URI")
 
+# Environment Configuration
+ENVIRONMENT = config("ENVIRONMENT", default="development")
+
 # Validation de la configuration
 if DISCORD_CLIENT_SECRET in ["dummy", "VOTRE_DISCORD_CLIENT_SECRET", "VOTRE_VRAI_CLIENT_SECRET_ICI"]:
     print("❌ ERREUR: DISCORD_CLIENT_SECRET n'est pas configuré correctement!")
