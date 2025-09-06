@@ -133,13 +133,38 @@ const AdminSetupPage = () => {
                 Si vous êtes le premier utilisateur du système, vous pouvez vous auto-promouvoir administrateur.
                 Cette action ne fonctionne que s'il n'y a aucun administrateur existant.
               </p>
-              <button
-                onClick={initializeFirstAdmin}
-                disabled={loading}
-                className="bg-yellow-600 text-white py-2 px-6 rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? 'Initialisation...' : 'Devenir Premier Admin'}
-              </button>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={initializeFirstAdmin}
+                  disabled={loading}
+                  className="bg-yellow-600 text-white py-2 px-6 rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Initialisation...' : 'Devenir Premier Admin'}
+                </button>
+                
+                <button
+                  onClick={() => setShowTestAdmin(!showTestAdmin)}
+                  className="bg-gray-600 text-white py-2 px-6 rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  {showTestAdmin ? 'Masquer' : 'Mode Test'}
+                </button>
+              </div>
+              
+              {showTestAdmin && (
+                <div className="mt-4 p-4 bg-red-900/20 border border-red-500/30 rounded">
+                  <h3 className="text-red-300 font-semibold mb-2">⚠️ Mode Test (Développement Uniquement)</h3>
+                  <p className="text-red-200 text-sm mb-3">
+                    Créer un administrateur de test temporaire pour contourner les problèmes Discord OAuth.
+                  </p>
+                  <button
+                    onClick={createTestAdmin}
+                    disabled={loading}
+                    className="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Création...' : 'Créer Test Admin'}
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
