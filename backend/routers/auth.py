@@ -12,6 +12,9 @@ from database import get_database
 from models.user import User, UserCreate, UserResponse, UserProfile
 from middleware.auth import create_access_token, get_current_active_user
 
+class DiscordCallbackRequest(BaseModel):
+    code: str
+
 router = APIRouter()
 
 # Discord OAuth Configuration
