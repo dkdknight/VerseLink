@@ -6,6 +6,7 @@ from decouple import config
 import httpx
 from typing import Dict, Any
 from datetime import datetime
+from pydantic import BaseModel
 
 from database import get_database
 from models.user import User, UserCreate, UserResponse, UserProfile
