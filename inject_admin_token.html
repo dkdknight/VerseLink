@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VerseLink - Injection Token Admin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #475569;
+        }
+        .token-box {
+            background: #334155;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+            margin: 15px 0;
+            border: 1px solid #64748b;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        .success {
+            background: #059669;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            display: none;
+        }
+        .instructions {
+            background: #1e40af;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ VerseLink - Injection Token Admin</h1>
+        
+        <div class="instructions">
+            <h2>📖 Instructions</h2>
+            <p><strong>1.</strong> Ce token vous donne temporairement accès admin</p>
+            <p><strong>2.</strong> Cliquez "Injecter Token" pour vous connecter automatiquement</p>
+            <p><strong>3.</strong> Allez sur VerseLink pour gérer l'admin et récupérer votre vrai token</p>
+            <p><strong>4.</strong> Configurez ensuite Discord OAuth correctement</p>
+        </div>
+
+        <h2>🔑 Token Admin Temporaire</h2>
+        <div class="token-box" id="tokenDisplay">
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMDA0MjExOC0zZGY2LTQ3MDMtYjM3Yy04ZjQzM2FkMDNmZWUiLCJleHAiOjE3NTcyMDQ4MjB9.cErP4a_1D9qHyp50BmXrFcSFsfeVEk7lzGfiBPgqz74
+        </div>
+
+        <div>
+            <button onclick="injectToken()">🚀 Injecter Token & Se Connecter</button>
+            <button onclick="copyToken()">📋 Copier Token</button>
+            <button onclick="clearToken()">🗑️ Effacer Token</button>
+        </div>
+
+        <div class="success" id="successMessage">
+            ✅ Token injecté avec succès ! Redirection vers VerseLink...
+        </div>
+
+        <h2>🔧 Actions Rapides</h2>
+        <div>
+            <button onclick="goToVerseLink()">🌐 Aller sur VerseLink</button>
+            <button onclick="goToAdmin()">🛡️ Page Admin</button>
+            <button onclick="goToDiscord()">💬 Intégrations Discord</button>
+        </div>
+
+        <div class="instructions">
+            <h2>⚠️ Problème Discord OAuth</h2>
+            <p>Le Discord Client Secret n'est pas configuré, c'est pourquoi l'authentification normale échoue.</p>
+            <p><strong>Pour corriger :</strong></p>
+            <ol>
+                <li>Allez sur <a href="https://discord.com/developers/applications/1413780341084131338" target="_blank" style="color: #60a5fa;">Discord Developer Portal</a></li>
+                <li>Onglet "OAuth2" → Cliquez "Reset Secret"</li>
+                <li>Copiez le nouveau secret</li>
+                <li>Remplacez dans /app/backend/.env : <code>DISCORD_CLIENT_SECRET=votre_nouveau_secret</code></li>
+                <li>Redémarrez le backend : <code>sudo supervisorctl restart backend</code></li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMDA0MjExOC0zZGY2LTQ3MDMtYjM3Yy04ZjQzM2FkMDNmZWUiLCJleHAiOjE3NTcyMDQ4MjB9.cErP4a_1D9qHyp50BmXrFcSFsfeVEk7lzGfiBPgqz74';
+        const VERSELINK_URL = 'http://89.88.206.99:3000';
+
+        function injectToken() {
+            // Store token in localStorage
+            localStorage.setItem('auth_token', TOKEN);
+            
+            // Show success message
+            document.getElementById('successMessage').style.display = 'block';
+            
+            // Redirect after 2 seconds
+            setTimeout(() => {
+                window.location.href = VERSELINK_URL;
+            }, 2000);
+        }
+
+        function copyToken() {
+            navigator.clipboard.writeText(TOKEN).then(() => {
+                alert('Token copié dans le presse-papiers !');
+            });
+        }
+
+        function clearToken() {
+            localStorage.removeItem('auth_token');
+            alert('Token effacé du localStorage');
+        }
+
+        function goToVerseLink() {
+            window.open(VERSELINK_URL, '_blank');
+        }
+
+        function goToAdmin() {
+            window.open(VERSELINK_URL + '/admin/setup', '_blank');
+        }
+
+        function goToDiscord() {
+            window.open(VERSELINK_URL + '/discord', '_blank');
+        }
+
+        // Check if already has token
+        window.onload = function() {
+            const existingToken = localStorage.getItem('auth_token');
+            if (existingToken) {
+                if (existingToken === TOKEN) {
+                    document.getElementById('successMessage').innerHTML = '✅ Token déjà injecté ! Vous êtes connecté.';
+                    document.getElementById('successMessage').style.display = 'block';
+                } else {
+                    document.getElementById('successMessage').innerHTML = '⚠️ Un autre token est présent. Cliquez "Injecter Token" pour le remplacer.';
+                    document.getElementById('successMessage').style.display = 'block';
+                    document.getElementById('successMessage').style.background = '#d97706';
+                }
+            }
+        };
+    </script>
+</body>
+</html>
