@@ -173,6 +173,83 @@ async def logout_user():
         "success": True
     }
 
+@router.post("/promote-admin")
+async def promote_user_to_admin(
+    target_discord_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Promote a user to site admin (only existing admins can do this)"""
+    
+    # Check if current user is admin
+    if not current_user.is_site_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Seuls les administrateurs peuvent promouvoir d'autres utilisateurs"
+        )
+    
+    db = get_database()
+    
+    # Find target user
+    target_user = await db.users.find_one({"discord_id": target_discord_id})
+    if not target_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Utilisateur avec Discord ID {target_discord_id} introuvable"
+        )
+    
+    if target_user.get("is_site_admin"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cet utilisateur est déjà administrateur"
+        )
+    
+    # Promote user
+    await db.users.update_one(
+        {"discord_id": target_discord_id},
+        {"$set": {"is_site_admin": True, "updated_at": datetime.utcnow()}}
+    )
+    
+    return {
+        "message": f"Utilisateur {target_user.get('handle', target_discord_id)} promu administrateur avec succès",
+        "user_id": target_user.get("id"),
+        "discord_id": target_discord_id
+    }
+
+@router.post("/init-admin")
+async def initialize_first_admin():
+    """Initialize first admin user (only works if no admins exist)"""
+    
+    db = get_database()
+    
+    # Check if any admin already exists
+    existing_admin = await db.users.find_one({"is_site_admin": True})
+    if existing_admin:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Un administrateur existe déjà. Utilisez /auth/promote-admin pour promouvoir d'autres utilisateurs."
+        )
+    
+    # Find the first user (usually the one who created the system)
+    first_user = await db.users.find_one({}, sort=[("created_at", 1)])
+    if not first_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Aucun utilisateur trouvé dans le système"
+        )
+    
+    # Promote first user to admin
+    await db.users.update_one(
+        {"id": first_user["id"]},
+        {"$set": {"is_site_admin": True, "updated_at": datetime.utcnow()}}
+    )
+    
+    return {
+        "message": f"Premier administrateur initialisé : {first_user.get('handle', first_user.get('discord_username', 'Utilisateur'))}",
+        "user_id": first_user["id"],
+        "discord_id": first_user.get("discord_id"),
+        "instructions": "Cet utilisateur peut maintenant promouvoir d'autres administrateurs via /auth/promote-admin"
+    }
+
 @router.get("/check")
 async def check_auth(current_user: User = Depends(get_current_active_user)):
     """Check if user is authenticated"""
