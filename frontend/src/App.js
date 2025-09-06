@@ -201,6 +201,14 @@ function App() {
                 } 
               />
               <Route 
+                path="/admin/setup" 
+                element={
+                  <ProtectedRoute>
+                    <AdminSetupPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
                 path="/admin/moderation" 
                 element={
                   <ProtectedRoute>
