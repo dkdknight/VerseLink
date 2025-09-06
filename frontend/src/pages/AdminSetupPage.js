@@ -35,6 +35,8 @@ const AdminSetupPage = () => {
       setLoading(false);
     }
   };
+
+  const initializeFirstAdmin = async () => {
     setLoading(true);
     try {
       const response = await api.post('/auth/init-admin');
