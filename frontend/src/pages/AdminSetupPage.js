@@ -9,7 +9,32 @@ const AdminSetupPage = () => {
   const [showTestAdmin, setShowTestAdmin] = useState(false);
   const { user, isAuthenticated, setUser, setIsAuthenticated } = useAuth();
 
-  const initializeFirstAdmin = async () => {
+  const createTestAdmin = async () => {
+    setLoading(true);
+    try {
+      const response = await api.post('/auth/create-test-admin');
+      
+      // Store the token
+      localStorage.setItem('auth_token', response.data.access_token);
+      
+      // Update auth context
+      setUser(response.data.user);
+      setIsAuthenticated(true);
+      
+      toast.success(response.data.message);
+      
+      // Refresh the page to show admin interface
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+      
+    } catch (error) {
+      const message = error.response?.data?.detail || 'Erreur lors de la création du test admin';
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
     setLoading(true);
     try {
       const response = await api.post('/auth/init-admin');
