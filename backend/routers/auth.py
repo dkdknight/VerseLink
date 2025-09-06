@@ -158,10 +158,12 @@ async def discord_auth_callback(request: DiscordCallbackRequest):
             detail=f"Authentication failed: {str(e)}"
         )
 
-@router.get("/me", response_model=UserProfile)
-async def get_current_user_profile(current_user: User = Depends(get_current_active_user)):
-    """Get current user profile"""
-    return UserProfile(**current_user.dict())
+@router.get("/me")
+async def get_current_user(current_user: User = Depends(get_current_active_user)):
+    """Get current authenticated user"""
+    return {
+        "user": UserResponse(**current_user.dict())
+    }
 
 @router.post("/logout")
 async def logout():
