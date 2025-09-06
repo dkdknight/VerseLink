@@ -18,6 +18,7 @@ import NotificationsPage from './pages/NotificationsPage';
 import NotificationPreferencesPage from './pages/NotificationPreferencesPage';
 import ModerationDashboardPage from './pages/ModerationDashboardPage';
 import DiscordIntegrationPage from './pages/DiscordIntegrationPage';
+import DiscordCallbackPage from './pages/DiscordCallbackPage';
 
 // Import services
 import { authService } from './services/authService';
