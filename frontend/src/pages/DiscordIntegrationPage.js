@@ -297,7 +297,10 @@ const DiscordIntegrationPage = () => {
                       </button>
                       
                       <button
-                        onClick={() => toast.info('Test de connexion (bientôt disponible)')}
+                        onClick={() => toast('Test de connexion (bientôt disponible)', {
+                          icon: 'ℹ️',
+                          duration: 3000
+                        })}
                         className="px-3 py-2 text-sm border border-primary-600 text-primary-400 rounded-lg hover:bg-primary-600 hover:text-white transition-colors duration-200"
                       >
                         Tester
