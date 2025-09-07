@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { 
   UsersIcon,
@@ -7,7 +7,8 @@ import {
   TrophyIcon,
   LinkIcon,
   UserPlusIcon,
-  UserMinusIcon
+  UserMinusIcon,
+  PlusIcon
 } from '@heroicons/react/24/outline';
 import { organizationService } from '../services/organizationService';
 import { useAuth } from '../App';
@@ -203,6 +204,13 @@ const OrganizationDetailPage = () => {
             {/* Join/Leave Button */}
             {isAuthenticated && (
               <div className="flex space-x-3">
+                <Link
+                  to={`/organizations/${id}/events/new`}
+                  className="btn-primary flex items-center"
+                >
+                  <PlusIcon className="w-5 h-5 mr-2" />
+                  Créer un événement
+                </Link>
                 {isMember ? (
                   <button
                     onClick={handleLeave}

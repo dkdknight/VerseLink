@@ -3,9 +3,9 @@ from discord.ext import commands
 from discord import app_commands
 from typing import Optional, List
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
-from verselink_api import VerselinkAPI
+from api import VerselinkAPI
 from utils import *
 from config import Config
 
@@ -336,6 +336,74 @@ class VerselinkCommands(commands.Cog):
             )
             await interaction.followup.send(embed=embed)
     
+    @app_commands.command(name="event-create", description="Créer un nouvel événement")
+    @app_commands.describe(
+        org_id="ID de l'organisation",
+        title="Titre de l'événement",
+        date="Date/heure de début (ISO 8601)",
+        duration="Durée en minutes",
+        description="Description de l'événement",
+        location="Lieu de l'événement"
+    )
+    @has_manage_guild()
+    async def event_create(
+        self,
+        interaction: discord.Interaction,
+        org_id: str,
+        title: str,
+        date: str,
+        duration: int,
+        description: str,
+        location: Optional[str] = None,
+    ):
+        """Create a new event for an organization"""
+        await interaction.response.defer()
+
+        try:
+            start_dt = datetime.fromisoformat(date)
+            if start_dt.tzinfo is None:
+                start_dt = start_dt.replace(tzinfo=timezone.utc)
+
+            event_data = {
+                'title': title,
+                'description': description,
+                'type': 'autre',
+                'start_at_utc': start_dt.isoformat(),
+                'duration_minutes': duration,
+            }
+            if location:
+                event_data['location'] = location
+
+            async with VerselinkAPI() as api:
+                event = await api.create_event(org_id, event_data)
+                config = await api.get_guild_config(str(interaction.guild.id))
+
+            embed = create_success_embed(
+                "✅ Événement Créé",
+                f"L'événement **{title}** a été créé avec succès",
+            )
+            await interaction.followup.send(embed=embed)
+
+            channel_id = config.get('events_channel_id')
+            if channel_id:
+                channel = interaction.guild.get_channel(int(channel_id))
+                if channel:
+                    event_embed = create_event_embed(event)
+                    await safe_send(channel, embed=event_embed)
+
+        except Exception as e:
+            if '401' in str(e) or '403' in str(e):
+                embed = create_error_embed(
+                    "❌ Accès Refusé",
+                    "Vous n'avez pas les droits pour créer un événement.",
+                )
+            else:
+                embed = create_error_embed(
+                    "❌ Erreur",
+                    f"Impossible de créer l'événement : {str(e)}",
+                )
+            await interaction.followup.send(embed=embed)
+
     # Tournament Commands
     @app_commands.command(name="tournaments", description="Afficher les tournois actifs")
     @app_commands.describe(limit="Nombre de tournois à afficher (max 10)")
