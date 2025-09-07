@@ -475,9 +475,12 @@ agent_communication:
 - All Phase 6 systems properly integrated with authentication and authorization
 
 ### Issues & Solutions
+- **RESOLVED**: Discord Bot Integration critical issues - duplicate endpoint definitions causing 500 errors
+- **RESOLVED**: Parameter validation issues in Discord bot API endpoints  
+- **RESOLVED**: Database index conflicts with api_key field causing guild registration failures
+- **RESOLVED**: All Discord bot endpoints now working: /bot/verify, /bot/guild/{guild_id}/register, /bot/guild/{guild_id}/config
 - **Minor**: One authentication edge case failure in tournament system (Bearer token format validation)
 - **Minor**: Discord webhook signature verification edge cases need improvement (8 failed tests out of 54)
-- **Minor**: Discord bot API parameter validation needs adjustment (expecting query params vs body)
 - **Resolved**: All tournament endpoints returning correct status codes
 - **Resolved**: All Phase 4 Tournament APIs properly integrated and functional
 - **Resolved**: Bracket generation working for all tournament formats
