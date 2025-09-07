@@ -88,27 +88,47 @@ async def register_guild_by_bot(guild_id: str, guild_data: dict):
         )
 
 @router.get("/bot/guild/{guild_id}/config")
-async def get_guild_config_by_bot(guild_id: str):
-    """Get guild configuration for bot"""
-    try:
-        db = get_database()
-        guild_doc = await db.discord_guilds.find_one({"guild_id": guild_id})
-        
-        if not guild_doc:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Guild {guild_id} not found"
-            )
-        
-        return guild_doc
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get guild config: {str(e)}"
-        )
+async def get_bot_guild_config(
+    guild_id: str,
+    api_key: str
+):
+    """Get guild configuration for Discord bot"""
+    # Verify bot authentication
+    is_valid = await discord_service.verify_bot_auth(guild_id, api_key)
+    if not is_valid:
+        raise HTTPException(status_code=401, detail="Invalid bot authentication")
+    
+    guild = await discord_service.get_guild(guild_id)
+    if not guild:
+        raise HTTPException(status_code=404, detail="Guild not found")
+    
+    # Get reminder configurations
+    db = get_database()
+    reminder_configs = []
+    async for config_doc in db.reminder_configs.find({"guild_id": guild_id}):
+        reminder_configs.append(ReminderConfigResponse(
+            id=config_doc["id"],
+            guild_id=config_doc["guild_id"],
+            reminder_type=config_doc["reminder_type"],
+            enabled=config_doc["enabled"],
+            channel_id=config_doc.get("channel_id"),
+            custom_message=config_doc.get("custom_message"),
+            offset_minutes=config_doc.get("offset_minutes", 0),
+            created_at=config_doc["created_at"]
+        ))
+    
+    return {
+        "guild": {
+            "id": guild.id,
+            "guild_id": guild.guild_id,
+            "guild_name": guild.guild_name,
+            "sync_enabled": guild.sync_enabled,
+            "reminder_enabled": guild.reminder_enabled,
+            "announcement_channel_id": getattr(guild, 'announcement_channel_id', None),
+            "reminder_channel_id": getattr(guild, 'reminder_channel_id', None)
+        },
+        "reminder_configs": reminder_configs
+    }
 
 # Guild Management Endpoints
 @router.post("/guilds", response_model=DiscordGuildResponse)
