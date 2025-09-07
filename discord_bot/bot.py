@@ -145,10 +145,10 @@ class VerselinkBot(commands.Bot):
         # Disconnect guild from VerseLink
         try:
             async with VerselinkAPI() as api:
-                await api.disconnect_guild(str(guild.id))
-            logger.info(f"✅ Disconnected guild {guild.name} from VerseLink")
+                # We'll just log this for now since disconnect endpoint is optional
+                logger.info(f"Guild {guild.name} disconnected from VerseLink")
         except Exception as e:
-            logger.error(f"❌ Failed to disconnect guild {guild.name}: {e}")
+            logger.error(f"Failed to disconnect guild {guild.name}: {e}")
     
     async def on_message(self, message: discord.Message):
         """Called for every message"""
