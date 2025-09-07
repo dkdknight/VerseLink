@@ -19,34 +19,13 @@ discord_service = DiscordService()
 
 # Bot API Endpoints
 @router.post("/bot/verify")
-async def verify_bot_authentication(
-    request_data: dict
-):
-    """Verify Discord bot API authentication"""
-    guild_id = request_data.get("guild_id")
-    api_key = request_data.get("api_key")
-    
-    if not guild_id or not api_key:
-        raise HTTPException(status_code=400, detail="guild_id and api_key are required")
-    
-    is_valid = await discord_service.verify_bot_auth(guild_id, api_key)
-    
-    if not is_valid:
-        raise HTTPException(status_code=401, detail="Invalid bot authentication")
-    
-    # Update last used timestamp
-    db = get_database()
-    await db.discord_guilds.update_one(
-        {"guild_id": guild_id},
-        {"$set": {"last_sync_at": datetime.utcnow()}}
-    )
-    
+async def verify_bot():
+    """Verify bot connection with VerseLink API"""
     return {
         "status": "success",
         "message": "Bot verified successfully",
         "timestamp": datetime.utcnow().isoformat(),
-        "api_version": "v1",
-        "guild_id": guild_id
+        "api_version": "v1"
     }
 
 @router.post("/bot/guild/{guild_id}/register")
@@ -54,10 +33,6 @@ async def register_guild_by_bot(guild_id: str, guild_data: dict):
     """Register a guild via bot"""
     try:
         db = get_database()
-        
-        # Generate unique API key for the guild
-        import uuid
-        api_key = str(uuid.uuid4())
         
         # Create guild document
         guild_doc = {
@@ -72,7 +47,6 @@ async def register_guild_by_bot(guild_id: str, guild_data: dict):
             "sync_enabled": True,
             "reminder_enabled": True,
             "webhook_verified": False,
-            "api_key": api_key,  # Add unique API key
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow(),
             "setup_by_user_id": guild_data.get("setup_by_user_id"),
@@ -88,8 +62,7 @@ async def register_guild_by_bot(guild_id: str, guild_data: dict):
         
         return {
             "message": f"Guild {guild_data.get('guild_name')} registered successfully",
-            "guild_id": guild_id,
-            "api_key": api_key  # Return the API key for the bot to use
+            "guild_id": guild_id
         }
         
     except Exception as e:
@@ -99,47 +72,27 @@ async def register_guild_by_bot(guild_id: str, guild_data: dict):
         )
 
 @router.get("/bot/guild/{guild_id}/config")
-async def get_bot_guild_config(
-    guild_id: str,
-    api_key: str
-):
-    """Get guild configuration for Discord bot"""
-    # Verify bot authentication
-    is_valid = await discord_service.verify_bot_auth(guild_id, api_key)
-    if not is_valid:
-        raise HTTPException(status_code=401, detail="Invalid bot authentication")
-    
-    guild = await discord_service.get_guild(guild_id)
-    if not guild:
-        raise HTTPException(status_code=404, detail="Guild not found")
-    
-    # Get reminder configurations
-    db = get_database()
-    reminder_configs = []
-    async for config_doc in db.reminder_configs.find({"guild_id": guild_id}):
-        reminder_configs.append(ReminderConfigResponse(
-            id=config_doc["id"],
-            guild_id=config_doc["guild_id"],
-            reminder_type=config_doc["reminder_type"],
-            enabled=config_doc["enabled"],
-            channel_id=config_doc.get("channel_id"),
-            custom_message=config_doc.get("custom_message"),
-            offset_minutes=config_doc.get("offset_minutes", 0),
-            created_at=config_doc["created_at"]
-        ))
-    
-    return {
-        "guild": {
-            "id": guild.id,
-            "guild_id": guild.guild_id,
-            "guild_name": guild.guild_name,
-            "sync_enabled": guild.sync_enabled,
-            "reminder_enabled": guild.reminder_enabled,
-            "announcement_channel_id": getattr(guild, 'announcement_channel_id', None),
-            "reminder_channel_id": getattr(guild, 'reminder_channel_id', None)
-        },
-        "reminder_configs": reminder_configs
-    }
+async def get_guild_config_by_bot(guild_id: str):
+    """Get guild configuration for bot"""
+    try:
+        db = get_database()
+        guild_doc = await db.discord_guilds.find_one({"guild_id": guild_id})
+        
+        if not guild_doc:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Guild {guild_id} not found"
+            )
+        
+        return guild_doc
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get guild config: {str(e)}"
+        )
 
 # Guild Management Endpoints
 @router.post("/guilds", response_model=DiscordGuildResponse)
@@ -420,6 +373,70 @@ async def process_discord_jobs(
         return {"message": "Job processing triggered"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Job processing failed: {str(e)}")
+
+# Bot API Authentication Endpoints
+@router.post("/bot/verify")
+async def verify_bot_authentication(
+    guild_id: str,
+    api_key: str
+):
+    """Verify Discord bot API authentication"""
+    is_valid = await discord_service.verify_bot_auth(guild_id, api_key)
+    
+    if not is_valid:
+        raise HTTPException(status_code=401, detail="Invalid bot authentication")
+    
+    # Update last used timestamp
+    db = get_database()
+    await db.discord_guilds.update_one(
+        {"guild_id": guild_id},
+        {"$set": {"last_sync_at": datetime.utcnow()}}
+    )
+    
+    return {"message": "Authentication verified", "guild_id": guild_id}
+
+@router.get("/bot/guild/{guild_id}/config")
+async def get_bot_guild_config(
+    guild_id: str,
+    api_key: str
+):
+    """Get guild configuration for Discord bot"""
+    # Verify bot authentication
+    is_valid = await discord_service.verify_bot_auth(guild_id, api_key)
+    if not is_valid:
+        raise HTTPException(status_code=401, detail="Invalid bot authentication")
+    
+    guild = await discord_service.get_guild(guild_id)
+    if not guild:
+        raise HTTPException(status_code=404, detail="Guild not found")
+    
+    # Get reminder configurations
+    db = get_database()
+    reminder_configs = []
+    async for config_doc in db.reminder_configs.find({"guild_id": guild_id}):
+        reminder_configs.append(ReminderConfigResponse(
+            id=config_doc["id"],
+            guild_id=config_doc["guild_id"],
+            reminder_type=config_doc["reminder_type"],
+            enabled=config_doc["enabled"],
+            channel_id=config_doc.get("channel_id"),
+            custom_message=config_doc.get("custom_message"),
+            offset_minutes=config_doc.get("offset_minutes", 0),
+            created_at=config_doc["created_at"]
+        ))
+    
+    return {
+        "guild": {
+            "id": guild.id,
+            "guild_id": guild.guild_id,
+            "guild_name": guild.guild_name,
+            "sync_enabled": guild.sync_enabled,
+            "reminder_enabled": guild.reminder_enabled,
+            "announcement_channel_id": guild.announcement_channel_id,
+            "reminder_channel_id": guild.reminder_channel_id
+        },
+        "reminder_configs": reminder_configs
+    }
 
 # Statistics and Monitoring
 @router.get("/stats", response_model=DiscordIntegrationStats)

@@ -26,6 +26,17 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     return encoded_jwt
 
+async def revoke_token(token: str):
+    """Store a JWT token as revoked"""
+    db = get_database()
+    await db.revoked_tokens.insert_one({"token": token, "revoked_at": datetime.utcnow()})
+
+async def is_token_revoked(token: str) -> bool:
+    """Check if a JWT token has been revoked"""
+    db = get_database()
+    return await db.revoked_tokens.find_one({"token": token}) is not None
+
+
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     """Get current authenticated user from JWT token"""
     credentials_exception = HTTPException(
@@ -33,6 +44,9 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+    if await is_token_revoked(credentials.credentials):
+        raise credentials_exception
     
     try:
         payload = jwt.decode(credentials.credentials, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])

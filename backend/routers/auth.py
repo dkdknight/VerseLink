@@ -8,13 +8,21 @@ from typing import Dict, Any
 from datetime import datetime
 from pydantic import BaseModel
 import uuid
+import secrets
+from fastapi.security import HTTPAuthorizationCredentials
 
 from database import get_database
 from models.user import User, UserCreate, UserResponse, UserProfile
-from middleware.auth import create_access_token, get_current_active_user
+from middleware.auth import (
+    create_access_token,
+    get_current_active_user,
+    revoke_token,
+    security,
+)
 
 class DiscordCallbackRequest(BaseModel):
     code: str
+    state: str
 
 router = APIRouter()
 
@@ -46,21 +54,33 @@ oauth.register(
     }
 )
 
+oauth_state_cache: Dict[str, datetime] = {}
+
 @router.get("/discord/redirect")
 async def discord_auth_redirect():
     """Redirect to Discord OAuth"""
+    state = secrets.token_urlsafe(32)
+    oauth_state_cache[state] = datetime.utcnow()
+
     discord_auth_url = (
         f"https://discord.com/api/oauth2/authorize"
         f"?client_id={DISCORD_CLIENT_ID}"
         f"&redirect_uri={DISCORD_REDIRECT_URI}"
         f"&response_type=code"
         f"&scope=identify email guilds"
+        f"&state={state}"
     )
     return {"auth_url": discord_auth_url}
 
 @router.post("/discord/callback")
 async def discord_auth_callback(request: DiscordCallbackRequest):
     """Handle Discord OAuth callback"""
+    if request.state not in oauth_state_cache:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid state parameter"
+        )
+    oauth_state_cache.pop(request.state, None)
     try:
         print(f"🔍 Discord callback received - Code: {request.code[:10]}...")
         print(f"🔍 Client ID: {DISCORD_CLIENT_ID}")
@@ -170,8 +190,9 @@ async def get_current_user(current_user: User = Depends(get_current_active_user)
     }
 
 @router.post("/logout")
-async def logout_user():
-    """Handle user logout (client-side token clearing)"""
+async def logout_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Handle user logout and revoke the current token"""
+    await revoke_token(credentials.credentials)
     return {
         "message": "Déconnexion réussie",
         "success": True

@@ -219,12 +219,9 @@ backend:
     priority: "high"
     needs_retesting: false
     status_history:
-      - working: false
-        agent: "testing"
-        comment: "Minor: Discord bot authentication API working with parameter validation issues. POST /api/v1/discord/bot/verify and GET /api/v1/discord/bot/guild/{guild_id}/config endpoints functional but need parameter format adjustments. Core authentication logic works."
       - working: true
         agent: "testing"
-        comment: "FIXED: Discord bot authentication API fully functional. Resolved duplicate endpoint definitions, fixed parameter validation issues, and database index conflicts. POST /api/v1/discord/bot/verify now accepts JSON body parameters, GET /api/v1/discord/bot/guild/{guild_id}/config works with query parameters, and POST /api/v1/discord/bot/guild/{guild_id}/register generates unique API keys. All endpoints return proper status codes (200, 401, 400) instead of 500 errors."
+        comment: "Minor: Discord bot authentication API working with parameter validation issues. POST /api/v1/discord/bot/verify and GET /api/v1/discord/bot/guild/{guild_id}/config endpoints functional but need parameter format adjustments. Core authentication logic works."
 
   - task: "Phase 5 Discord Stats & Health API"
     implemented: true
@@ -381,10 +378,6 @@ agent_communication:
     message: "Phase 5 Discord Integration System testing completed successfully. Comprehensive testing of Discord integration system shows 85.2% success rate (46/54 tests passed). All major Discord endpoints functional: guild management, webhook processing, announcements, message sync, reminders, job management, bot authentication, health monitoring. Minor issues in webhook error handling and bot API parameter validation. Discord integration system is production-ready."
   - agent: "testing"
     message: "Phase 6 Notifications, Moderation & Auto-Moderation System testing completed successfully. Comprehensive testing shows 100% success rate (84/84 tests passed). All Phase 6 systems fully functional: Notifications API with user notifications, stats, preferences management; Moderation API with report creation/handling, user history, audit logs; Auto-Moderation API with configurable spam detection, profanity filter, harassment detection, toggle functionality. All endpoints properly secured with authentication. Phase 6 systems are production-ready."
-  - agent: "testing"
-    message: "CRITICAL BUGS FIXED - Discord Bot Integration Issues Resolved: Fixed duplicate endpoint definitions (/bot/verify lines 21 & 378), resolved 500 errors from missing api_key fields in database documents, fixed database index conflicts with unique api_key generation, corrected parameter validation (bot verify now accepts JSON body, guild config accepts query parameters). Organization creation working correctly (403 auth required as expected). All Discord bot endpoints now functional: /bot/verify, /bot/guild/{guild_id}/register, /bot/guild/{guild_id}/config. Database connectivity confirmed across all collections. All critical issues reported by user have been RESOLVED."
-  - agent: "testing"
-    message: "CRITICAL ISSUES RESOLVED: Fixed Discord Bot Integration bugs reported by user. Resolved duplicate endpoint definitions in discord_integration_v2.py (lines 21 & 378 for /bot/verify, lines 74 & 398 for /bot/guild/{guild_id}/config). Fixed parameter validation issues - bot verify now accepts JSON body, guild config accepts query parameters. Fixed database index conflict by ensuring all guilds have unique api_key fields. All Discord bot endpoints now return proper status codes (200/401/400) instead of 500 errors. Organization creation endpoints working correctly (403 auth required as expected). Database connectivity confirmed. All critical issues from review request resolved."
 
 ### Current Implementation Status
 
@@ -477,18 +470,9 @@ agent_communication:
 - All Phase 6 systems properly integrated with authentication and authorization
 
 ### Issues & Solutions
-- **RESOLVED**: Discord Bot Integration critical issues - duplicate endpoint definitions causing 500 errors
-- **RESOLVED**: Parameter validation issues in Discord bot API endpoints  
-- **RESOLVED**: Database index conflicts with api_key field causing guild registration failures
-- **RESOLVED**: All Discord bot endpoints now working: /bot/verify, /bot/guild/{guild_id}/register, /bot/guild/{guild_id}/config
-- **RESOLVED**: Discord Bot Integration Critical Issues - Fixed duplicate endpoint definitions, missing api_key fields, database index conflicts, and parameter validation
-- **RESOLVED**: Discord bot verify endpoint now accepts JSON body with guild_id and api_key
-- **RESOLVED**: Discord guild registration now generates unique API keys and returns them to bot
-- **RESOLVED**: Discord guild config endpoint now accepts query parameters and validates bot authentication
-- **RESOLVED**: Organization creation working correctly (returns 403 for unauthenticated requests as expected)
-- **RESOLVED**: Database connectivity confirmed working across all collections
 - **Minor**: One authentication edge case failure in tournament system (Bearer token format validation)
 - **Minor**: Discord webhook signature verification edge cases need improvement (8 failed tests out of 54)
+- **Minor**: Discord bot API parameter validation needs adjustment (expecting query params vs body)
 - **Resolved**: All tournament endpoints returning correct status codes
 - **Resolved**: All Phase 4 Tournament APIs properly integrated and functional
 - **Resolved**: Bracket generation working for all tournament formats
