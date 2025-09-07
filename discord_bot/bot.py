@@ -11,11 +11,23 @@ from verselink_api import VerselinkAPI
 from utils import create_embed, create_error_embed, create_success_embed
 
 # Setup logging
+import sys
+import os
+
+# Force UTF-8 encoding for Windows compatibility
+if sys.platform.startswith('win'):
+    import codecs
+    sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+    sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
+
+# Set environment encoding
+os.environ['PYTHONIOENCODING'] = 'utf-8'
+
 logging.basicConfig(
     level=getattr(logging, Config.LOG_LEVEL.upper()),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('bot.log'),
+        logging.FileHandler('bot.log', encoding='utf-8'),
         logging.StreamHandler(sys.stdout)
     ]
 )
