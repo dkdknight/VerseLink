@@ -11,9 +11,12 @@ class VerselinkAPI:
         self.base_url = Config.VERSELINK_API_BASE
         self.headers = Config.get_headers()
         self.session = None
+        self.max_retries = Config.API_MAX_RETRIES
+        self.backoff_factor = Config.API_BACKOFF_FACTOR
+        self.timeout = aiohttp.ClientTimeout(total=Config.API_TIMEOUT)
     
     async def __aenter__(self):
-        self.session = aiohttp.ClientSession(headers=self.headers)
+        self.session = aiohttp.ClientSession(headers=self.headers, timeout=self.timeout)
         return self
     
     async def __aexit__(self, exc_type, exc_val, exc_tb):
@@ -24,25 +27,32 @@ class VerselinkAPI:
         """Make HTTP request to VerseLink API"""
         url = f"{self.base_url.rstrip('/')}/{endpoint.lstrip('/')}"
         
-        try:
-            if not self.session:
-                self.session = aiohttp.ClientSession(headers=self.headers)
-            
-            async with self.session.request(method, url, **kwargs) as response:
-                response_data = await response.json()
-                
-                if response.status >= 400:
-                    logger.error(f"API Error {response.status}: {response_data}")
-                    raise Exception(f"API Error {response.status}: {response_data.get('detail', 'Unknown error')}")
-                
-                return response_data
-        
-        except aiohttp.ClientError as e:
-            logger.error(f"HTTP Client Error: {e}")
-            raise Exception(f"Connection error to VerseLink API: {e}")
-        except Exception as e:
-            logger.error(f"Unexpected error: {e}")
-            raise
+        for attempt in range(1, self.max_retries + 1):
+            try:
+                if not self.session:
+                    self.session = aiohttp.ClientSession(headers=self.headers, timeout=self.timeout)
+
+                async with self.session.request(method, url, **kwargs) as response:
+                    response_data = await response.json()
+
+                    if response.status >= 500:
+                        raise Exception(f"API Error {response.status}: {response_data.get('detail', 'Unknown error')}")
+                    if response.status >= 400:
+                        logger.error(f"API Error {response.status}: {response_data}")
+                        raise Exception(f"API Error {response.status}: {response_data.get('detail', 'Unknown error')}")
+
+                    return response_data
+
+            except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+                if attempt == self.max_retries:
+                    logger.error(f"Connection error to VerseLink API: {e}")
+                    raise Exception(f"Connection error to VerseLink API: {e}")
+                delay = self.backoff_factor * (2 ** (attempt - 1))
+                logger.warning(f"API request failed (attempt {attempt}/{self.max_retries}): {e}. Retrying in {delay}s")
+                await asyncio.sleep(delay)
+            except Exception as e:
+                logger.error(f"Unexpected error: {e}")
+                raise
     
     # Bot Management
     async def verify_bot(self) -> Dict[str, Any]:

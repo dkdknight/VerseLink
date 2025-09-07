@@ -9,6 +9,7 @@ from datetime import datetime
 from config import Config
 from verselink_api import VerselinkAPI
 from utils import create_embed, create_error_embed, create_success_embed
+from urllib.parse import urljoin
 
 # Setup logging
 import sys
@@ -128,8 +129,8 @@ class VerselinkBot(commands.Bot):
                 f"• `/tournaments` - Lister les tournois\n"
                 f"• `/status` - Statut du systeme\n\n"
                 f"Liens utiles :\n"
-                f"[Site VerseLink](http://89.88.206.99:3000) | "
-                f"[Gestion Discord](http://89.88.206.99:3000/discord)\n\n"
+                f"[Site VerseLink]({Config.get_site_base()}) | "
+                f"[Gestion Discord]({urljoin(Config.get_site_base(), 'discord')})\n\n"
                 f"Besoin d'aide ? Utilisez `/help` ou contactez un administrateur."
             )
             

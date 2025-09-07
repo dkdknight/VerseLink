@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from urllib.parse import urlparse
 
 load_dotenv()
 
@@ -10,6 +11,11 @@ class Config:
     # VerseLink API Configuration
     VERSELINK_API_BASE = os.getenv('VERSELINK_API_BASE', 'http://89.88.206.99:8001/api/v1')
     VERSELINK_API_TOKEN = os.getenv('VERSELINK_API_TOKEN')
+
+     # API Retry/Backoff Configuration
+    API_MAX_RETRIES = int(os.getenv('API_MAX_RETRIES', '3'))
+    API_BACKOFF_FACTOR = float(os.getenv('API_BACKOFF_FACTOR', '1'))
+    API_TIMEOUT = int(os.getenv('API_TIMEOUT', '10'))
     
     # Bot Configuration
     BOT_PREFIX = os.getenv('BOT_PREFIX', '!vl')
@@ -38,4 +44,13 @@ class Config:
             'Authorization': f'Bearer {cls.VERSELINK_API_TOKEN}',
             'Content-Type': 'application/json',
             'User-Agent': 'VerseLink-Discord-Bot/1.0'
-        }
+            }
+
+    @classmethod
+    def get_site_base(cls) -> str:
+        """Get base URL for VerseLink site from API base"""
+        parsed = urlparse(cls.VERSELINK_API_BASE)
+        base = f"{parsed.scheme}://{parsed.hostname}"
+        if parsed.port:
+            base += f":{parsed.port}"
+        return base
