@@ -222,13 +222,13 @@ class VerselinkBot(commands.Bot):
                 async with VerselinkAPI() as api:
                     await api.register_guild(str(guild.id), guild_data)
                 
-                logger.info(f"✅ Registered guild: {guild.name}")
+                logger.info(f"Registered guild: {guild.name}")
                 
             except Exception as e:
                 if "already registered" in str(e).lower():
                     logger.debug(f"Guild {guild.name} already registered")
                 else:
-                    logger.error(f"❌ Failed to register guild {guild.name}: {e}")
+                    logger.error(f"Failed to register guild {guild.name}: {e}")
     
     async def on_command_error(self, ctx: commands.Context, error: commands.CommandError):
         """Handle command errors"""
