@@ -98,7 +98,7 @@ class VerselinkBot(commands.Bot):
     
     async def on_guild_join(self, guild: discord.Guild):
         """Called when bot joins a new guild"""
-        logger.info(f"📥 Joined guild: {guild.name} ({guild.id})")
+        logger.info(f"Joined guild: {guild.name} ({guild.id})")
         
         # Try to find a general channel to send welcome message
         welcome_channel = None
@@ -117,20 +117,20 @@ class VerselinkBot(commands.Bot):
         
         if welcome_channel:
             embed = create_success_embed(
-                "🚀 VerseLink Bot - Bienvenue !",
-                f"Merci d'avoir ajouté le bot VerseLink à **{guild.name}** !\n\n"
-                f"🔧 **Configuration requise :**\n"
+                "VerseLink Bot - Bienvenue !",
+                f"Merci d'avoir ajoute le bot VerseLink a **{guild.name}** !\n\n"
+                f"Configuration requise :\n"
                 f"Utilisez `/setup` pour configurer votre serveur\n\n"
-                f"📚 **Commandes principales :**\n"
+                f"Commandes principales :\n"
                 f"• `/setup` - Configurer le serveur\n"
                 f"• `/config` - Voir la configuration\n"
-                f"• `/events` - Lister les événements\n"
+                f"• `/events` - Lister les evenements\n"
                 f"• `/tournaments` - Lister les tournois\n"
-                f"• `/status` - Statut du système\n\n"
-                f"🔗 **Liens utiles :**\n"
+                f"• `/status` - Statut du systeme\n\n"
+                f"Liens utiles :\n"
                 f"[Site VerseLink](http://89.88.206.99:3000) | "
                 f"[Gestion Discord](http://89.88.206.99:3000/discord)\n\n"
-                f"💡 **Besoin d'aide ?** Utilisez `/help` ou contactez un administrateur."
+                f"Besoin d'aide ? Utilisez `/help` ou contactez un administrateur."
             )
             
             try:
