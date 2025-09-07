@@ -17,6 +17,83 @@ from models.user import User
 router = APIRouter()
 discord_service = DiscordService()
 
+# Bot API Endpoints
+@router.post("/bot/verify")
+async def verify_bot():
+    """Verify bot connection with VerseLink API"""
+    return {
+        "status": "success",
+        "message": "Bot verified successfully",
+        "timestamp": datetime.utcnow().isoformat(),
+        "api_version": "v1"
+    }
+
+@router.post("/bot/guild/{guild_id}/register")
+async def register_guild_by_bot(guild_id: str, guild_data: dict):
+    """Register a guild via bot"""
+    try:
+        db = get_database()
+        
+        # Create guild document
+        guild_doc = {
+            "id": f"guild_{guild_id}",
+            "guild_id": guild_id,
+            "guild_name": guild_data.get("guild_name", "Unknown Guild"),
+            "guild_icon": guild_data.get("guild_icon"),
+            "owner_id": guild_data.get("owner_id"),
+            "member_count": guild_data.get("member_count", 0),
+            "org_id": None,
+            "status": "active",
+            "sync_enabled": True,
+            "reminder_enabled": True,
+            "webhook_verified": False,
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+            "setup_by_user_id": guild_data.get("setup_by_user_id"),
+            "bot_auto_registered": guild_data.get("bot_auto_registered", False)
+        }
+        
+        # Insert or update
+        await db.discord_guilds.replace_one(
+            {"guild_id": guild_id},
+            guild_doc,
+            upsert=True
+        )
+        
+        return {
+            "message": f"Guild {guild_data.get('guild_name')} registered successfully",
+            "guild_id": guild_id
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to register guild: {str(e)}"
+        )
+
+@router.get("/bot/guild/{guild_id}/config")
+async def get_guild_config_by_bot(guild_id: str):
+    """Get guild configuration for bot"""
+    try:
+        db = get_database()
+        guild_doc = await db.discord_guilds.find_one({"guild_id": guild_id})
+        
+        if not guild_doc:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Guild {guild_id} not found"
+            )
+        
+        return guild_doc
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get guild config: {str(e)}"
+        )
+
 # Guild Management Endpoints
 @router.post("/guilds", response_model=DiscordGuildResponse)
 async def register_discord_guild(
