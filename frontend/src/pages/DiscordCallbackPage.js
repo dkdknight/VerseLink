@@ -11,6 +11,7 @@ const DiscordCallbackPage = () => {
   useEffect(() => {
     const handleCallback = async () => {
       const code = searchParams.get('code');
+      const state = searchParams.get('state');
       const error = searchParams.get('error');
       const errorDescription = searchParams.get('error_description');
 
@@ -29,16 +30,13 @@ const DiscordCallbackPage = () => {
 
       try {
         console.log('Processing Discord OAuth callback with code:', code);
-        await login(code);
+        await login(code, state);
         toast.success('Connexion réussie !');
         navigate('/');
       } catch (error) {
         console.error('Login failed:', error);
-        if (error.response?.data?.detail) {
-          toast.error(`Erreur: ${error.response.data.detail}`);
-        } else {
-          toast.error('Échec de la connexion. Veuillez réessayer.');
-        }
+        const message = error.response?.data?.detail || 'Échec de la connexion. Veuillez réessayer.';
+        toast.error(message);
         navigate('/login');
       }
     };

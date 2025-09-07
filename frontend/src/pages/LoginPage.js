@@ -13,6 +13,7 @@ const LoginPage = () => {
   useEffect(() => {
     // Handle Discord OAuth callback
     const code = searchParams.get('code');
+    const state = searchParams.get('state');
     const error = searchParams.get('error');
 
     if (error) {
@@ -21,7 +22,7 @@ const LoginPage = () => {
     }
 
     if (code) {
-      handleDiscordCallback(code);
+      handleDiscordCallback(code, state);
     } else {
       loadDiscordAuthUrl();
     }
@@ -37,14 +38,15 @@ const LoginPage = () => {
     }
   };
 
-  const handleDiscordCallback = async (code) => {
+  const handleDiscordCallback = async (code, state) => {
     try {
       setLoading(true);
-      await login(code);
+      await login(code, state);
       toast.success('Connexion réussie !');
     } catch (error) {
       console.error('Login failed:', error);
-      toast.error('Échec de la connexion. Veuillez réessayer.');
+      const message = error.response?.data?.detail || 'Échec de la connexion. Veuillez réessayer.';
+      toast.error(message);
     } finally {
       setLoading(false);
     }

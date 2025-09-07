@@ -1,5 +1,5 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import './App.css';
 
@@ -41,6 +41,7 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     checkAuthStatus();
@@ -70,9 +71,9 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (code) => {
+  const login = async (code, state) => {
     try {
-      const response = await authService.discordCallback(code);
+      const response = await authService.discordCallback(code, state);
       
       // Store token
       localStorage.setItem('auth_token', response.access_token);
@@ -104,7 +105,7 @@ const AuthProvider = ({ children }) => {
       setIsAuthenticated(false);
       
       // Optional: redirect to home page
-      window.location.href = '/';
+      navigate('/');
     }
   };
 
@@ -154,8 +155,8 @@ const ProtectedRoute = ({ children }) => {
 // Main App Component
 function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <div className="min-h-screen bg-dark-950">
           {/* Background stars effect */}
           <div className="star-field fixed inset-0 pointer-events-none"></div>
@@ -255,9 +256,10 @@ function App() {
             }}
           />
         </div>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 
+export { AuthProvider };
 export default App;
