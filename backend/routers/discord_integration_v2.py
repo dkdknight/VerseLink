@@ -19,13 +19,29 @@ discord_service = DiscordService()
 
 # Bot API Endpoints
 @router.post("/bot/verify")
-async def verify_bot():
-    """Verify bot connection with VerseLink API"""
+async def verify_bot_authentication(
+    guild_id: str,
+    api_key: str
+):
+    """Verify Discord bot API authentication"""
+    is_valid = await discord_service.verify_bot_auth(guild_id, api_key)
+    
+    if not is_valid:
+        raise HTTPException(status_code=401, detail="Invalid bot authentication")
+    
+    # Update last used timestamp
+    db = get_database()
+    await db.discord_guilds.update_one(
+        {"guild_id": guild_id},
+        {"$set": {"last_sync_at": datetime.utcnow()}}
+    )
+    
     return {
         "status": "success",
         "message": "Bot verified successfully",
         "timestamp": datetime.utcnow().isoformat(),
-        "api_version": "v1"
+        "api_version": "v1",
+        "guild_id": guild_id
     }
 
 @router.post("/bot/guild/{guild_id}/register")
