@@ -20,10 +20,15 @@ discord_service = DiscordService()
 # Bot API Endpoints
 @router.post("/bot/verify")
 async def verify_bot_authentication(
-    guild_id: str,
-    api_key: str
+    request_data: dict
 ):
     """Verify Discord bot API authentication"""
+    guild_id = request_data.get("guild_id")
+    api_key = request_data.get("api_key")
+    
+    if not guild_id or not api_key:
+        raise HTTPException(status_code=400, detail="guild_id and api_key are required")
+    
     is_valid = await discord_service.verify_bot_auth(guild_id, api_key)
     
     if not is_valid:
