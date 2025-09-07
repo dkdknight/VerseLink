@@ -82,9 +82,9 @@ class VerselinkBot(commands.Bot):
     
     async def on_ready(self):
         """Called when bot is ready"""
-        logger.info(f"🤖 {self.user} is now online!")
-        logger.info(f"📊 Connected to {len(self.guilds)} guild(s)")
-        logger.info(f"👥 Serving {sum(g.member_count for g in self.guilds)} users")
+        logger.info(f"Bot {self.user} is now online!")
+        logger.info(f"Connected to {len(self.guilds)} guild(s)")
+        logger.info(f"Serving {sum(g.member_count for g in self.guilds)} users")
         
         # Set bot status
         activity = discord.Activity(
