@@ -1,0 +1,175 @@
+2025-09-07 01:26:47,055 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-09-07 01:26:47,056 - discord.client - INFO - logging in using static token
+2025-09-07 01:26:47,547 - __main__ - INFO - Setting up VerseLink bot...
+2025-09-07 01:26:47,623 - verselink_api - ERROR - API Error 422: {'detail': [{'type': 'missing', 'loc': ['query', 'guild_id'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['query', 'api_key'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]}
+2025-09-07 01:26:47,623 - verselink_api - ERROR - Unexpected error: API Error 422: [{'type': 'missing', 'loc': ['query', 'guild_id'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['query', 'api_key'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]
+2025-09-07 01:28:45,295 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-09-07 01:28:45,296 - discord.client - INFO - logging in using static token
+2025-09-07 01:28:45,727 - __main__ - INFO - Setting up VerseLink bot...
+2025-09-07 01:28:45,801 - verselink_api - ERROR - API Error 422: {'detail': [{'type': 'missing', 'loc': ['query', 'guild_id'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['query', 'api_key'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]}
+2025-09-07 01:28:45,801 - verselink_api - ERROR - Unexpected error: API Error 422: [{'type': 'missing', 'loc': ['query', 'guild_id'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['query', 'api_key'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]
+2025-09-07 01:32:05,205 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-09-07 01:32:05,207 - discord.client - INFO - logging in using static token
+2025-09-07 01:32:05,676 - __main__ - INFO - Setting up VerseLink bot...
+2025-09-07 01:32:05,756 - verselink_api - ERROR - API Error 422: {'detail': [{'type': 'missing', 'loc': ['query', 'guild_id'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['query', 'api_key'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]}
+2025-09-07 01:32:05,757 - verselink_api - ERROR - Unexpected error: API Error 422: [{'type': 'missing', 'loc': ['query', 'guild_id'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['query', 'api_key'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]
+2025-09-07 01:33:21,735 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-09-07 01:33:21,737 - discord.client - INFO - logging in using static token
+2025-09-07 01:33:22,157 - __main__ - INFO - Setting up VerseLink bot...
+2025-09-07 01:33:22,239 - verselink_api - ERROR - API Error 422: {'detail': [{'type': 'missing', 'loc': ['query', 'guild_id'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['query', 'api_key'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]}
+2025-09-07 01:33:22,239 - verselink_api - ERROR - Unexpected error: API Error 422: [{'type': 'missing', 'loc': ['query', 'guild_id'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['query', 'api_key'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]
+2025-09-07 01:34:35,295 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-09-07 01:34:35,297 - discord.client - INFO - logging in using static token
+2025-09-07 01:34:35,796 - __main__ - INFO - Setting up VerseLink bot...
+2025-09-07 01:34:35,869 - verselink_api - ERROR - API Error 422: {'detail': [{'type': 'missing', 'loc': ['query', 'guild_id'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['query', 'api_key'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]}
+2025-09-07 01:34:35,869 - verselink_api - ERROR - Unexpected error: API Error 422: [{'type': 'missing', 'loc': ['query', 'guild_id'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['query', 'api_key'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]
+2025-09-07 01:37:55,395 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-09-07 01:37:55,396 - discord.client - INFO - logging in using static token
+2025-09-07 01:37:55,823 - __main__ - INFO - Setting up VerseLink bot...
+2025-09-07 01:37:55,906 - verselink_api - ERROR - API Error 422: {'detail': [{'type': 'missing', 'loc': ['query', 'guild_id'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['query', 'api_key'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]}
+2025-09-07 01:37:55,906 - verselink_api - ERROR - Unexpected error: API Error 422: [{'type': 'missing', 'loc': ['query', 'guild_id'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['query', 'api_key'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]
+2025-09-07 01:42:07,932 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-09-07 01:42:07,934 - discord.client - INFO - logging in using static token
+2025-09-07 01:42:08,450 - __main__ - INFO - Setting up VerseLink bot...
+2025-09-07 01:42:08,525 - verselink_api - ERROR - API Error 422: {'detail': [{'type': 'missing', 'loc': ['query', 'guild_id'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['query', 'api_key'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]}
+2025-09-07 01:42:08,525 - verselink_api - ERROR - Unexpected error: API Error 422: [{'type': 'missing', 'loc': ['query', 'guild_id'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['query', 'api_key'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]
+2025-09-07 01:44:47,001 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-09-07 03:49:29,703 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-09-07 03:49:29,704 - discord.client - INFO - logging in using static token
+2025-09-07 03:49:30,119 - __main__ - INFO - Setting up VerseLink bot...
+2025-09-07 03:49:30,183 - verselink_api - ERROR - API Error 422: {'detail': [{'type': 'missing', 'loc': ['query', 'guild_id'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['query', 'api_key'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]}
+2025-09-07 03:49:30,184 - verselink_api - ERROR - Unexpected error: API Error 422: [{'type': 'missing', 'loc': ['query', 'guild_id'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['query', 'api_key'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]
+2025-09-07 03:50:53,392 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-09-07 03:50:53,394 - discord.client - INFO - logging in using static token
+2025-09-07 03:50:53,809 - __main__ - INFO - Setting up VerseLink bot...
+2025-09-07 03:50:53,875 - verselink_api - ERROR - API Error 422: {'detail': [{'type': 'missing', 'loc': ['query', 'guild_id'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['query', 'api_key'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]}
+2025-09-07 03:50:53,875 - verselink_api - ERROR - Unexpected error: API Error 422: [{'type': 'missing', 'loc': ['query', 'guild_id'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['query', 'api_key'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]
+2025-09-07 03:52:15,228 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-09-07 03:52:15,230 - discord.client - INFO - logging in using static token
+2025-09-07 03:52:15,710 - __main__ - INFO - Setting up VerseLink bot...
+2025-09-07 03:52:15,771 - verselink_api - ERROR - API Error 422: {'detail': [{'type': 'missing', 'loc': ['query', 'guild_id'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['query', 'api_key'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]}
+2025-09-07 03:52:15,771 - verselink_api - ERROR - Unexpected error: API Error 422: [{'type': 'missing', 'loc': ['query', 'guild_id'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['query', 'api_key'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]
+2025-09-07 03:52:39,751 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-09-07 03:52:39,752 - discord.client - INFO - logging in using static token
+2025-09-07 03:52:40,281 - __main__ - INFO - Setting up VerseLink bot...
+2025-09-07 03:52:40,294 - verselink_api - ERROR - API Error 422: {'detail': [{'type': 'missing', 'loc': ['query', 'guild_id'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['query', 'api_key'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]}
+2025-09-07 03:52:40,294 - verselink_api - ERROR - Unexpected error: API Error 422: [{'type': 'missing', 'loc': ['query', 'guild_id'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['query', 'api_key'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]
+2025-09-07 04:10:30,553 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-09-07 04:10:30,554 - discord.client - INFO - logging in using static token
+2025-09-07 04:10:30,989 - __main__ - INFO - Setting up VerseLink bot...
+2025-09-07 04:10:30,989 - __main__ - INFO - Configuration validated
+2025-09-07 04:10:31,045 - __main__ - INFO - API connection verified: {'status': 'success', 'message': 'Bot verified successfully', 'timestamp': '2025-09-07T02:10:30.994153', 'api_version': 'v1'}
+2025-09-07 04:10:31,061 - commands - INFO - VerseLink commands cog loaded
+2025-09-07 04:10:31,061 - __main__ - INFO - Commands loaded
+2025-09-07 04:10:31,432 - __main__ - INFO - Synced 8 command(s)
+2025-09-07 04:10:31,814 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: a1750fefbce88eb20fc6ccc4cd281556).
+2025-09-07 04:10:33,832 - __main__ - INFO - Bot Verselink#6810 is now online!
+2025-09-07 04:10:33,833 - __main__ - INFO - Connected to 1 guild(s)
+2025-09-07 04:10:33,835 - __main__ - INFO - Serving 5 users
+2025-09-07 04:10:33,895 - __main__ - INFO - Registered guild: Starmarket
+2025-09-07 04:12:01,443 - verselink_api - ERROR - API Error 401: {'detail': 'Could not validate credentials'}
+2025-09-07 04:12:01,443 - verselink_api - ERROR - Unexpected error: API Error 401: Could not validate credentials
+2025-09-07 04:18:13,210 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-09-07 04:18:13,211 - discord.client - INFO - logging in using static token
+2025-09-07 04:18:13,791 - __main__ - INFO - Setting up VerseLink bot...
+2025-09-07 04:18:13,792 - __main__ - INFO - Configuration validated
+2025-09-07 04:18:13,853 - __main__ - INFO - API connection verified: {'status': 'success', 'message': 'Bot verified successfully', 'timestamp': '2025-09-07T02:18:13.799620', 'api_version': 'v1'}
+2025-09-07 04:18:13,855 - commands - INFO - VerseLink commands cog loaded
+2025-09-07 04:18:13,855 - __main__ - INFO - Commands loaded
+2025-09-07 04:18:14,246 - __main__ - INFO - Synced 8 command(s)
+2025-09-07 04:18:14,627 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 3b2522c4ece135b157b41eac344089bd).
+2025-09-07 04:18:16,637 - __main__ - INFO - Bot Verselink#6810 is now online!
+2025-09-07 04:18:16,638 - __main__ - INFO - Connected to 1 guild(s)
+2025-09-07 04:18:16,639 - __main__ - INFO - Serving 5 users
+2025-09-07 04:18:16,699 - __main__ - INFO - Registered guild: Starmarket
+2025-09-07 05:42:16,035 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 3b2522c4ece135b157b41eac344089bd.
+2025-09-07 08:26:16,352 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 3b2522c4ece135b157b41eac344089bd.
+2025-09-07 10:32:48,343 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-09-07 10:32:48,344 - discord.client - INFO - logging in using static token
+2025-09-07 10:32:48,832 - __main__ - INFO - Setting up VerseLink bot...
+2025-09-07 10:32:48,832 - __main__ - INFO - Configuration validated
+2025-09-07 10:32:48,889 - __main__ - INFO - API connection verified: {'status': 'success', 'message': 'Bot verified successfully', 'timestamp': '2025-09-07T08:32:48.836258', 'api_version': 'v1'}
+2025-09-07 10:32:48,897 - commands - INFO - VerseLink commands cog loaded
+2025-09-07 10:32:48,898 - __main__ - INFO - Commands loaded
+2025-09-07 10:32:49,147 - __main__ - INFO - Synced 8 command(s)
+2025-09-07 10:32:49,733 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: c6629ff522719f8d11200aab63e6614b).
+2025-09-07 10:32:51,745 - __main__ - INFO - Bot Verselink#6810 is now online!
+2025-09-07 10:32:51,745 - __main__ - INFO - Connected to 1 guild(s)
+2025-09-07 10:32:51,745 - __main__ - INFO - Serving 5 users
+2025-09-07 10:32:51,792 - __main__ - INFO - Registered guild: Starmarket
+2025-09-07 10:33:50,815 - verselink_api - WARNING - API request failed (attempt 1/3): 0, message='Attempt to decode JSON with unexpected mimetype: text/plain; charset=utf-8', url=URL('http://89.88.206.99:8001/api/v1/discord/bot/guild/1412862353657172072/config'). Retrying in 1.0s
+2025-09-07 10:33:51,839 - verselink_api - WARNING - API request failed (attempt 2/3): 0, message='Attempt to decode JSON with unexpected mimetype: text/plain; charset=utf-8', url=URL('http://89.88.206.99:8001/api/v1/discord/bot/guild/1412862353657172072/config'). Retrying in 2.0s
+2025-09-07 10:33:53,852 - verselink_api - ERROR - Connection error to VerseLink API: 0, message='Attempt to decode JSON with unexpected mimetype: text/plain; charset=utf-8', url=URL('http://89.88.206.99:8001/api/v1/discord/bot/guild/1412862353657172072/config')
+2025-09-07 11:56:34,352 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-09-07 11:56:34,353 - discord.client - INFO - logging in using static token
+2025-09-07 11:56:34,816 - __main__ - INFO - Setting up VerseLink bot...
+2025-09-07 11:56:34,816 - __main__ - INFO - Configuration validated
+2025-09-07 11:56:34,874 - __main__ - INFO - API connection verified: {'status': 'success', 'message': 'Bot verified successfully', 'timestamp': '2025-09-07T09:56:34.822631', 'api_version': 'v1'}
+2025-09-07 11:56:34,889 - commands - INFO - VerseLink commands cog loaded
+2025-09-07 11:56:34,889 - __main__ - INFO - Commands loaded
+2025-09-07 11:56:35,239 - __main__ - INFO - Synced 8 command(s)
+2025-09-07 11:56:35,586 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: f903625e856131db5c1ecbfc9ae508bf).
+2025-09-07 11:56:37,615 - __main__ - INFO - Bot Verselink#6810 is now online!
+2025-09-07 11:56:37,615 - __main__ - INFO - Connected to 1 guild(s)
+2025-09-07 11:56:37,616 - __main__ - INFO - Serving 5 users
+2025-09-07 11:56:37,678 - __main__ - INFO - Registered guild: Starmarket
+2025-09-07 12:02:57,672 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-09-07 12:02:57,673 - discord.client - INFO - logging in using static token
+2025-09-07 12:02:58,128 - __main__ - INFO - Setting up VerseLink bot...
+2025-09-07 12:02:58,128 - __main__ - INFO - Configuration validated
+2025-09-07 12:02:58,191 - __main__ - INFO - API connection verified: {'status': 'success', 'message': 'Bot verified successfully', 'timestamp': '2025-09-07T10:02:58.134438', 'api_version': 'v1'}
+2025-09-07 12:02:58,193 - commands - INFO - VerseLink commands cog loaded
+2025-09-07 12:02:58,193 - __main__ - INFO - Commands loaded
+2025-09-07 12:02:58,554 - __main__ - INFO - Synced 8 command(s)
+2025-09-07 12:02:58,888 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: de0d2aa0a5db67eefdb7dd0088dfee85).
+2025-09-07 12:03:00,898 - __main__ - INFO - Bot Verselink#6810 is now online!
+2025-09-07 12:03:00,898 - __main__ - INFO - Connected to 1 guild(s)
+2025-09-07 12:03:00,898 - __main__ - INFO - Serving 5 users
+2025-09-07 12:03:00,946 - __main__ - INFO - Registered guild: Starmarket
+2025-09-07 12:06:38,518 - verselink_api - ERROR - API Error 405: {'detail': 'Method Not Allowed'}
+2025-09-07 12:06:38,518 - verselink_api - ERROR - Unexpected error: API Error 405: Method Not Allowed
+2025-09-07 12:06:51,269 - verselink_api - WARNING - API request failed (attempt 1/3): 0, message='Attempt to decode JSON with unexpected mimetype: text/plain; charset=utf-8', url=URL('http://89.88.206.99:8001/api/v1/discord/bot/guild/1412862353657172072/config'). Retrying in 1.0s
+2025-09-07 12:06:52,296 - verselink_api - WARNING - API request failed (attempt 2/3): 0, message='Attempt to decode JSON with unexpected mimetype: text/plain; charset=utf-8', url=URL('http://89.88.206.99:8001/api/v1/discord/bot/guild/1412862353657172072/config'). Retrying in 2.0s
+2025-09-07 12:06:54,331 - verselink_api - ERROR - Connection error to VerseLink API: 0, message='Attempt to decode JSON with unexpected mimetype: text/plain; charset=utf-8', url=URL('http://89.88.206.99:8001/api/v1/discord/bot/guild/1412862353657172072/config')
+2025-09-07 12:08:12,153 - verselink_api - ERROR - API Error 401: {'detail': 'Could not validate credentials'}
+2025-09-07 12:08:12,154 - verselink_api - ERROR - Unexpected error: API Error 401: Could not validate credentials
+2025-09-07 12:08:40,122 - verselink_api - ERROR - API Error 401: {'detail': 'Could not validate credentials'}
+2025-09-07 12:08:40,122 - verselink_api - ERROR - Unexpected error: API Error 401: Could not validate credentials
+2025-09-07 12:08:51,713 - verselink_api - ERROR - API Error 401: {'detail': 'Could not validate credentials'}
+2025-09-07 12:08:51,713 - verselink_api - ERROR - Unexpected error: API Error 401: Could not validate credentials
+2025-09-07 12:09:16,929 - verselink_api - ERROR - API Error 401: {'detail': 'Could not validate credentials'}
+2025-09-07 12:09:16,929 - verselink_api - ERROR - Unexpected error: API Error 401: Could not validate credentials
+2025-09-07 12:09:19,010 - verselink_api - ERROR - API Error 401: {'detail': 'Could not validate credentials'}
+2025-09-07 12:09:19,010 - verselink_api - ERROR - Unexpected error: API Error 401: Could not validate credentials
+2025-09-07 12:09:43,384 - verselink_api - ERROR - API Error 401: {'detail': 'Could not validate credentials'}
+2025-09-07 12:09:43,384 - verselink_api - ERROR - Unexpected error: API Error 401: Could not validate credentials
+2025-09-07 12:10:08,057 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-09-07 12:10:08,058 - discord.client - INFO - logging in using static token
+2025-09-07 12:10:08,485 - __main__ - INFO - Setting up VerseLink bot...
+2025-09-07 12:10:08,485 - __main__ - INFO - Configuration validated
+2025-09-07 12:10:08,540 - __main__ - INFO - API connection verified: {'status': 'success', 'message': 'Bot verified successfully', 'timestamp': '2025-09-07T10:10:08.491098', 'api_version': 'v1'}
+2025-09-07 12:10:08,542 - commands - INFO - VerseLink commands cog loaded
+2025-09-07 12:10:08,542 - __main__ - INFO - Commands loaded
+2025-09-07 12:10:08,802 - __main__ - INFO - Synced 8 command(s)
+2025-09-07 12:10:09,126 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 36723f822448a255f079be9b6470e891).
+2025-09-07 12:10:11,159 - __main__ - INFO - Bot Verselink#6810 is now online!
+2025-09-07 12:10:11,160 - __main__ - INFO - Connected to 1 guild(s)
+2025-09-07 12:10:11,161 - __main__ - INFO - Serving 5 users
+2025-09-07 12:10:11,221 - __main__ - INFO - Registered guild: Starmarket
+2025-09-07 12:10:14,554 - verselink_api - ERROR - API Error 401: {'detail': 'Could not validate credentials'}
+2025-09-07 12:10:14,555 - verselink_api - ERROR - Unexpected error: API Error 401: Could not validate credentials
+2025-09-07 12:32:16,378 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-09-07 12:32:16,379 - discord.client - INFO - logging in using static token
+2025-09-07 12:32:16,842 - __main__ - INFO - Setting up VerseLink bot...
+2025-09-07 12:32:16,842 - __main__ - INFO - Configuration validated
+2025-09-07 12:32:16,902 - __main__ - INFO - API connection verified: {'status': 'success', 'message': 'Bot verified successfully', 'timestamp': '2025-09-07T10:32:16.848564', 'api_version': 'v1'}
+2025-09-07 12:32:16,912 - commands - INFO - VerseLink commands cog loaded
+2025-09-07 12:32:16,912 - __main__ - INFO - Commands loaded
+2025-09-07 12:32:17,205 - __main__ - INFO - Synced 8 command(s)
+2025-09-07 12:32:17,590 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 7334d9f3dc1c85d4d172e633f6599686).
+2025-09-07 12:32:19,603 - __main__ - INFO - Bot Verselink#6810 is now online!
+2025-09-07 12:32:19,603 - __main__ - INFO - Connected to 1 guild(s)
+2025-09-07 12:32:19,603 - __main__ - INFO - Serving 5 users
+2025-09-07 12:32:19,651 - __main__ - INFO - Registered guild: Starmarket
+2025-09-07 12:32:43,793 - verselink_api - ERROR - API Error 401: {'detail': 'Could not validate credentials'}
+2025-09-07 12:32:43,794 - verselink_api - ERROR - Unexpected error: API Error 401: Could not validate credentials

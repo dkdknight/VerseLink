@@ -1,0 +1,28 @@
+{
+  "server": {
+    "host": "89.88.206.99",
+    "frontend_port": 3000,
+    "backend_port": 8001,
+    "domain": null
+  },
+  "urls": {
+    "frontend_url": "http://89.88.206.99:3000",
+    "backend_url": "http://89.88.206.99:8001",
+    "api_base": "http://89.88.206.99:8001/api/v1"
+  },
+  "discord": {
+    "client_id": "1413780341084131338",
+    "redirect_path": "/auth/discord/callback",
+    "redirect_uri": "http://89.88.206.99:3000/auth/discord/callback",
+    "scopes": ["identify", "email", "guilds"]
+  },
+  "database": {
+    "mongo_url": "mongodb://localhost:27017/verselink"
+  },
+  "jwt": {
+    "secret_key": "UnTresLongSecretAleatoire123",
+    "algorithm": "HS256",
+    "expire_minutes": 30
+  },
+  "environment": "production"
+}
