@@ -168,9 +168,20 @@ async def create_indexes():
     await database.reminder_configs.create_index([("guild_id", 1), ("reminder_type", 1)], unique=True)
     
     # Discord guilds indexes
-    await database.discord_guilds.create_index("guild_id", unique=True)
-    await database.discord_guilds.create_index("org_id")
-    await database.discord_guilds.create_index("status")
+    try:
+        await database.discord_guilds.create_index("guild_id", unique=True)
+    except:
+        pass  # Index might already exist
+        
+    try:
+        await database.discord_guilds.create_index("org_id", name="discord_guild_org_id")
+    except:
+        pass  # Index might already exist
+        
+    try:
+        await database.discord_guilds.create_index("status", name="discord_guild_status")
+    except:
+        pass  # Index might already exist
     
     # Notifications indexes
     await database.notifications.create_index("user_id")
