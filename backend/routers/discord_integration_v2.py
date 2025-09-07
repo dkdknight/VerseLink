@@ -55,6 +55,10 @@ async def register_guild_by_bot(guild_id: str, guild_data: dict):
     try:
         db = get_database()
         
+        # Generate unique API key for the guild
+        import uuid
+        api_key = str(uuid.uuid4())
+        
         # Create guild document
         guild_doc = {
             "id": f"guild_{guild_id}",
@@ -68,6 +72,7 @@ async def register_guild_by_bot(guild_id: str, guild_data: dict):
             "sync_enabled": True,
             "reminder_enabled": True,
             "webhook_verified": False,
+            "api_key": api_key,  # Add unique API key
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow(),
             "setup_by_user_id": guild_data.get("setup_by_user_id"),
@@ -83,7 +88,8 @@ async def register_guild_by_bot(guild_id: str, guild_data: dict):
         
         return {
             "message": f"Guild {guild_data.get('guild_name')} registered successfully",
-            "guild_id": guild_id
+            "guild_id": guild_id,
+            "api_key": api_key  # Return the API key for the bot to use
         }
         
     except Exception as e:
