@@ -70,10 +70,6 @@ class VerselinkAPI:
         """Update guild configuration"""
         return await self._request('PUT', f'/discord/bot/guild/{guild_id}/config', json=config)
     
-    async def disconnect_guild(self, guild_id: str) -> Dict[str, Any]:
-        """Disconnect guild from VerseLink"""
-        return await self._request('DELETE', f'/discord/bot/guild/{guild_id}/disconnect')
-    
     # Announcements
     async def announce_event(self, event_data: Dict[str, Any]) -> Dict[str, Any]:
         """Send event announcement"""
