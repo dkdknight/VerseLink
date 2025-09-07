@@ -219,9 +219,12 @@ backend:
     priority: "high"
     needs_retesting: false
     status_history:
-      - working: true
+      - working: false
         agent: "testing"
         comment: "Minor: Discord bot authentication API working with parameter validation issues. POST /api/v1/discord/bot/verify and GET /api/v1/discord/bot/guild/{guild_id}/config endpoints functional but need parameter format adjustments. Core authentication logic works."
+      - working: true
+        agent: "testing"
+        comment: "FIXED: Discord bot authentication API fully functional. Resolved duplicate endpoint definitions, fixed parameter validation issues, and database index conflicts. POST /api/v1/discord/bot/verify now accepts JSON body parameters, GET /api/v1/discord/bot/guild/{guild_id}/config works with query parameters, and POST /api/v1/discord/bot/guild/{guild_id}/register generates unique API keys. All endpoints return proper status codes (200, 401, 400) instead of 500 errors."
 
   - task: "Phase 5 Discord Stats & Health API"
     implemented: true
