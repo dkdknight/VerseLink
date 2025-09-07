@@ -30,6 +30,7 @@ const CreateEventPage = () => {
 
       const payload = {
         ...formData,
+        type: formData.type.trim().toLowerCase(),
         duration_minutes: parseInt(formData.duration_minutes, 10),
         max_participants: formData.max_participants ? parseInt(formData.max_participants, 10) : null,
         start_at_utc: startUtc
