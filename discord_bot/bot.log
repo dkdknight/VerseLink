@@ -43,3 +43,16 @@
 2025-09-07 20:45:48,653 - verselink_api - ERROR - Unexpected error: API Error 401: Could not validate credentials
 2025-09-07 20:46:40,044 - verselink_api - ERROR - API Error 401: {'detail': 'Could not validate credentials'}
 2025-09-07 20:46:40,045 - verselink_api - ERROR - Unexpected error: API Error 401: Could not validate credentials
+2025-09-07 21:46:41,080 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-09-07 21:46:41,081 - discord.client - INFO - logging in using static token
+2025-09-07 21:46:41,542 - __main__ - INFO - Setting up VerseLink bot...
+2025-09-07 21:46:41,543 - __main__ - INFO - Configuration validated
+2025-09-07 21:46:41,594 - __main__ - INFO - API connection verified: {'status': 'success', 'message': 'Bot verified successfully', 'timestamp': '2025-09-07T19:46:41.549944', 'api_version': 'v1'}
+2025-09-07 21:46:41,606 - commands - INFO - VerseLink commands cog loaded
+2025-09-07 21:46:41,606 - __main__ - INFO - Commands loaded
+2025-09-07 21:46:41,869 - __main__ - INFO - Synced 9 command(s)
+2025-09-07 21:46:42,274 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 85456e3cfd48182569cecae195cf82a3).
+2025-09-07 21:46:44,290 - __main__ - INFO - Bot Verselink#6810 is now online!
+2025-09-07 21:46:44,291 - __main__ - INFO - Connected to 1 guild(s)
+2025-09-07 21:46:44,292 - __main__ - INFO - Serving 5 users
+2025-09-07 21:46:44,354 - __main__ - INFO - Registered guild: Starmarket

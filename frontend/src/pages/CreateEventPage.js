@@ -26,11 +26,15 @@ const CreateEventPage = () => {
     e.preventDefault();
     try {
       setLoading(true);
+      const startUtc = new Date(formData.start_at_utc)
+        .toISOString()
+        .slice(0, 19); // remove timezone to keep backend comparison compatible
+
       const payload = {
         ...formData,
         duration_minutes: parseInt(formData.duration_minutes, 10),
         max_participants: formData.max_participants ? parseInt(formData.max_participants, 10) : null,
-        start_at_utc: new Date(formData.start_at_utc).toISOString()
+        start_at_utc: startUtc
       };
       await eventService.createEvent(id, payload);
       toast.success('Événement créé');
