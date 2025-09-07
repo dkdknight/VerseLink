@@ -26,9 +26,7 @@ const CreateEventPage = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      const startUtc = new Date(formData.start_at_utc)
-        .toISOString()
-        .slice(0, 19); // remove timezone to keep backend comparison compatible
+      const startUtc = new Date(formData.start_at_utc).toISOString();
 
       const payload = {
         ...formData,

@@ -101,6 +101,8 @@ class EventBase(BaseModel):
     
     @validator('start_at_utc')
     def start_at_must_be_future(cls, v):
+        if v.tzinfo is not None:
+            v = v.astimezone(timezone.utc).replace(tzinfo=None)
         if v <= datetime.utcnow():
             raise ValueError('Event start time must be in the future')
         return v
@@ -123,8 +125,11 @@ class EventUpdate(BaseModel):
     
     @validator('start_at_utc')
     def start_at_must_be_future(cls, v):
-        if v and v <= datetime.utcnow():
-            raise ValueError('Event start time must be in the future')
+        if v:
+            if v.tzinfo is not None:
+                v = v.astimezone(timezone.utc).replace(tzinfo=None)
+            if v <= datetime.utcnow():
+                raise ValueError('Event start time must be in the future')
         return v
 
 class Event(EventBase):
