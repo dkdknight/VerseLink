@@ -26,10 +26,10 @@ export const eventService = {
   // Create event for organization
   createEvent: async (orgId, eventData) => {
     try {
-      const response = await api.post(`/orgs/${orgId}/events`, eventData);
+      const response = await api.post(`/orgs/${encodeURIComponent(orgId)}/events`, eventData);
       return response.data;
     } catch (error) {
-      console.error('Failed to create event:', error);
+      console.error('Failed to create event:', error.response?.data || error);
       throw error;
     }
   },
