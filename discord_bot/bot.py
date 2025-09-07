@@ -61,23 +61,23 @@ class VerselinkBot(commands.Bot):
         try:
             # Verify configuration
             Config.validate()
-            logger.info("✅ Configuration validated")
+            logger.info("Configuration validated")
             
             # Test API connection
             async with VerselinkAPI() as api:
                 health = await api.verify_bot()
-                logger.info(f"✅ API connection verified: {health}")
+                logger.info(f"API connection verified: {health}")
             
             # Load extensions
             await self.load_extension('commands')
-            logger.info("✅ Commands loaded")
+            logger.info("Commands loaded")
             
             # Sync commands
             synced = await self.tree.sync()
-            logger.info(f"✅ Synced {len(synced)} command(s)")
+            logger.info(f"Synced {len(synced)} command(s)")
             
         except Exception as e:
-            logger.error(f"❌ Setup failed: {e}")
+            logger.error(f"Setup failed: {e}")
             raise
     
     async def on_ready(self):
