@@ -8,5 +8,10 @@ class VerselinkAPI(BaseVerselinkAPI):
 
     async def create_event(self, org_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new event for an organization."""
-        endpoint = f"/organizations/{org_id}/events"
+        endpoint = f"/orgs/{org_id}/events"
+        return await self._request("POST", endpoint, json=data)
+
+    async def create_tournament(self, org_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a new tournament for an organization."""
+        endpoint = f"/orgs/{org_id}/tournaments"
         return await self._request("POST", endpoint, json=data)

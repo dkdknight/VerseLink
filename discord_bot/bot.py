@@ -96,6 +96,13 @@ class VerselinkBot(commands.Bot):
         
         # Register all connected guilds
         await self.register_all_guilds()
+
+        # Sync commands for each guild to ensure immediate availability
+        if not hasattr(self, "_synced"):
+            for guild in self.guilds:
+                self.tree.copy_global_to(guild=guild)
+                await self.tree.sync(guild=guild)
+            self._synced = True
     
     async def on_guild_join(self, guild: discord.Guild):
         """Called when bot joins a new guild"""

@@ -164,11 +164,11 @@ class VerselinkAPI:
     # Organizations
     async def get_organizations(self, limit: int = 20) -> List[Dict[str, Any]]:
         """Get organizations"""
-        return await self._request('GET', f'/organizations?limit={limit}')
+        return await self._request('GET', f'/orgs?limit={limit}')
     
     async def get_organization(self, org_id: str) -> Dict[str, Any]:
         """Get specific organization"""
-        return await self._request('GET', f'/organizations/{org_id}')
+        return await self._request('GET', f'/orgs/{org_id}')
     
     # Moderation
     async def report_user(self, report_data: Dict[str, Any]) -> Dict[str, Any]:

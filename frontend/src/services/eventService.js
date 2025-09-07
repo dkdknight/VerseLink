@@ -26,7 +26,7 @@ export const eventService = {
   // Create event for organization
   createEvent: async (orgId, eventData) => {
     try {
-      const response = await api.post(`/organizations/${orgId}/events`, eventData);
+      const response = await api.post(`/orgs/${orgId}/events`, eventData);
       return response.data;
     } catch (error) {
       console.error('Failed to create event:', error);

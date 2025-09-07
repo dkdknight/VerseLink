@@ -24,3 +24,22 @@
 2025-09-07 20:13:57,911 - __main__ - INFO - Connected to 1 guild(s)
 2025-09-07 20:13:57,912 - __main__ - INFO - Serving 5 users
 2025-09-07 20:13:57,973 - __main__ - INFO - Registered guild: Starmarket
+2025-09-07 20:41:25,372 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-09-07 20:41:25,374 - discord.client - INFO - logging in using static token
+2025-09-07 20:41:25,825 - __main__ - INFO - Setting up VerseLink bot...
+2025-09-07 20:41:25,825 - __main__ - INFO - Configuration validated
+2025-09-07 20:41:25,881 - __main__ - INFO - API connection verified: {'status': 'success', 'message': 'Bot verified successfully', 'timestamp': '2025-09-07T18:41:25.828379', 'api_version': 'v1'}
+2025-09-07 20:41:25,901 - commands - INFO - VerseLink commands cog loaded
+2025-09-07 20:41:25,901 - __main__ - INFO - Commands loaded
+2025-09-07 20:41:26,174 - __main__ - INFO - Synced 9 command(s)
+2025-09-07 20:41:26,511 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 9c5a439328c2770ebd0d618332ddec2b).
+2025-09-07 20:41:28,522 - __main__ - INFO - Bot Verselink#6810 is now online!
+2025-09-07 20:41:28,523 - __main__ - INFO - Connected to 1 guild(s)
+2025-09-07 20:41:28,524 - __main__ - INFO - Serving 5 users
+2025-09-07 20:41:28,585 - __main__ - INFO - Registered guild: Starmarket
+2025-09-07 20:45:42,723 - verselink_api - ERROR - API Error 401: {'detail': 'Could not validate credentials'}
+2025-09-07 20:45:42,724 - verselink_api - ERROR - Unexpected error: API Error 401: Could not validate credentials
+2025-09-07 20:45:48,652 - verselink_api - ERROR - API Error 401: {'detail': 'Could not validate credentials'}
+2025-09-07 20:45:48,653 - verselink_api - ERROR - Unexpected error: API Error 401: Could not validate credentials
+2025-09-07 20:46:40,044 - verselink_api - ERROR - API Error 401: {'detail': 'Could not validate credentials'}
+2025-09-07 20:46:40,045 - verselink_api - ERROR - Unexpected error: API Error 401: Could not validate credentials
