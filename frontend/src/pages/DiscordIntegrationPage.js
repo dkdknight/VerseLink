@@ -286,7 +286,10 @@ const DiscordIntegrationPage = () => {
                     
                     <div className="flex items-center space-x-2">
                       <button
-                        onClick={() => toast.info('Configuration du serveur (bientôt disponible)')}
+                        onClick={() => toast('Configuration du serveur (bientôt disponible)', {
+                          icon: 'ℹ️',
+                          duration: 3000
+                        })}
                         className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-dark-700 transition-colors duration-200"
                         title="Configurer le serveur"
                       >
