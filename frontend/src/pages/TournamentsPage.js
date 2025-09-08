@@ -9,7 +9,8 @@ import {
   TagIcon,
   PlayIcon,
   CheckCircleIcon,
-  XCircleIcon
+  XCircleIcon,
+  PlusIcon
 } from '@heroicons/react/24/outline';
 import { tournamentService } from '../services/tournamentService';
 import { useAuth } from '../App';
@@ -236,6 +237,15 @@ const TournamentsPage = () => {
             Participez aux compétitions organisées par la communauté et prouvez votre valeur
           </p>
         </div>
+
+        {isAuthenticated && (
+          <div className="mb-8 text-right">
+            <Link to="/tournaments/new" className="btn-primary inline-flex items-center">
+              <PlusIcon className="w-5 h-5 mr-2" />
+              Créer un tournoi
+            </Link>
+          </div>
+        )}
 
         {/* Search and Filters */}
         <div className="glass-effect rounded-xl p-6 mb-8">

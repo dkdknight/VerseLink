@@ -16,6 +16,7 @@ import EditEventPage from './pages/EditEventPage';
 import EventsPage from './pages/EventsPage';
 import EventDetailPage from './pages/EventDetailPage';
 import TournamentsPage from './pages/TournamentsPage';
+import CreateTournamentPage from './pages/CreateTournamentPage';
 import TournamentDetailPage from './pages/TournamentDetailPage';
 import NotificationsPage from './pages/NotificationsPage';
 import NotificationPreferencesPage from './pages/NotificationPreferencesPage';
@@ -180,6 +181,7 @@ function App() {
               <Route path="/events/:id" element={<EventDetailPage />} />
               <Route path="/events/:id/edit" element={<ProtectedRoute><EditEventPage /></ProtectedRoute>} />
               <Route path="/tournaments" element={<TournamentsPage />} />
+              <Route path="/tournaments/new" element={<ProtectedRoute><CreateTournamentPage /></ProtectedRoute>} />
               <Route path="/tournaments/:id" element={<TournamentDetailPage />} />
               
               {/* Protected routes */}
