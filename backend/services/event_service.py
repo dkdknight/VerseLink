@@ -133,6 +133,13 @@ class EventService:
         
         if existing_signup:
             raise ValueError("Already signed up for this event")
+
+        # Check if user previously withdrew or was kicked so we can reuse the record
+        rejoin_signup = await self.db.event_signups.find_one({
+            "event_id": event_id,
+            "user_id": user_id,
+            "status": {"$in": [SignupStatus.WITHDRAWN, SignupStatus.KICKED]},
+        })
         
         # Get event
         event = await self.get_event(event_id)
@@ -185,16 +192,36 @@ class EventService:
                 })
                 position_in_waitlist = waitlist_count + 1
         
-        # Create signup
-        signup = EventSignup(
-            **signup_data.dict(),
-            event_id=event_id,
-            user_id=user_id,
-            status=status,
-            position_in_waitlist=position_in_waitlist
-        )
-        
-        await self.db.event_signups.insert_one(signup.dict())
+        # Create or update signup
+        signup_data_dict = signup_data.dict()
+        if rejoin_signup:
+            await self.db.event_signups.update_one(
+                {"id": rejoin_signup["id"]},
+                {"$set": {
+                    **signup_data_dict,
+                    "status": status,
+                    "position_in_waitlist": position_in_waitlist,
+                    "updated_at": datetime.utcnow(),
+                    "created_at": datetime.utcnow(),
+                }}
+            )
+            signup = EventSignup(
+                id=rejoin_signup["id"],
+                event_id=event_id,
+                user_id=user_id,
+                status=status,
+                position_in_waitlist=position_in_waitlist,
+                **signup_data_dict,
+            )
+        else:
+            signup = EventSignup(
+                **signup_data_dict,
+                event_id=event_id,
+                user_id=user_id,
+                status=status,
+                position_in_waitlist=position_in_waitlist
+            )
+            await self.db.event_signups.insert_one(signup.dict())
         
         # Update event signup count
         await self.db.events.update_one(
