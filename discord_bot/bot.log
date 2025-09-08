@@ -170,3 +170,17 @@
 2025-09-08 21:33:24,573 - __main__ - INFO - Connected to 1 guild(s)
 2025-09-08 21:33:24,574 - __main__ - INFO - Serving 5 users
 2025-09-08 21:33:24,634 - __main__ - INFO - Registered guild: Starmarket
+2025-09-08 21:47:59,888 - discord.gateway - INFO - Shard ID None has successfully RESUMED session a8de8bbdd359005223884c7b5dc1f537.
+2025-09-08 22:20:49,310 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-09-08 22:20:49,311 - discord.client - INFO - logging in using static token
+2025-09-08 22:20:49,753 - __main__ - INFO - Setting up VerseLink bot...
+2025-09-08 22:20:49,754 - __main__ - INFO - Configuration validated
+2025-09-08 22:20:49,805 - __main__ - INFO - API connection verified: {'status': 'success', 'message': 'Bot verified successfully', 'timestamp': '2025-09-08T20:20:49.760381', 'api_version': 'v1'}
+2025-09-08 22:20:49,817 - commands - INFO - VerseLink commands cog loaded
+2025-09-08 22:20:49,817 - __main__ - INFO - Commands loaded
+2025-09-08 22:20:50,624 - __main__ - INFO - Synced 9 command(s)
+2025-09-08 22:20:50,989 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: efca4a7259d48102d4b104cc75cc9e91).
+2025-09-08 22:20:52,994 - __main__ - INFO - Bot Verselink#6810 is now online!
+2025-09-08 22:20:52,995 - __main__ - INFO - Connected to 1 guild(s)
+2025-09-08 22:20:52,996 - __main__ - INFO - Serving 5 users
+2025-09-08 22:20:53,057 - __main__ - INFO - Registered guild: Starmarket

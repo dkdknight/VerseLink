@@ -117,10 +117,18 @@ class EventService:
     async def signup_for_event(self, event_id: str, user_id: str, signup_data: EventSignupCreate) -> EventSignup:
         """Sign up user for event"""
         # Check if already signed up
+        banned_signup = await self.db.event_signups.find_one({
+            "event_id": event_id,
+            "user_id": user_id,
+            "status": SignupStatus.BANNED
+        })
+        if banned_signup:
+            raise ValueError("User is banned from this event")
+
         existing_signup = await self.db.event_signups.find_one({
             "event_id": event_id,
             "user_id": user_id,
-            "status": {"$ne": SignupStatus.WITHDRAWN}
+            "status": {"$nin": [SignupStatus.WITHDRAWN, SignupStatus.KICKED, SignupStatus.BANNED]}
         })
         
         if existing_signup:
@@ -138,7 +146,7 @@ class EventService:
                 user_org_ids.append(doc["org_id"])
             if event.org_id not in user_org_ids and not any(org in event.allowed_org_ids for org in user_org_ids):
                 raise ValueError("User not allowed to sign up for this event")
-                
+
         # Check if event is open for signup
         if event.state != EventState.PUBLISHED:
             raise ValueError("Event is not open for signup")
@@ -202,13 +210,13 @@ class EventService:
         
         return signup
     
-    async def withdraw_from_event(self, event_id: str, user_id: str) -> bool:
-        """Withdraw user from event"""
+    async def _set_signup_status(self, event_id: str, user_id: str, new_status: SignupStatus) -> bool:
+        """Update signup status for removal actions"""
         # Find signup
         signup_doc = await self.db.event_signups.find_one({
             "event_id": event_id,
             "user_id": user_id,
-            "status": {"$ne": SignupStatus.WITHDRAWN}
+            "status": {"$nin": [SignupStatus.WITHDRAWN, SignupStatus.KICKED, SignupStatus.BANNED]}
         })
         
         if not signup_doc:
@@ -216,13 +224,9 @@ class EventService:
         
         old_status = signup_doc["status"]
         
-        # Update signup status
         await self.db.event_signups.update_one(
             {"id": signup_doc["id"]},
-            {"$set": {
-                "status": SignupStatus.WITHDRAWN,
-                "updated_at": datetime.utcnow()
-            }}
+            {"$set": {"status": new_status, "updated_at": datetime.utcnow()}}
         )
         
         # Update event counts
@@ -245,6 +249,30 @@ class EventService:
         # Promote from waitlist if applicable
         if signup_doc.get("role_id") and old_status in [SignupStatus.CONFIRMED, SignupStatus.CHECKED_IN]:
             await self._promote_from_waitlist(event_id, signup_doc["role_id"])
+
+        return True
+
+    async def withdraw_from_event(self, event_id: str, user_id: str) -> bool:
+        return await self._set_signup_status(event_id, user_id, SignupStatus.WITHDRAWN)
+
+    async def kick_participant(self, event_id: str, user_id: str) -> bool:
+        return await self._set_signup_status(event_id, user_id, SignupStatus.KICKED)
+
+    async def ban_participant(self, event_id: str, user_id: str) -> bool:
+        return await self._set_signup_status(event_id, user_id, SignupStatus.BANNED)
+
+    async def unban_participant(self, event_id: str, user_id: str) -> bool:
+        signup_doc = await self.db.event_signups.find_one({
+            "event_id": event_id,
+            "user_id": user_id,
+            "status": SignupStatus.BANNED
+        })
+        if not signup_doc:
+            return False
+        await self.db.event_signups.update_one(
+            {"id": signup_doc["id"]},
+            {"$set": {"status": SignupStatus.KICKED, "updated_at": datetime.utcnow()}}
+        )
         
         return True
     
@@ -359,7 +387,7 @@ class EventService:
         """Get signups for event"""
         cursor = self.db.event_signups.find({
             "event_id": event_id,
-            "status": {"$ne": SignupStatus.WITHDRAWN}
+            "status": {"$nin": [SignupStatus.WITHDRAWN, SignupStatus.KICKED, SignupStatus.BANNED]}
         }).sort("created_at", 1)
         
         signups = []

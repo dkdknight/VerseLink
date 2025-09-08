@@ -33,6 +33,8 @@ class SignupStatus(str, Enum):
     CONFIRMED = "confirmed"
     CHECKED_IN = "checked_in"
     WITHDRAWN = "withdrawn"
+    KICKED = "kicked"
+    BANNED = "banned"
     NO_SHOW = "no_show"
 
 class RulesetBase(BaseModel):

@@ -91,6 +91,28 @@ export const eventService = {
     }
   },
 
+  // Ban a participant from event
+  banParticipant: async (eventId, userId) => {
+    try {
+      const response = await api.post(`/events/${eventId}/signups/${userId}/ban`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to ban participant:', error);
+      throw error;
+    }
+  },
+
+  // Unban a participant from event
+  unbanParticipant: async (eventId, userId) => {
+    try {
+      const response = await api.post(`/events/${eventId}/signups/${userId}/unban`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to unban participant:', error);
+      throw error;
+    }
+  },
+
   // Cancel event
   cancelEvent: async (eventId) => {
     try {

@@ -165,7 +165,7 @@ async def get_event(event_id: str, token: Optional[str] = Query(None)):
             user_org_ids.append(doc["org_id"])
         if event_doc["org_id"] not in user_org_ids and not any(org in event_doc["allowed_org_ids"] for org in user_org_ids):
             raise HTTPException(status_code=404, detail="Event not found")
-            
+
     # Extract org info
     org = event_doc.pop("org", {})
     
@@ -203,7 +203,7 @@ async def get_event(event_id: str, token: Optional[str] = Query(None)):
         {
             "$match": {
                 "event_id": event_doc["id"],
-                "status": {"$ne": SignupStatus.WITHDRAWN}
+                "status": {"$nin": [SignupStatus.WITHDRAWN, SignupStatus.KICKED]}
             }
         },
         {
@@ -322,7 +322,7 @@ async def signup_for_event(
                 "$match": {
                     "event_id": event_id,
                     "user_id": current_user.id,
-                    "status": {"$ne": SignupStatus.WITHDRAWN}
+                    "status": {"$nin": [SignupStatus.WITHDRAWN, SignupStatus.KICKED, SignupStatus.BANNED]}
                 }
             },
             {
@@ -375,7 +375,7 @@ async def withdraw_from_event(
     current_user: User = Depends(get_current_active_user)
 ):
     """Withdraw from event"""
-    success = await event_service.withdraw_from_event(event_id, current_user.id)
+    success = await event_service.kick_participant(event_id, current_user.id)
     
     if not success:
         raise HTTPException(status_code=404, detail="Signup not found")
@@ -388,18 +388,56 @@ async def remove_participant(
     user_id: str,
     current_user: User = Depends(get_current_active_user)
 ):
-    """Remove a participant from the event"""
+    """Kick a participant from the event"""
     event = await event_service.get_event(event_id)
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
     if not await EventPermissions.can_edit_event(current_user, event.org_id, event.created_by):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
 
-    success = await event_service.withdraw_from_event(event_id, user_id)
+    success = await event_service.kick_participant(event_id, user_id)
     if not success:
         raise HTTPException(status_code=404, detail="Signup not found")
 
     return {"message": "Participant removed"}
+
+@router.post("/{event_id}/signups/{user_id}/ban")
+async def ban_participant(
+    event_id: str,
+    user_id: str,
+    current_user: User = Depends(get_current_active_user),
+):
+    """Ban a participant from the event"""
+    event = await event_service.get_event(event_id)
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    if not await EventPermissions.can_edit_event(current_user, event.org_id, event.created_by):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+
+    success = await event_service.ban_participant(event_id, user_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Signup not found")
+
+    return {"message": "Participant banned"}
+
+@router.post("/{event_id}/signups/{user_id}/unban")
+async def unban_participant(
+    event_id: str,
+    user_id: str,
+    current_user: User = Depends(get_current_active_user),
+):
+    """Unban a participant from the event"""
+    event = await event_service.get_event(event_id)
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    if not await EventPermissions.can_edit_event(current_user, event.org_id, event.created_by):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+
+    success = await event_service.unban_participant(event_id, user_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Signup not found")
+
+    return {"message": "Participant unbanned"}
 
 @router.post("/{event_id}/checkin")
 async def checkin_for_event(

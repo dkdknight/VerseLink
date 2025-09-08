@@ -10,6 +10,8 @@ import {
   DocumentArrowDownIcon,
   UserPlusIcon,
   UserMinusIcon,
+  NoSymbolIcon,
+  ArrowUturnLeftIcon,
   CheckCircleIcon,
   RocketLaunchIcon,
   XCircleIcon
@@ -140,6 +142,43 @@ const EventDetailPage = () => {
     }
   };
 
+  const handleBanParticipant = async (userId) => {
+    if (!window.confirm('Bannir ce participant ?')) {
+      return;
+    }
+    try {
+      setActionLoading(true);
+      await eventService.banParticipant(event.id, userId);
+      toast.success('Participant banni');
+      await loadEvent();
+    } catch (error) {
+      if (error.response?.data?.detail) {
+        toast.error(error.response.data.detail);
+      } else {
+        toast.error('Erreur lors du bannissement');
+      }
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleUnbanParticipant = async (userId) => {
+    try {
+      setActionLoading(true);
+      await eventService.unbanParticipant(event.id, userId);
+      toast.success('Participant débanni');
+      await loadEvent();
+    } catch (error) {
+      if (error.response?.data?.detail) {
+        toast.error(error.response.data.detail);
+      } else {
+        toast.error('Erreur lors du débannissement');
+      }
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleCancelEvent = async () => {
     if (!window.confirm("Annuler l'événement ?")) {
       return;
@@ -223,17 +262,20 @@ const EventDetailPage = () => {
         <div className="flex items-center">
           <h4 className="text-white font-semibold mr-2">{signup.user_handle}</h4>
           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-            signup.status === 'confirmed' 
-              ? 'bg-green-100 text-green-800' 
+            signup.status === 'confirmed'
+              ? 'bg-green-100 text-green-800'
               : signup.status === 'checked_in'
               ? 'bg-blue-100 text-blue-800'
               : signup.status === 'waitlist'
               ? 'bg-yellow-100 text-yellow-800'
+              : signup.status === 'banned'
+              ? 'bg-red-100 text-red-800'
               : 'bg-gray-100 text-gray-800'
           }`}>
             {signup.status === 'confirmed' ? 'Confirmé' :
              signup.status === 'checked_in' ? 'Présent' :
              signup.status === 'waitlist' ? `Attente #${signup.position_in_waitlist}` :
+             signup.status === 'banned' ? 'Banni' :
              signup.status}
           </span>
         </div>
@@ -253,13 +295,32 @@ const EventDetailPage = () => {
         )}
       </div>
       {canManage && signup.user_id !== user?.id && (
-        <button
-          onClick={() => handleRemoveParticipant(signup.user_id)}
-          disabled={actionLoading}
-          className="text-red-400 hover:text-red-300 mr-2"
-        >
-          <UserMinusIcon className="w-5 h-5" />
-        </button>
+        signup.status === 'banned' ? (
+          <button
+            onClick={() => handleUnbanParticipant(signup.user_id)}
+            disabled={actionLoading}
+            className="text-green-400 hover:text-green-300 mr-2"
+          >
+            <ArrowUturnLeftIcon className="w-5 h-5" />
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={() => handleRemoveParticipant(signup.user_id)}
+              disabled={actionLoading}
+              className="text-red-400 hover:text-red-300 mr-2"
+            >
+              <UserMinusIcon className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => handleBanParticipant(signup.user_id)}
+              disabled={actionLoading}
+              className="text-red-400 hover:text-red-300 mr-2"
+            >
+              <NoSymbolIcon className="w-5 h-5" />
+            </button>
+          </>
+        )
       )}
       <div className="text-right text-xs text-gray-500">
         {new Date(signup.created_at).toLocaleDateString('fr-FR')}
@@ -354,7 +415,7 @@ const EventDetailPage = () => {
           
           {/* Actions */}
           <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t border-dark-600">
-            {event.my_signup && event.my_signup.status !== 'withdrawn' ? (
+            {event.my_signup && !['withdrawn', 'kicked', 'banned'].includes(event.my_signup.status) ? (
               <>
                 {event.can_checkin && (
                   <button
@@ -376,6 +437,8 @@ const EventDetailPage = () => {
                   {actionLoading ? 'Désinscription...' : 'Se désinscrire'}
                 </button>
               </>
+            ) : event.my_signup && event.my_signup.status === 'banned' ? (
+              <p className="text-red-400">Vous êtes banni de cet événement</p>
             ) : (
               event.can_signup && (
                 <button
