@@ -28,7 +28,7 @@ const EventsPage = () => {
   const loadEvents = async () => {
     try {
       setLoading(true);
-      const params = {};
+      const params = { start_date: new Date().toISOString() };
       if (searchQuery) params.query = searchQuery;
       if (typeFilter) params.type = typeFilter;
       if (orgFilter) params.org_id = orgFilter;

@@ -137,7 +137,7 @@ class Event(EventBase):
     slug: str
     org_id: str
     created_by: str
-    state: EventState = Field(default=EventState.DRAFT)
+    state: EventState = Field(default=EventState.PUBLISHED)
     signup_count: int = Field(default=0)
     confirmed_count: int = Field(default=0)
     checkin_count: int = Field(default=0)

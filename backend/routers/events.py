@@ -242,6 +242,39 @@ async def get_event(event_id: str):
         checkin_available=_is_checkin_available(event_doc.get("start_at_utc"))
     )
 
+@router.patch("/{event_id}", response_model=Event)
+async def update_event(
+    event_id: str,
+    update_data: EventUpdate,
+    current_user: User = Depends(get_current_active_user),
+):
+    """Update an event"""
+    event = await event_service.get_event(event_id)
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    if not await EventPermissions.can_edit_event(current_user, event.org_id, event.created_by):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+
+    updated_event = await event_service.update_event(event_id, update_data)
+    return updated_event
+
+@router.post("/{event_id}/cancel")
+async def cancel_event(
+    event_id: str,
+    current_user: User = Depends(get_current_active_user),
+):
+    """Cancel an event"""
+    event = await event_service.get_event(event_id)
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    if not await EventPermissions.can_edit_event(current_user, event.org_id, event.created_by):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+
+    success = await event_service.cancel_event(event_id)
+    if not success:
+        raise HTTPException(status_code=400, detail="Failed to cancel event")
+    return {"message": "Event cancelled"}
+
 @router.post("/{event_id}/signups", response_model=EventSignupResponse)
 async def signup_for_event(
     event_id: str,
@@ -318,6 +351,25 @@ async def withdraw_from_event(
         raise HTTPException(status_code=404, detail="Signup not found")
     
     return {"message": "Successfully withdrawn from event"}
+
+@router.delete("/{event_id}/signups/{user_id}")
+async def remove_participant(
+    event_id: str,
+    user_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Remove a participant from the event"""
+    event = await event_service.get_event(event_id)
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    if not await EventPermissions.can_edit_event(current_user, event.org_id, event.created_by):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+
+    success = await event_service.withdraw_from_event(event_id, user_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Signup not found")
+
+    return {"message": "Participant removed"}
 
 @router.post("/{event_id}/checkin")
 async def checkin_for_event(

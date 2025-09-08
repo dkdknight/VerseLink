@@ -105,6 +105,14 @@ class EventService:
         # Delete event
         result = await self.db.events.delete_one({"id": event_id})
         return result.deleted_count > 0
+
+    async def cancel_event(self, event_id: str) -> bool:
+        """Mark an event as cancelled"""
+        result = await self.db.events.update_one(
+            {"id": event_id},
+            {"$set": {"state": EventState.CANCELLED, "updated_at": datetime.utcnow()}}
+        )
+        return result.modified_count > 0
     
     async def signup_for_event(self, event_id: str, user_id: str, signup_data: EventSignupCreate) -> EventSignup:
         """Sign up user for event"""
