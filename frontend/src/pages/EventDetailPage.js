@@ -36,12 +36,17 @@ const EventDetailPage = () => {
     if (id) {
       loadEvent();
     }
-  }, [id]);
+  }, [id, user]);
 
   const loadEvent = async () => {
     try {
       setLoading(true);
       const eventData = await eventService.getEvent(id);
+      if (user) {
+        eventData.my_signup = eventData.signups?.find(
+          (s) => s.user_id === user.id
+        ) || null;
+      }
       setEvent(eventData);
     } catch (error) {
       console.error('Failed to load event:', error);
@@ -349,18 +354,7 @@ const EventDetailPage = () => {
           
           {/* Actions */}
           <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t border-dark-600">
-            {event.can_signup && (
-              <button
-                onClick={() => handleSignup()}
-                disabled={actionLoading || event.is_full}
-                className="btn-primary flex items-center"
-              >
-                <UserPlusIcon className="w-5 h-5 mr-2" />
-                {actionLoading ? 'Inscription...' : 'S\'inscrire'}
-              </button>
-            )}
-            
-            {event.my_signup && event.my_signup.status !== 'withdrawn' && (
+            {event.my_signup && event.my_signup.status !== 'withdrawn' ? (
               <>
                 {event.can_checkin && (
                   <button
@@ -382,6 +376,17 @@ const EventDetailPage = () => {
                   {actionLoading ? 'Désinscription...' : 'Se désinscrire'}
                 </button>
               </>
+            ) : (
+              event.can_signup && (
+                <button
+                  onClick={() => handleSignup()}
+                  disabled={actionLoading || event.is_full}
+                  className="btn-primary flex items-center"
+                >
+                  <UserPlusIcon className="w-5 h-5 mr-2" />
+                  {actionLoading ? 'Inscription...' : 'S\'inscrire'}
+                </button>
+              )
             )}
             
             <button
