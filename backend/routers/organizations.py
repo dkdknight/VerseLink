@@ -76,7 +76,9 @@ async def create_organization(
     
     # Create organization
     org = Organization(**org_data.dict(), owner_id=current_user.id)
-    await db.organizations.insert_one(org.dict())
+    # Exclude fields with None values (e.g. discord_guild_id) to avoid
+    # unique index conflicts on optional fields.
+    await db.organizations.insert_one(org.dict(exclude_none=True))
     
     # Add owner as admin member
     owner_member = OrgMember(
