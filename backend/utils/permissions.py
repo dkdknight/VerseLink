@@ -1,10 +1,23 @@
 from typing import Optional
-from models.user import User, UserRole
+from models.user import User
 from models.organization import OrgMemberRole
+from typing import Any
 from database import get_database
 
 class EventPermissions:
     """Event permissions helper"""
+
+    @staticmethod
+    def _parse_member_role(role_value: Any) -> Optional[OrgMemberRole]:
+        """Convert stored role values to OrgMemberRole enum."""
+        if isinstance(role_value, OrgMemberRole):
+            return role_value
+        if isinstance(role_value, str):
+            try:
+                return OrgMemberRole(role_value.lower())
+            except ValueError:
+                return None
+        return None
     
     @staticmethod
     async def can_create_event(user: User, org_id: str) -> bool:
@@ -21,8 +34,12 @@ class EventPermissions:
         
         if not member_doc:
             return False
-        
-        return member_doc["role"] in [OrgMemberRole.ADMIN, OrgMemberRole.STAFF]
+
+        member_role = EventPermissions._parse_member_role(member_doc.get("role"))
+        if not member_role:
+            return False
+
+        return member_role in (OrgMemberRole.ADMIN, OrgMemberRole.STAFF)
     
     @staticmethod
     async def can_edit_event(user: User, event_org_id: str, event_created_by: str) -> bool:
@@ -41,8 +58,10 @@ class EventPermissions:
             "user_id": user.id
         })
         
-        if member_doc and member_doc["role"] == OrgMemberRole.ADMIN:
-            return True
+        if member_doc:
+            member_role = EventPermissions._parse_member_role(member_doc.get("role"))
+            if member_role == OrgMemberRole.ADMIN:
+                return True
         
         return False
     

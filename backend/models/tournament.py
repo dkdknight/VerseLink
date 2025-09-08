@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 import uuid
 
@@ -44,6 +45,8 @@ class TournamentBase(BaseModel):
     
     @validator('start_at_utc')
     def start_at_must_be_future(cls, v):
+        if v.tzinfo is not None:
+            v = v.astimezone(timezone.utc).replace(tzinfo=None)
         if v <= datetime.utcnow():
             raise ValueError('Tournament start time must be in the future')
         return v
@@ -63,8 +66,11 @@ class TournamentUpdate(BaseModel):
     
     @validator('start_at_utc')
     def start_at_must_be_future(cls, v):
-        if v and v <= datetime.utcnow():
-            raise ValueError('Tournament start time must be in the future')
+        if v:
+            if v.tzinfo is not None:
+                v = v.astimezone(timezone.utc).replace(tzinfo=None)
+            if v <= datetime.utcnow():
+                raise ValueError('Tournament start time must be in the future')
         return v
 
 class Tournament(TournamentBase):
@@ -72,7 +78,7 @@ class Tournament(TournamentBase):
     slug: str
     org_id: str
     created_by: str
-    state: TournamentState = Field(default=TournamentState.DRAFT)
+    state: TournamentState = Field(default=TournamentState.OPEN_REGISTRATION)
     team_count: int = Field(default=0)
     rounds_total: int = Field(default=0)
     current_round: int = Field(default=0)
