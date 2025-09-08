@@ -11,7 +11,8 @@ import {
   UserPlusIcon,
   UserMinusIcon,
   CheckCircleIcon,
-  RocketLaunchIcon
+  RocketLaunchIcon,
+  XCircleIcon
 } from '@heroicons/react/24/outline';
 import { eventService } from '../services/eventService';
 import { useAuth } from '../App';
@@ -22,6 +23,14 @@ const EventDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const { user, isAuthenticated } = useAuth();
+
+  const canManage =
+    isAuthenticated &&
+    user &&
+    event &&
+    (user.id === event.created_by ||
+      user.roles?.includes('site_admin') ||
+      user.roles?.includes('org_admin'));
 
   useEffect(() => {
     if (id) {
@@ -100,6 +109,46 @@ const EventDetailPage = () => {
         toast.error(error.response.data.detail);
       } else {
         toast.error('Erreur lors du check-in');
+      }
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRemoveParticipant = async (userId) => {
+    if (!window.confirm('Supprimer ce participant ?')) {
+      return;
+    }
+    try {
+      setActionLoading(true);
+      await eventService.removeParticipant(event.id, userId);
+      toast.success('Participant supprimé');
+      await loadEvent();
+    } catch (error) {
+      if (error.response?.data?.detail) {
+        toast.error(error.response.data.detail);
+      } else {
+        toast.error('Erreur lors de la suppression');
+      }
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleCancelEvent = async () => {
+    if (!window.confirm("Annuler l'événement ?")) {
+      return;
+    }
+    try {
+      setActionLoading(true);
+      await eventService.cancelEvent(event.id);
+      toast.success("Événement annulé");
+      await loadEvent();
+    } catch (error) {
+      if (error.response?.data?.detail) {
+        toast.error(error.response.data.detail);
+      } else {
+        toast.error("Erreur lors de l'annulation");
       }
     } finally {
       setActionLoading(false);
@@ -198,7 +247,15 @@ const EventDetailPage = () => {
           <p className="text-gray-400 text-sm mt-1 italic">"{signup.notes}"</p>
         )}
       </div>
-      
+      {canManage && signup.user_id !== user?.id && (
+        <button
+          onClick={() => handleRemoveParticipant(signup.user_id)}
+          disabled={actionLoading}
+          className="text-red-400 hover:text-red-300 mr-2"
+        >
+          <UserMinusIcon className="w-5 h-5" />
+        </button>
+      )}
       <div className="text-right text-xs text-gray-500">
         {new Date(signup.created_at).toLocaleDateString('fr-FR')}
       </div>
@@ -335,13 +392,25 @@ const EventDetailPage = () => {
               Télécharger .ics
             </button>
             
-            {event.can_edit && (
-              <Link
-                to={`/events/${event.id}/edit`}
-                className="btn-secondary flex items-center"
-              >
-                Modifier l'événement
-              </Link>
+            {canManage && (
+              <>
+                <Link
+                  to={`/events/${event.id}/edit`}
+                  className="btn-secondary flex items-center"
+                >
+                  Modifier l'événement
+                </Link>
+                {event.state !== 'cancelled' && (
+                  <button
+                    onClick={handleCancelEvent}
+                    disabled={actionLoading}
+                    className="btn-ghost flex items-center text-red-400 hover:text-red-300 border-red-400 hover:border-red-300"
+                  >
+                    <XCircleIcon className="w-5 h-5 mr-2" />
+                    {actionLoading ? 'Annulation...' : 'Annuler'}
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>

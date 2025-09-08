@@ -78,6 +78,28 @@ export const eventService = {
     }
   },
 
+  // Remove a participant from event
+  removeParticipant: async (eventId, userId) => {
+    try {
+      const response = await api.delete(`/events/${eventId}/signups/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to remove participant:', error);
+      throw error;
+    }
+  },
+
+  // Cancel event
+  cancelEvent: async (eventId) => {
+    try {
+      const response = await api.post(`/events/${eventId}/cancel`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to cancel event:', error);
+      throw error;
+    }
+  },
+
   // Check in for event
   checkinForEvent: async (eventId) => {
     try {

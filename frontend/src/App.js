@@ -12,6 +12,7 @@ import OrganizationsPage from './pages/OrganizationsPage';
 import OrganizationDetailPage from './pages/OrganizationDetailPage';
 import CreateOrganizationPage from './pages/CreateOrganizationPage';
 import CreateEventPage from './pages/CreateEventPage';
+import EditEventPage from './pages/EditEventPage';
 import EventsPage from './pages/EventsPage';
 import EventDetailPage from './pages/EventDetailPage';
 import TournamentsPage from './pages/TournamentsPage';
@@ -177,6 +178,7 @@ function App() {
               <Route path="/organizations/:id/events/new" element={<ProtectedRoute><CreateEventPage /></ProtectedRoute>} />
               <Route path="/events" element={<EventsPage />} />
               <Route path="/events/:id" element={<EventDetailPage />} />
+              <Route path="/events/:id/edit" element={<ProtectedRoute><EditEventPage /></ProtectedRoute>} />
               <Route path="/tournaments" element={<TournamentsPage />} />
               <Route path="/tournaments/:id" element={<TournamentDetailPage />} />
               
