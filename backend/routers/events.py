@@ -43,7 +43,8 @@ async def list_events(
     start_date: Optional[datetime] = Query(None, description="Start date filter"),
     end_date: Optional[datetime] = Query(None, description="End date filter"),
     limit: int = Query(20, ge=1, le=100),
-    skip: int = Query(0, ge=0)
+    skip: int = Query(0, ge=0),
+    token: Optional[str] = Query(None)
 ):
     """List published events with filters"""
     db = get_database()
@@ -72,9 +73,27 @@ async def list_events(
             date_filter["$lte"] = end_date
         filters["start_at_utc"] = date_filter
     
+    # Determine organization access
+    user = await get_optional_user(token)
+    user_org_ids: List[str] = []
+    if user:
+        async for doc in db.org_members.find({"user_id": user.id}):
+            user_org_ids.append(doc["org_id"])
+
+    access_filter = {
+        "$or": [
+            {"allowed_org_ids": {"$exists": False}},
+            {"allowed_org_ids": {"$eq": []}},
+        ]
+    }
+    if user_org_ids:
+        access_filter["$or"].append({"allowed_org_ids": {"$in": user_org_ids}})
+        access_filter["$or"].append({"org_id": {"$in": user_org_ids}})
+
     # Get events with organization info
     pipeline = [
         {"$match": filters},
+        {"$match": access_filter},
         {
             "$lookup": {
                 "from": "organizations",
@@ -106,7 +125,7 @@ async def list_events(
     return events
 
 @router.get("/{event_id}", response_model=EventDetailResponse)
-async def get_event(event_id: str):
+async def get_event(event_id: str, token: Optional[str] = Query(None)):
     """Get event details"""
     db = get_database()
     
@@ -136,6 +155,17 @@ async def get_event(event_id: str):
     if event_doc["visibility"] == "private":
         raise HTTPException(status_code=404, detail="Event not found")
     
+    # Check organization access
+    if event_doc.get("allowed_org_ids"):
+        user = await get_optional_user(token)
+        if not user:
+            raise HTTPException(status_code=404, detail="Event not found")
+        user_org_ids: List[str] = []
+        async for doc in db.org_members.find({"user_id": user.id}):
+            user_org_ids.append(doc["org_id"])
+        if event_doc["org_id"] not in user_org_ids and not any(org in event_doc["allowed_org_ids"] for org in user_org_ids):
+            raise HTTPException(status_code=404, detail="Event not found")
+            
     # Extract org info
     org = event_doc.pop("org", {})
     

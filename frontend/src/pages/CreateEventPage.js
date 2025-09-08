@@ -13,8 +13,12 @@ const CreateEventPage = () => {
     start_at_utc: '',
     duration_minutes: 60,
     location: '',
-    max_participants: ''
+    max_participants: '',
+    banner_url: ''
   });
+  const [roles, setRoles] = useState([]);
+  const [orgVisibility, setOrgVisibility] = useState('all');
+  const [allowedOrgs, setAllowedOrgs] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -22,18 +26,46 @@ const CreateEventPage = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleRoleChange = (index, e) => {
+    const { name, value } = e.target;
+    setRoles(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [name]: value };
+      return updated;
+    });
+  };
+
+  const addRole = () => {
+    setRoles(prev => [...prev, { name: '', capacity: 1, description: '' }]);
+  };
+
+  const removeRole = (index) => {
+    setRoles(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
       const startUtc = new Date(formData.start_at_utc).toISOString();
+      const allowedOrgIds =
+        orgVisibility === 'selected'
+          ? allowedOrgs.split(',').map(id => id.trim()).filter(Boolean)
+          : [];
 
       const payload = {
         ...formData,
         type: formData.type.trim().toLowerCase(),
         duration_minutes: parseInt(formData.duration_minutes, 10),
         max_participants: formData.max_participants ? parseInt(formData.max_participants, 10) : null,
-        start_at_utc: startUtc
+        start_at_utc: startUtc,
+        roles: roles.map(r => ({
+          name: r.name,
+          capacity: parseInt(r.capacity, 10),
+          description: r.description
+        })),
+        allowed_org_ids: allowedOrgIds,
+        banner_url: formData.banner_url || null
       };
       await eventService.createEvent(id, payload);
       toast.success('Événement créé');
@@ -137,6 +169,101 @@ const CreateEventPage = () => {
                 onChange={handleChange}
                 className="input-primary w-full"
               />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-1">Image (URL)</label>
+              <input
+                type="text"
+                name="banner_url"
+                value={formData.banner_url}
+                onChange={handleChange}
+                className="input-primary w-full"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-1">Rôles</label>
+              {roles.map((role, index) => (
+                <div key={index} className="mb-2 p-3 border border-dark-700 rounded">
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      name="name"
+                      placeholder="Nom"
+                      value={role.name}
+                      onChange={(e) => handleRoleChange(index, e)}
+                      className="input-primary flex-1"
+                    />
+                    <input
+                      type="number"
+                      name="capacity"
+                      placeholder="Capacité"
+                      value={role.capacity}
+                      onChange={(e) => handleRoleChange(index, e)}
+                      className="input-primary w-24"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      name="description"
+                      placeholder="Description"
+                      value={role.description}
+                      onChange={(e) => handleRoleChange(index, e)}
+                      className="input-primary flex-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeRole(index)}
+                      className="btn-secondary"
+                    >
+                      Retirer
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addRole}
+                className="btn-secondary mt-2"
+              >
+                Ajouter un rôle
+              </button>
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-1">Visibilité</label>
+              <div className="space-y-2">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="orgVisibility"
+                    value="all"
+                    checked={orgVisibility === 'all'}
+                    onChange={(e) => setOrgVisibility(e.target.value)}
+                    className="mr-2"
+                  />
+                  <span>Accessible à toutes les organisations</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="orgVisibility"
+                    value="selected"
+                    checked={orgVisibility === 'selected'}
+                    onChange={(e) => setOrgVisibility(e.target.value)}
+                    className="mr-2"
+                  />
+                  <span>Uniquement aux organisations sélectionnées</span>
+                </label>
+              </div>
+              {orgVisibility === 'selected' && (
+                <input
+                  type="text"
+                  value={allowedOrgs}
+                  onChange={(e) => setAllowedOrgs(e.target.value)}
+                  placeholder="IDs des organisations séparés par des virgules"
+                  className="input-primary w-full mt-2"
+                />
+              )}
             </div>
             <div className="flex justify-end">
               <button

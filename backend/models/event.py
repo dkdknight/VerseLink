@@ -98,6 +98,7 @@ class EventBase(BaseModel):
     max_participants: Optional[int] = Field(None, ge=1, le=500)
     ruleset_id: Optional[str] = None
     banner_url: Optional[str] = None
+    allowed_org_ids: List[str] = Field(default_factory=list)
     
     @validator('start_at_utc')
     def start_at_must_be_future(cls, v):
@@ -122,6 +123,7 @@ class EventUpdate(BaseModel):
     max_participants: Optional[int] = Field(None, ge=1, le=500)
     ruleset_id: Optional[str] = None
     banner_url: Optional[str] = None
+    allowed_org_ids: Optional[List[str]] = None
     
     @validator('start_at_utc')
     def start_at_must_be_future(cls, v):
@@ -168,6 +170,7 @@ class EventResponse(BaseModel):
     banner_url: Optional[str]
     created_at: datetime
     created_by: str
+    allowed_org_ids: List[str] = Field(default_factory=list)
     roles: List[EventRoleResponse] = Field(default_factory=list)
     fleet_ships: List[FleetShipResponse] = Field(default_factory=list)
     is_full: bool = Field(default=False)

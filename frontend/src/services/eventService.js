@@ -4,7 +4,8 @@ export const eventService = {
   // List events with filters
   listEvents: async (params = {}) => {
     try {
-      const response = await api.get('/events/', { params });
+      const token = localStorage.getItem('auth_token');
+      const response = await api.get('/events/', { params: { ...params, token } });
       return response.data;
     } catch (error) {
       console.error('Failed to list events:', error);
@@ -15,7 +16,8 @@ export const eventService = {
   // Get event details
   getEvent: async (eventId) => {
     try {
-      const response = await api.get(`/events/${eventId}`);
+      const token = localStorage.getItem('auth_token');
+      const response = await api.get(`/events/${eventId}`, { params: { token } });
       return response.data;
     } catch (error) {
       console.error('Failed to get event:', error);

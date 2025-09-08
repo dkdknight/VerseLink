@@ -131,6 +131,14 @@ class EventService:
         if not event:
             raise ValueError("Event not found")
         
+        # Check organization access
+        if event.allowed_org_ids:
+            user_org_ids = []
+            async for doc in self.db.org_members.find({"user_id": user_id}):
+                user_org_ids.append(doc["org_id"])
+            if event.org_id not in user_org_ids and not any(org in event.allowed_org_ids for org in user_org_ids):
+                raise ValueError("User not allowed to sign up for this event")
+                
         # Check if event is open for signup
         if event.state != EventState.PUBLISHED:
             raise ValueError("Event is not open for signup")
