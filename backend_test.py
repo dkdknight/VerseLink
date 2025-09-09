@@ -2383,6 +2383,7 @@ class VerselinkAPITester:
         
         # Run Phase 7 Tournament Management Testing
         print("\n🏆 TESTING PHASE 7 - NEW TOURNAMENT MANAGEMENT FEATURES")
+        self.test_new_tournament_management_endpoints()
         self.test_new_tournament_team_management_endpoints()
         self.test_new_tournament_administration_endpoints()
         self.test_tournament_team_management_data_validation()
