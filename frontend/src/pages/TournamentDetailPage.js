@@ -542,7 +542,18 @@ const TournamentDetailPage = () => {
                 
                 {tournament.my_team && (
                   <div className="glass-effect rounded-lg p-6">
-                    <h3 className="text-xl font-bold text-white mb-4">Mon équipe</h3>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-xl font-bold text-white">Mon équipe</h3>
+                      {tournament.my_team.can_manage && (
+                        <Link
+                          to={`/tournaments/${tournament.id}/teams/${tournament.my_team.id}/manage`}
+                          className="btn-secondary flex items-center text-sm"
+                        >
+                          <CogIcon className="w-4 h-4 mr-1" />
+                          Gérer
+                        </Link>
+                      )}
+                    </div>
                     <TeamCard team={tournament.my_team} />
                   </div>
                 )}
