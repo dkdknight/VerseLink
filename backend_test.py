@@ -2668,6 +2668,14 @@ class VerselinkAPITester:
         self.test_health_endpoints()
         self.test_auth_endpoints()
         
+        # Run Phase 3 Advanced Tournament Features Testing
+        print("\n🏆 TESTING PHASE 3 - ADVANCED TOURNAMENT FEATURES")
+        self.test_phase3_team_invitations_endpoints()
+        self.test_phase3_match_disputes_endpoints()
+        self.test_phase3_invitations_data_validation()
+        self.test_phase3_disputes_data_validation()
+        self.test_phase3_api_structure()
+        
         # Run Phase 7 Tournament Management Testing
         print("\n🏆 TESTING PHASE 7 - NEW TOURNAMENT MANAGEMENT FEATURES")
         self.test_new_tournament_management_endpoints()
