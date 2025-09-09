@@ -2304,13 +2304,35 @@ class VerselinkAPITester:
 
     def run_all_tests(self):
         """Run all test suites"""
-        print("🚀 Starting VerseLink Backend API Tests - Phase 6 Notifications, Moderation & Auto-Moderation System")
+        print("🚀 Starting VerseLink Backend API Tests - Phase 7 Tournament Management Features")
         print(f"📡 Testing against: {self.base_url}")
         print(f"⏰ Started at: {datetime.now().isoformat()}")
         
         # Run basic health and auth tests first
         self.test_health_endpoints()
         self.test_auth_endpoints()
+        
+        # Run Phase 7 Tournament Management Testing
+        print("\n🏆 TESTING PHASE 7 - NEW TOURNAMENT MANAGEMENT FEATURES")
+        self.test_new_tournament_team_management_endpoints()
+        self.test_new_tournament_administration_endpoints()
+        self.test_tournament_team_management_data_validation()
+        self.test_tournament_state_management()
+        
+        # Run existing tournament tests
+        print("\n🏆 TESTING EXISTING TOURNAMENT FEATURES")
+        self.test_tournaments_endpoints()
+        self.test_tournament_api_comprehensive()
+        self.test_tournament_team_management_without_auth()
+        self.test_match_score_reporting_without_auth()
+        self.test_file_upload_api_without_auth()
+        self.test_tournament_creation_without_auth()
+        self.test_tournament_api_structure()
+        self.test_tournament_data_validation()
+        self.test_tournament_state_transitions()
+        self.test_match_score_validation()
+        self.test_file_upload_validation()
+        self.test_tournament_bracket_generation()
         
         # Run Phase 6 comprehensive testing
         print("\n🔔 TESTING PHASE 6 - NOTIFICATIONS SYSTEM")
@@ -2321,12 +2343,12 @@ class VerselinkAPITester:
         self.test_moderation_endpoints()
         self.test_moderation_data_validation()
         
-        print("\n🤖 TESTING PHASE 6 - AUTO-MODERATION SYSTEM (NEW)")
+        print("\n🤖 TESTING PHASE 6 - AUTO-MODERATION SYSTEM")
         self.test_auto_moderation_endpoints()
         self.test_auto_moderation_data_validation()
         self.test_auto_moderation_toggle_functionality()
         
-        print("\n🔗 TESTING PHASE 6 - API STRUCTURE & INTEGRATION")
+        print("\n🔗 TESTING API STRUCTURE & INTEGRATION")
         self.test_phase6_api_structure()
         self.test_phase6_integration_scenarios()
         
