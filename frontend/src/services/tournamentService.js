@@ -117,6 +117,19 @@ export const tournamentService = {
     }
   },
 
+  // Schedule a match
+  scheduleMatch: async (matchId, scheduledAt) => {
+    try {
+      const response = await api.post(`/tournaments/matches/${matchId}/schedule`, {
+        scheduled_at: scheduledAt,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to schedule match:', error);
+      throw error;
+    }
+  },
+
   // Delete attachment
   deleteAttachment: async (attachmentId) => {
     try {

@@ -69,6 +69,28 @@ const TournamentDetailPage = () => {
     }
   };
 
+  const handleJoinTeam = async (teamId) => {
+    if (!isAuthenticated || !user) {
+      toast.error('Vous devez être connecté pour rejoindre une équipe');
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      await tournamentService.addTeamMember(tournament.id, teamId, user.id);
+      toast.success("Vous avez rejoint l'équipe !");
+      await loadTournament();
+    } catch (error) {
+      if (error.response?.data?.detail) {
+        toast.error(error.response.data.detail);
+      } else {
+        toast.error("Erreur lors de l'adhésion à l'équipe");
+      }
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleMatchClick = (match) => {
     setSelectedMatch(match);
     if (match.state === 'pending' && canReportScore(match)) {
@@ -83,6 +105,42 @@ const TournamentDetailPage = () => {
     return match.can_report || 
            (match.team_a_captain_id === user.id) ||
            (match.team_b_captain_id === user.id);
+  };
+
+  const canScheduleMatch = (match) => {
+    if (!isAuthenticated || !user) return false;
+
+    return (
+      match.state === 'pending' &&
+      !match.scheduled_at &&
+      (match.team_a_captain_id === user.id || match.team_b_captain_id === user.id)
+    );
+  };
+
+  const handleScheduleMatch = async (match) => {
+    const input = prompt("Date et heure du match (YYYY-MM-DD HH:MM)");
+    if (!input) return;
+
+    const scheduledAt = new Date(input);
+    if (isNaN(scheduledAt)) {
+      toast.error('Date invalide');
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      await tournamentService.scheduleMatch(match.id, scheduledAt.toISOString());
+      toast.success('Match programmé');
+      await loadTournament();
+    } catch (error) {
+      if (error.response?.data?.detail) {
+        toast.error(error.response.data.detail);
+      } else {
+        toast.error('Erreur lors de la programmation du match');
+      }
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const formatTournamentFormat = (format) => {
@@ -173,6 +231,18 @@ const TournamentDetailPage = () => {
           </div>
         )}
       </div>
+
+      {tournament.can_register && isAuthenticated && !tournament.my_team && team.member_count < tournament.team_size && (
+        <div className="mt-3 text-center">
+          <button
+            onClick={() => handleJoinTeam(team.id)}
+            disabled={actionLoading}
+            className="text-sm text-primary-400 hover:text-primary-300 font-medium"
+          >
+            Rejoindre l'équipe →
+          </button>
+        </div>
+      )}
     </div>
   );
 
@@ -237,14 +307,25 @@ const TournamentDetailPage = () => {
       )}
       
       {/* Actions */}
-      {canReportScore(match) && match.state === 'pending' && (
-        <div className="mt-3 text-center">
-          <button
-            onClick={() => handleMatchClick(match)}
-            className="text-sm text-primary-400 hover:text-primary-300 font-medium"
-          >
-            Reporter le score →
-          </button>
+      {(canScheduleMatch(match) || (canReportScore(match) && match.state === 'pending')) && (
+        <div className="mt-3 text-center space-y-2">
+          {canScheduleMatch(match) && (
+            <button
+              onClick={() => handleScheduleMatch(match)}
+              disabled={actionLoading}
+              className="text-sm text-primary-400 hover:text-primary-300 font-medium block w-full"
+            >
+              Programmer le match →
+            </button>
+          )}
+          {canReportScore(match) && match.state === 'pending' && (
+            <button
+              onClick={() => handleMatchClick(match)}
+              className="text-sm text-primary-400 hover:text-primary-300 font-medium block w-full"
+            >
+              Reporter le score →
+            </button>
+          )}
         </div>
       )}
     </div>
