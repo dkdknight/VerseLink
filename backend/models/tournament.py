@@ -32,6 +32,18 @@ class AttachmentType(str, Enum):
     LOG = "log"
     OTHER = "other"
 
+class InvitationStatus(str, Enum):
+    PENDING = "pending"
+    ACCEPTED = "accepted"
+    DECLINED = "declined"
+    EXPIRED = "expired"
+
+class DisputeStatus(str, Enum):
+    OPEN = "open"
+    UNDER_REVIEW = "under_review"
+    RESOLVED = "resolved"
+    REJECTED = "rejected"
+
 class TournamentBase(BaseModel):
     name: str = Field(..., min_length=3, max_length=200)
     description: str = Field(..., min_length=10, max_length=5000)
