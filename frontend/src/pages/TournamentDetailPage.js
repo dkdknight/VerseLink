@@ -246,6 +246,18 @@ const TournamentDetailPage = () => {
           </button>
         </div>
       )}
+      
+      {/* Team Management Link for Captain */}
+      {tournament.my_team && tournament.my_team.id === team.id && tournament.my_team.can_manage && (
+        <div className="mt-3 text-center">
+          <Link
+            to={`/tournaments/${tournament.id}/teams/${team.id}/manage`}
+            className="text-sm text-primary-400 hover:text-primary-300 font-medium"
+          >
+            Gérer l'équipe →
+          </Link>
+        </div>
+      )}
     </div>
   );
 
