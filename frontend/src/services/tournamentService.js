@@ -352,5 +352,70 @@ export const tournamentService = {
       console.error('Failed to resolve dispute:', error);
       throw error;
     }
+  },
+
+  // Player Search
+  createPlayerSearch: async (tournamentId, searchData) => {
+    try {
+      const response = await api.post(`/tournaments/${tournamentId}/player-search`, searchData);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create player search:', error);
+      throw error;
+    }
+  },
+
+  getPlayerSearches: async (tournamentId, filters = {}) => {
+    try {
+      const params = {};
+      if (filters.role) params.role = filters.role;
+      if (filters.experience) params.experience = filters.experience;
+      
+      const response = await api.get(`/tournaments/${tournamentId}/player-search`, { params });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get player searches:', error);
+      throw error;
+    }
+  },
+
+  getMyPlayerSearches: async () => {
+    try {
+      const response = await api.get('/tournaments/player-search/me');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get my player searches:', error);
+      throw error;
+    }
+  },
+
+  updatePlayerSearch: async (searchId, searchData) => {
+    try {
+      const response = await api.put(`/tournaments/player-search/${searchId}`, searchData);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update player search:', error);
+      throw error;
+    }
+  },
+
+  deactivatePlayerSearch: async (searchId) => {
+    try {
+      const response = await api.post(`/tournaments/player-search/${searchId}/deactivate`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to deactivate player search:', error);
+      throw error;
+    }
+  },
+
+  deletePlayerSearch: async (searchId) => {
+    try {
+      const response = await api.delete(`/tournaments/player-search/${searchId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to delete player search:', error);
+      throw error;
+    }
   }
 };
