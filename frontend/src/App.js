@@ -21,6 +21,7 @@ import TournamentDetailPage from './pages/TournamentDetailPage';
 import TeamManagementPage from './pages/TeamManagementPage';
 import TournamentAdminPage from './pages/TournamentAdminPage';
 import UserInvitationsPage from './pages/UserInvitationsPage';
+import PlayerSearchPage from './pages/PlayerSearchPage';
 import NotificationsPage from './pages/NotificationsPage';
 import NotificationPreferencesPage from './pages/NotificationPreferencesPage';
 import ModerationDashboardPage from './pages/ModerationDashboardPage';
