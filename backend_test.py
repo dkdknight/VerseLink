@@ -1666,6 +1666,75 @@ class VerselinkAPITester:
                 f"/api/v1/tournaments/{test_tournament_id}/{action}",
                 403
             )
+
+    def test_new_tournament_management_endpoints(self):
+        """Test new tournament management endpoints requested by main agent"""
+        print("\n" + "="*60)
+        print("TESTING NEW TOURNAMENT MANAGEMENT ENDPOINTS")
+        print("="*60)
+        
+        test_tournament_id = "test-tournament-id"
+        test_team_id = "test-team-id"
+        
+        # Test GET /api/v1/tournaments/{tournament_id}/teams/{team_id} - Team details
+        self.run_test(
+            "Get Team Details",
+            "GET",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}",
+            403  # Should fail without auth
+        )
+        
+        # Test PUT /api/v1/tournaments/{tournament_id}/teams/{team_id} - Update team
+        team_update_data = {
+            "name": "Updated Team Name"
+        }
+        self.run_test(
+            "Update Team",
+            "PUT",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}",
+            403,  # Should fail without auth
+            data=team_update_data
+        )
+        
+        # Test DELETE /api/v1/tournaments/{tournament_id}/teams/{team_id} - Delete team
+        self.run_test(
+            "Delete Team",
+            "DELETE",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}",
+            403  # Should fail without auth
+        )
+        
+        # Test POST /api/v1/tournaments/{tournament_id}/teams/{team_id}/leave - Leave team
+        self.run_test(
+            "Leave Team",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}/leave",
+            403  # Should fail without auth
+        )
+        
+        # Test POST /api/v1/tournaments/{tournament_id}/start - Start tournament
+        self.run_test(
+            "Start Tournament",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/start",
+            403  # Should fail without auth
+        )
+        
+        # Test POST /api/v1/tournaments/{tournament_id}/close-registration - Close registration
+        self.run_test(
+            "Close Tournament Registration",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/close-registration",
+            403  # Should fail without auth
+        )
+        
+        # Test POST /api/v1/tournaments/{tournament_id}/reopen-registration - Reopen registration
+        self.run_test(
+            "Reopen Tournament Registration",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/reopen-registration",
+            403  # Should fail without auth
+        )
         """Test authentication edge cases for tournament endpoints"""
         print("\n" + "="*60)
         print("TESTING AUTHENTICATION EDGE CASES")
