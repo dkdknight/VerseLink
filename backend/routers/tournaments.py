@@ -844,3 +844,83 @@ async def resolve_dispute(
         return {"message": f"Dispute {action} successfully"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+# Player Search Routes
+
+@router.post("/{tournament_id}/player-search", response_model=Dict[str, str])
+async def create_player_search(
+    tournament_id: str,
+    search_data: PlayerSearchCreate,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Create or update player search for tournament"""
+    try:
+        await player_search_service.create_player_search(tournament_id, search_data, current_user.id)
+        return {"message": "Player search created/updated successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/{tournament_id}/player-search", response_model=List[PlayerSearchResponse])
+async def get_tournament_player_searches(
+    tournament_id: str,
+    role: Optional[str] = Query(None, description="Filter by preferred role"),
+    experience: Optional[str] = Query(None, description="Filter by experience level"),
+    limit: int = Query(20, ge=1, le=100),
+    skip: int = Query(0, ge=0),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Get player searches for a tournament with optional filters"""
+    try:
+        if role or experience:
+            return await player_search_service.search_players(tournament_id, role, experience, limit, skip)
+        else:
+            return await player_search_service.get_tournament_player_searches(tournament_id, limit, skip)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/player-search/me", response_model=List[PlayerSearchResponse])
+async def get_my_player_searches(
+    current_user: User = Depends(get_current_active_user)
+):
+    """Get current user's player searches"""
+    try:
+        return await player_search_service.get_user_player_searches(current_user.id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.put("/player-search/{search_id}", response_model=Dict[str, str])
+async def update_player_search(
+    search_id: str,
+    search_data: PlayerSearchCreate,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Update a player search (owner only)"""
+    try:
+        await player_search_service.update_player_search(search_id, search_data, current_user.id)
+        return {"message": "Player search updated successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/player-search/{search_id}/deactivate", response_model=Dict[str, str])
+async def deactivate_player_search(
+    search_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Deactivate a player search (owner only)"""
+    try:
+        await player_search_service.deactivate_player_search(search_id, current_user.id)
+        return {"message": "Player search deactivated successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.delete("/player-search/{search_id}", response_model=Dict[str, str])
+async def delete_player_search(
+    search_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Delete a player search (owner only)"""
+    try:
+        await player_search_service.delete_player_search(search_id, current_user.id)
+        return {"message": "Player search deleted successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
