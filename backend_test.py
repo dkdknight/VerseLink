@@ -2684,6 +2684,12 @@ class VerselinkAPITester:
         self.test_tournament_team_management_data_validation()
         self.test_tournament_state_management()
         
+        # Run Phase Final Player Search Testing
+        print("\n🔍 TESTING PHASE FINAL - PLAYER SEARCH SYSTEM")
+        self.test_player_search_endpoints()
+        self.test_player_search_data_validation()
+        self.test_player_search_api_structure()
+        
         # Run existing tournament tests
         print("\n🏆 TESTING EXISTING TOURNAMENT FEATURES")
         self.test_tournaments_endpoints()
