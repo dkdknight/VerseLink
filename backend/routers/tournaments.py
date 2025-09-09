@@ -407,3 +407,279 @@ async def delete_attachment(
         raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+# Team Management Routes
+
+@router.get("/{tournament_id}/teams/{team_id}")
+async def get_team_details(
+    tournament_id: str,
+    team_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Get detailed team information"""
+    db = get_database()
+    
+    # Get team with member info
+    pipeline = [
+        {"$match": {"id": team_id, "tournament_id": tournament_id}},
+        {
+            "$lookup": {
+                "from": "team_members",
+                "localField": "id",
+                "foreignField": "team_id",
+                "as": "members"
+            }
+        },
+        {
+            "$lookup": {
+                "from": "users",
+                "localField": "captain_user_id",
+                "foreignField": "id",
+                "as": "captain"
+            }
+        },
+        {"$unwind": "$captain"}
+    ]
+    
+    team_doc = None
+    async for doc in db.teams.aggregate(pipeline):
+        team_doc = doc
+        break
+    
+    if not team_doc:
+        raise HTTPException(status_code=404, detail="Team not found")
+    
+    # Get member details
+    member_details = []
+    for member in team_doc["members"]:
+        user_doc = await db.users.find_one({"id": member["user_id"]})
+        if user_doc:
+            member_details.append({
+                "user_id": member["user_id"],
+                "handle": user_doc["handle"],
+                "avatar_url": user_doc.get("avatar_url"),
+                "is_captain": member["is_captain"],
+                "joined_at": member["joined_at"]
+            })
+    
+    # Check permissions
+    is_captain = team_doc["captain_user_id"] == current_user.id
+    is_member = current_user.id in [m["user_id"] for m in team_doc["members"]]
+    
+    team_response = {
+        "id": team_doc["id"],
+        "name": team_doc["name"],
+        "tournament_id": team_doc["tournament_id"],
+        "captain_user_id": team_doc["captain_user_id"],
+        "captain_handle": team_doc["captain"]["handle"],
+        "member_count": team_doc["member_count"],
+        "wins": team_doc["wins"],
+        "losses": team_doc["losses"],
+        "points": team_doc["points"],
+        "eliminated": team_doc["eliminated"],
+        "seed": team_doc.get("seed"),
+        "members": member_details,
+        "created_at": team_doc["created_at"],
+        "can_manage": is_captain,
+        "is_member": is_member
+    }
+    
+    return team_response
+
+@router.put("/{tournament_id}/teams/{team_id}")
+async def update_team(
+    tournament_id: str,
+    team_id: str,
+    team_update: TeamUpdate,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Update team information (captain only)"""
+    db = get_database()
+    
+    # Get team and verify captain
+    team_doc = await db.teams.find_one({"id": team_id, "tournament_id": tournament_id})
+    if not team_doc:
+        raise HTTPException(status_code=404, detail="Team not found")
+    
+    if team_doc["captain_user_id"] != current_user.id:
+        raise HTTPException(status_code=403, detail="Only team captain can update team")
+    
+    # Check if tournament allows updates
+    tournament_doc = await db.tournaments.find_one({"id": tournament_id})
+    if not tournament_doc:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    
+    if tournament_doc["state"] not in ["open_registration", "registration_closed"]:
+        raise HTTPException(status_code=400, detail="Cannot update team after tournament has started")
+    
+    # Update team
+    update_dict = {}
+    for field, value in team_update.dict(exclude_unset=True).items():
+        if value is not None:
+            # Check if name is unique
+            if field == "name":
+                existing_team = await db.teams.find_one({
+                    "tournament_id": tournament_id,
+                    "name": value,
+                    "id": {"$ne": team_id}
+                })
+                if existing_team:
+                    raise HTTPException(status_code=400, detail="Team name already taken")
+            
+            update_dict[field] = value
+    
+    if update_dict:
+        await db.teams.update_one(
+            {"id": team_id},
+            {"$set": update_dict}
+        )
+    
+    return {"message": "Team updated successfully"}
+
+@router.delete("/{tournament_id}/teams/{team_id}")
+async def delete_team(
+    tournament_id: str,
+    team_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Delete team (captain only, before tournament starts)"""
+    db = get_database()
+    
+    # Get team and verify captain
+    team_doc = await db.teams.find_one({"id": team_id, "tournament_id": tournament_id})
+    if not team_doc:
+        raise HTTPException(status_code=404, detail="Team not found")
+    
+    if team_doc["captain_user_id"] != current_user.id:
+        raise HTTPException(status_code=403, detail="Only team captain can delete team")
+    
+    # Check tournament state
+    tournament_doc = await db.tournaments.find_one({"id": tournament_id})
+    if not tournament_doc:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    
+    if tournament_doc["state"] not in ["open_registration"]:
+        raise HTTPException(status_code=400, detail="Cannot delete team after registration closes")
+    
+    # Delete team members
+    await db.team_members.delete_many({"team_id": team_id})
+    
+    # Delete team
+    await db.teams.delete_one({"id": team_id})
+    
+    # Update tournament team count
+    await db.tournaments.update_one(
+        {"id": tournament_id},
+        {"$inc": {"team_count": -1}}
+    )
+    
+    return {"message": "Team deleted successfully"}
+
+@router.post("/{tournament_id}/teams/{team_id}/leave")
+async def leave_team(
+    tournament_id: str,
+    team_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Leave team (non-captain members only)"""
+    try:
+        await tournament_service.remove_team_member(team_id, current_user.id, current_user.id)
+        return {"message": "Left team successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# Tournament Administration Routes
+
+@router.post("/{tournament_id}/start")
+async def start_tournament(
+    tournament_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Start tournament (organizer only)"""
+    db = get_database()
+    
+    # Get tournament and verify permissions
+    tournament_doc = await db.tournaments.find_one({"id": tournament_id})
+    if not tournament_doc:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    
+    # Check if user is tournament creator or org admin
+    if tournament_doc["created_by"] != current_user.id:
+        # Check if user is org admin
+        org_doc = await db.organizations.find_one({"id": tournament_doc["org_id"]})
+        if not org_doc or current_user.id not in org_doc.get("admins", []):
+            raise HTTPException(status_code=403, detail="Only tournament organizer or organization admin can start tournament")
+    
+    # Check tournament state
+    if tournament_doc["state"] != "registration_closed":
+        raise HTTPException(status_code=400, detail="Tournament must be in registration closed state to start")
+    
+    try:
+        await tournament_service.start_tournament(tournament_id, current_user.id)
+        return {"message": "Tournament started successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/{tournament_id}/close-registration")
+async def close_tournament_registration(
+    tournament_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Close tournament registration (organizer only)"""
+    db = get_database()
+    
+    # Get tournament and verify permissions
+    tournament_doc = await db.tournaments.find_one({"id": tournament_id})
+    if not tournament_doc:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    
+    # Check if user is tournament creator or org admin
+    if tournament_doc["created_by"] != current_user.id:
+        # Check if user is org admin
+        org_doc = await db.organizations.find_one({"id": tournament_doc["org_id"]})
+        if not org_doc or current_user.id not in org_doc.get("admins", []):
+            raise HTTPException(status_code=403, detail="Only tournament organizer or organization admin can close registration")
+    
+    # Check tournament state
+    if tournament_doc["state"] != "open_registration":
+        raise HTTPException(status_code=400, detail="Tournament registration is not open")
+    
+    # Update tournament state
+    await db.tournaments.update_one(
+        {"id": tournament_id},
+        {"$set": {"state": "registration_closed"}}
+    )
+    
+    return {"message": "Tournament registration closed successfully"}
+
+@router.post("/{tournament_id}/reopen-registration")
+async def reopen_tournament_registration(
+    tournament_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Reopen tournament registration (organizer only)"""
+    db = get_database()
+    
+    # Get tournament and verify permissions
+    tournament_doc = await db.tournaments.find_one({"id": tournament_id})
+    if not tournament_doc:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    
+    # Check if user is tournament creator or org admin
+    if tournament_doc["created_by"] != current_user.id:
+        # Check if user is org admin
+        org_doc = await db.organizations.find_one({"id": tournament_doc["org_id"]})
+        if not org_doc or current_user.id not in org_doc.get("admins", []):
+            raise HTTPException(status_code=403, detail="Only tournament organizer or organization admin can reopen registration")
+    
+    # Check tournament state
+    if tournament_doc["state"] not in ["registration_closed", "draft"]:
+        raise HTTPException(status_code=400, detail="Cannot reopen registration for this tournament state")
+    
+    # Update tournament state
+    await db.tournaments.update_one(
+        {"id": tournament_id},
+        {"$set": {"state": "open_registration"}}
+    )
+    
+    return {"message": "Tournament registration reopened successfully"}
