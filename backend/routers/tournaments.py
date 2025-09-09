@@ -9,9 +9,9 @@ from models.user import User
 from models.tournament import (
     Tournament, TournamentCreate, TournamentUpdate, TournamentResponse, TournamentDetailResponse,
     Team, TeamCreate, TeamUpdate, TeamResponse, ScoreReport, MatchSchedule, AttachmentResponse,
-    TournamentFormat, TournamentState, TeamInvitationCreate, TeamInvitationResponse,
+    TournamentFormat, TournamentState, MatchState, TeamInvitationCreate, TeamInvitationResponse,
     InvitationStatus, MatchDisputeCreate, MatchDisputeResponse, DisputeStatus,
-    PlayerSearchCreate, PlayerSearchResponse
+    PlayerSearchCreate, PlayerSearchResponse,
 )
 from services.tournament_service import TournamentService
 from services.bracket_service import BracketService
@@ -185,22 +185,30 @@ async def get_tournament(
             captain_handle=captain["handle"],
             members=members
         ))
+
+    user_can_verify = False
+    if current_user:
+        user_can_verify = await EventPermissions.can_edit_event(
+            current_user, tournament_doc["org_id"], tournament_doc["created_by"]
+        )
     
     # Get matches
     matches = []
     async for match_doc in db.matches.find({"tournament_id": tournament_doc["id"]}).sort("round", 1).sort("bracket_position", 1):
-        # Get team names
+        # Get team names and docs
+        team_a_doc = None
+        team_b_doc = None
         team_a_name = None
         team_b_name = None
         winner_team_name = None
         
         if match_doc.get("team_a_id"):
-            team_a = await db.teams.find_one({"id": match_doc["team_a_id"]})
-            team_a_name = team_a["name"] if team_a else None
+            team_a_doc = await db.teams.find_one({"id": match_doc["team_a_id"]})
+            team_a_name = team_a_doc["name"] if team_a_doc else None
         
         if match_doc.get("team_b_id"):
-            team_b = await db.teams.find_one({"id": match_doc["team_b_id"]})
-            team_b_name = team_b["name"] if team_b else None
+            team_b_doc = await db.teams.find_one({"id": match_doc["team_b_id"]})
+            team_b_name = team_b_doc["name"] if team_b_doc else None
         
         if match_doc.get("winner_team_id"):
             winner = await db.teams.find_one({"id": match_doc["winner_team_id"]})
@@ -223,25 +231,32 @@ async def get_tournament(
             })
         
         from models.tournament import MatchResponse
+
+        can_report = False
+        can_verify = user_can_verify
+        if current_user:
+            if team_a_doc and team_a_doc.get("captain_user_id") == current_user.id:
+                if match_doc.get("reported_by") != current_user.id and match_doc.get("state") in [MatchState.PENDING.value, MatchState.REPORTED.value]:
+                    can_report = True
+            if not can_report and team_b_doc and team_b_doc.get("captain_user_id") == current_user.id:
+                if match_doc.get("reported_by") != current_user.id and match_doc.get("state") in [MatchState.PENDING.value, MatchState.REPORTED.value]:
+                    can_report = True
+
         matches.append(MatchResponse(
             **match_doc,
             team_a_name=team_a_name,
             team_b_name=team_b_name,
             winner_team_name=winner_team_name,
             attachments=attachments,
-            can_report=False,  # Will be set based on user permissions
-            can_verify=False   # Will be set based on user permissions
+            can_report=can_report,
+            can_verify=can_verify,
         ))
     
     # Generate bracket visualization
     tournament_obj = Tournament(**tournament_doc)
     bracket = await bracket_service.generate_bracket_visualization(tournament_obj)
 
-    can_edit = False
-    if current_user:
-        can_edit = await EventPermissions.can_edit_event(
-            current_user, tournament_doc["org_id"], tournament_doc["created_by"]
-        )
+    can_edit = user_can_verify
     
     return TournamentDetailResponse(
         **tournament_doc,

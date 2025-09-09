@@ -464,27 +464,51 @@ class TournamentService:
         winner_team_id = match.team_a_id if score_report.score_a > score_report.score_b else match.team_b_id
         loser_team_id = match.team_b_id if score_report.score_a > score_report.score_b else match.team_a_id
         
-        # Update match
-        update_data = {
-            "score_a": score_report.score_a,
-            "score_b": score_report.score_b,
-            "winner_team_id": winner_team_id,
-            "loser_team_id": loser_team_id,
-            "state": MatchState.REPORTED,
-            "reported_by": reporter_id,
-            "notes": score_report.notes,
-            "updated_at": datetime.utcnow()
-        }
-        
-        await self.db.matches.update_one(
-            {"id": match_id},
-            {"$set": update_data}
-        )
-        
-        # Auto-verify if both captains report the same score
-        # TODO: Implement dual reporting system
-        
-        return True
+        # First report
+        if match.state == MatchState.PENDING:
+            update_data = {
+                "score_a": score_report.score_a,
+                "score_b": score_report.score_b,
+                "winner_team_id": winner_team_id,
+                "loser_team_id": loser_team_id,
+                "state": MatchState.REPORTED,
+                "reported_by": reporter_id,
+                "notes": score_report.notes,
+                "updated_at": datetime.utcnow(),
+            }
+
+            await self.db.matches.update_one(
+                {"id": match_id},
+                {"$set": update_data},
+            )
+
+            return True
+
+        # Second report - verify or dispute
+        if match.state == MatchState.REPORTED:
+            if match.reported_by == reporter_id:
+                raise ValueError("Score already reported by this team")
+
+            # If scores match, auto-verify
+            if match.score_a == score_report.score_a and match.score_b == score_report.score_b:
+                await self.verify_match_result(match_id, reporter_id)
+                return True
+
+            # Scores conflict -> mark as disputed
+            await self.db.matches.update_one(
+                {"id": match_id},
+                {
+                    "$set": {
+                        "state": MatchState.DISPUTED,
+                        "notes": f"{match.notes or ''}| Conflicting report {score_report.score_a}-{score_report.score_b} by {reporter_id}",
+                        "updated_at": datetime.utcnow(),
+                    }
+                },
+            )
+
+            return True
+
+        raise ValueError("Match result already finalized")
     
     async def verify_match_result(self, match_id: str, verifier_id: str) -> bool:
         """Verify match result (referee/admin only)"""
