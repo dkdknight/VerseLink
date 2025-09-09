@@ -18,6 +18,8 @@ import EventDetailPage from './pages/EventDetailPage';
 import TournamentsPage from './pages/TournamentsPage';
 import CreateTournamentPage from './pages/CreateTournamentPage';
 import TournamentDetailPage from './pages/TournamentDetailPage';
+import TeamManagementPage from './pages/TeamManagementPage';
+import TournamentAdminPage from './pages/TournamentAdminPage';
 import NotificationsPage from './pages/NotificationsPage';
 import NotificationPreferencesPage from './pages/NotificationPreferencesPage';
 import ModerationDashboardPage from './pages/ModerationDashboardPage';
