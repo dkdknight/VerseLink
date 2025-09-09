@@ -14,7 +14,8 @@ import {
   StarIcon,
   CogIcon,
   LockClosedIcon,
-  LockOpenIcon
+  LockOpenIcon,
+  MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 import { tournamentService } from '../services/tournamentService';
 import { useAuth } from '../App';
