@@ -258,6 +258,28 @@ class NotificationService:
             data={"match_id": match_id, "won": won},
             action_url=f"/tournaments/{tournament_name}#matches"
         )
+
+    async def notify_match_disputed(self, tournament_id: str, match_id: str):
+        """Notify tournament organizer and admins about a disputed match"""
+        tournament_doc = await self.db.tournaments.find_one({"id": tournament_id})
+        if not tournament_doc:
+            return
+
+        org_id = tournament_doc["org_id"]
+        recipients = {tournament_doc["created_by"]}
+        async for member_doc in self.db.org_members.find({"org_id": org_id, "role": {"$in": ["admin", "staff"]}}):
+            recipients.add(member_doc["user_id"])
+
+        if recipients:
+            await self.create_notification_for_multiple_users(
+                user_ids=list(recipients),
+                type=NotificationType.MATCH_DISPUTED,
+                title="Match contesté",
+                message=f"Un différend a été signalé pour un match du tournoi '{tournament_doc['name']}'.",
+                priority=NotificationPriority.HIGH,
+                data={"tournament_id": tournament_id, "match_id": match_id},
+                action_url=f"/tournaments/{tournament_id}#matches"
+            )
     
     # Organization notifications
     async def notify_org_member_joined(self, org_id: str, new_member_handle: str):

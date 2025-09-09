@@ -21,6 +21,8 @@ from services.match_dispute_service import MatchDisputeService
 from services.player_search_service import PlayerSearchService
 from utils.permissions import EventPermissions  # Reuse event permissions for now
 from middleware.auth import get_current_active_user, get_current_user_optional
+from routers.organizations import require_org_permission
+from models.organization import OrgMemberRole
 
 router = APIRouter()
 tournament_service = TournamentService()
@@ -637,10 +639,7 @@ async def start_tournament(
     
     # Check if user is tournament creator or org admin
     if tournament_doc["created_by"] != current_user.id:
-        # Check if user is org admin
-        org_doc = await db.organizations.find_one({"id": tournament_doc["org_id"]})
-        if not org_doc or current_user.id not in org_doc.get("admins", []):
-            raise HTTPException(status_code=403, detail="Only tournament organizer or organization admin can start tournament")
+        await require_org_permission(tournament_doc["org_id"], current_user, OrgMemberRole.ADMIN)
     
     # Check tournament state
     if tournament_doc["state"] != "registration_closed":
@@ -667,10 +666,7 @@ async def close_tournament_registration(
     
     # Check if user is tournament creator or org admin
     if tournament_doc["created_by"] != current_user.id:
-        # Check if user is org admin
-        org_doc = await db.organizations.find_one({"id": tournament_doc["org_id"]})
-        if not org_doc or current_user.id not in org_doc.get("admins", []):
-            raise HTTPException(status_code=403, detail="Only tournament organizer or organization admin can close registration")
+        await require_org_permission(tournament_doc["org_id"], current_user, OrgMemberRole.ADMIN)
     
     # Check tournament state
     if tournament_doc["state"] != "open_registration":
@@ -699,10 +695,7 @@ async def reopen_tournament_registration(
     
     # Check if user is tournament creator or org admin
     if tournament_doc["created_by"] != current_user.id:
-        # Check if user is org admin
-        org_doc = await db.organizations.find_one({"id": tournament_doc["org_id"]})
-        if not org_doc or current_user.id not in org_doc.get("admins", []):
-            raise HTTPException(status_code=403, detail="Only tournament organizer or organization admin can reopen registration")
+        await require_org_permission(tournament_doc["org_id"], current_user, OrgMemberRole.ADMIN)
     
     # Check tournament state
     if tournament_doc["state"] not in ["registration_closed", "draft"]:

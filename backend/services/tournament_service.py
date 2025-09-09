@@ -5,16 +5,20 @@ from models.tournament import (
     Tournament, TournamentCreate, TournamentUpdate,
     Team, TeamCreate, TeamMember,
     Match, MatchState, TournamentState, TournamentFormat,
-    ScoreReport
+    ScoreReport, MatchDisputeCreate
 )
 from models.user import User
 import re
 import uuid
 import math
+from services.match_dispute_service import MatchDisputeService
+from services.notification_service import NotificationService
 
 class TournamentService:
     def __init__(self):
         self.db = get_database()
+        self.match_dispute_service = MatchDisputeService()
+        self.notification_service = NotificationService()
     
     async def generate_slug(self, name: str, org_id: str) -> str:
         """Generate unique slug for tournament"""
@@ -494,17 +498,25 @@ class TournamentService:
                 await self.verify_match_result(match_id, reporter_id)
                 return True
 
-            # Scores conflict -> mark as disputed
+            # Scores conflict -> create dispute and notify organizers
+            dispute_reason = (
+                f"Conflit entre les scores reportés: {match.score_a}-{match.score_b} vs {score_report.score_a}-{score_report.score_b}"
+            )
+            await self.match_dispute_service.create_dispute(
+                match_id,
+                MatchDisputeCreate(dispute_reason=dispute_reason),
+                reporter_id,
+            )
             await self.db.matches.update_one(
                 {"id": match_id},
                 {
                     "$set": {
-                        "state": MatchState.DISPUTED,
                         "notes": f"{match.notes or ''}| Conflicting report {score_report.score_a}-{score_report.score_b} by {reporter_id}",
                         "updated_at": datetime.utcnow(),
                     }
                 },
             )
+            await self.notification_service.notify_match_disputed(match.tournament_id, match_id)
 
             return True
 
