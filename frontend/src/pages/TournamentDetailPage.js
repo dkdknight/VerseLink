@@ -584,7 +584,31 @@ const TournamentDetailPage = () => {
           )}
         </div>
 
-        {/* Admin Actions - Only show to tournament admins */}
+        {/* Quick Actions */}
+        <div className="glass-effect rounded-lg p-4 mb-6">
+          <div className="flex flex-wrap gap-4 justify-center">
+            {tournament.can_register && isAuthenticated && !tournament.my_team && (
+              <Link
+                to={`/tournaments/${tournament.id}/players`}
+                className="btn-secondary flex items-center"
+              >
+                <MagnifyingGlassIcon className="w-4 h-4 mr-2" />
+                Recherche d'équipiers
+              </Link>
+            )}
+            
+            {tournament.can_register && isAuthenticated && !tournament.my_team && (
+              <button
+                onClick={() => setShowCreateTeamModal(true)}
+                disabled={actionLoading}
+                className="btn-primary flex items-center"
+              >
+                <PlusIcon className="w-4 h-4 mr-2" />
+                Créer une équipe
+              </button>
+            )}
+          </div>
+        </div>
         {tournament.can_edit && (
           <div className="glass-effect rounded-lg p-4 mb-6">
             <div className="flex items-center justify-between">
