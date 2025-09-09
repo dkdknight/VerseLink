@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { 
@@ -66,7 +66,7 @@ const TournamentDetailPage = () => {
       if (error.response?.data?.detail) {
         toast.error(error.response.data.detail);
       } else {
-        toast.error('Erreur lors de la création de l\'équipe');
+        toast.error("Erreur lors de la création de l'équipe");
       }
     } finally {
       setActionLoading(false);
@@ -104,11 +104,12 @@ const TournamentDetailPage = () => {
 
   const canReportScore = (match) => {
     if (!isAuthenticated || !user) return false;
-    
-    // Check if user is captain of one of the teams
-    return match.can_report || 
-           (match.team_a_captain_id === user.id) ||
-           (match.team_b_captain_id === user.id);
+    // Check if user is capitaine d'une des équipes
+    return (
+      match.can_report ||
+      match.team_a_captain_id === user.id ||
+      match.team_b_captain_id === user.id
+    );
   };
 
   const canScheduleMatch = (match) => {
@@ -121,8 +122,18 @@ const TournamentDetailPage = () => {
     );
   };
 
+  const canVerifyMatch = (match) => {
+    if (!isAuthenticated || !user) return false;
+    return match.state === 'reported' && match.can_verify;
+  };
+
+  const canUploadAttachment = (match) => {
+    if (!isAuthenticated || !user) return false;
+    return canReportScore(match) || match.can_verify;
+  };
+
   const handleScheduleMatch = async (match) => {
-    const input = prompt("Date et heure du match (YYYY-MM-DD HH:MM)");
+    const input = prompt('Date et heure du match (YYYY-MM-DD HH:MM)');
     if (!input) return;
 
     const scheduledAt = new Date(input);
@@ -147,12 +158,29 @@ const TournamentDetailPage = () => {
     }
   };
 
+  const handleVerifyMatch = async (match) => {
+    try {
+      setActionLoading(true);
+      await tournamentService.verifyMatchResult(match.id);
+      toast.success('Match vérifié');
+      await loadTournament();
+    } catch (error) {
+      if (error.response?.data?.detail) {
+        toast.error(error.response.data.detail);
+      } else {
+        toast.error('Erreur lors de la vérification du match');
+      }
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const formatTournamentFormat = (format) => {
     const formats = {
       se: 'Simple Élimination',
       de: 'Double Élimination',
       rr: 'Round Robin',
-      swiss: 'Système Suisse'
+      swiss: 'Système Suisse',
     };
     return formats[format] || format;
   };
@@ -164,7 +192,7 @@ const TournamentDetailPage = () => {
       registration_closed: 'Inscriptions fermées',
       ongoing: 'En cours',
       finished: 'Terminé',
-      cancelled: 'Annulé'
+      cancelled: 'Annulé',
     };
     return states[state] || state;
   };
@@ -176,7 +204,7 @@ const TournamentDetailPage = () => {
       registration_closed: 'bg-yellow-600',
       ongoing: 'bg-blue-600',
       finished: 'bg-purple-600',
-      cancelled: 'bg-red-600'
+      cancelled: 'bg-red-600',
     };
     return colors[state] || 'bg-gray-600';
   };
@@ -193,11 +221,9 @@ const TournamentDetailPage = () => {
             )}
             {team.name}
           </h4>
-          <p className="text-gray-400 text-sm">
-            Capitaine: {team.captain_handle}
-          </p>
+          <p className="text-gray-400 text-sm">Capitaine: {team.captain_handle}</p>
         </div>
-        
+
         <div className="text-right">
           <div className="text-sm text-gray-300">
             {team.member_count}/{tournament.team_size} membres
@@ -209,45 +235,40 @@ const TournamentDetailPage = () => {
           )}
         </div>
       </div>
-      
+
       {/* Team Members */}
       <div className="space-y-1">
         {team.members.slice(0, 3).map((member) => (
           <div key={member.user_id} className="flex items-center text-sm text-gray-300">
             {member.avatar_url ? (
-              <img
-                src={member.avatar_url}
-                alt={member.handle}
-                className="w-4 h-4 rounded-full mr-2"
-              />
+              <img src={member.avatar_url} alt={member.handle} className="w-4 h-4 rounded-full mr-2" />
             ) : (
               <div className="w-4 h-4 bg-dark-600 rounded-full mr-2"></div>
             )}
             <span>{member.handle}</span>
-            {member.is_captain && (
-              <StarIcon className="w-3 h-3 text-yellow-400 ml-1" />
-            )}
+            {member.is_captain && <StarIcon className="w-3 h-3 text-yellow-400 ml-1" />}
           </div>
         ))}
         {team.members.length > 3 && (
-          <div className="text-xs text-gray-500">
-            +{team.members.length - 3} autres membres
-          </div>
+          <div className="text-xs text-gray-500">+{team.members.length - 3} autres membres</div>
         )}
       </div>
 
-      {tournament.can_register && isAuthenticated && !tournament.my_team && team.member_count < tournament.team_size && (
-        <div className="mt-3 text-center">
-          <button
-            onClick={() => handleJoinTeam(team.id)}
-            disabled={actionLoading}
-            className="text-sm text-primary-400 hover:text-primary-300 font-medium"
-          >
-            Rejoindre l'équipe →
-          </button>
-        </div>
-      )}
-      
+      {tournament.can_register &&
+        isAuthenticated &&
+        !tournament.my_team &&
+        team.member_count < tournament.team_size && (
+          <div className="mt-3 text-center">
+            <button
+              onClick={() => handleJoinTeam(team.id)}
+              disabled={actionLoading}
+              className="text-sm text-primary-400 hover:text-primary-300 font-medium"
+            >
+              Rejoindre l'équipe →
+            </button>
+          </div>
+        )}
+
       {/* Team Management Link for Captain */}
       {tournament.my_team && tournament.my_team.id === team.id && tournament.my_team.can_manage && (
         <div className="mt-3 text-center">
@@ -262,98 +283,165 @@ const TournamentDetailPage = () => {
     </div>
   );
 
-  const MatchCard = ({ match }) => (
-    <div className="glass-effect rounded-lg p-4 mb-4">
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <span className="text-xs bg-dark-600 text-gray-300 px-2 py-1 rounded">
-            Round {match.round}
-          </span>
-          <span className={`ml-2 text-xs px-2 py-1 rounded text-white ${
-            match.state === 'verified' ? 'bg-green-600' :
-            match.state === 'reported' ? 'bg-yellow-600' :
-            match.state === 'live' ? 'bg-blue-600' :
-            'bg-gray-600'
-          }`}>
-            {match.state === 'verified' ? 'Terminé' :
-             match.state === 'reported' ? 'Reporté' :
-             match.state === 'live' ? 'En cours' :
-             'À venir'}
-          </span>
+  const MatchCard = ({ match }) => {
+    const fileInputRef = useRef(null);
+
+    const handleFileChange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const description = prompt('Description de la preuve (optionnel)') || '';
+      try {
+        await tournamentService.uploadMatchAttachment(match.id, file, description);
+        toast.success('Preuve envoyée');
+        await loadTournament();
+      } catch (error) {
+        if (error.response?.data?.detail) {
+          toast.error(error.response.data.detail);
+        } else {
+          toast.error("Erreur lors de l'envoi de la preuve");
+        }
+      } finally {
+        e.target.value = '';
+      }
+    };
+
+    return (
+      <div className="glass-effect rounded-lg p-4 mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <span className="text-xs bg-dark-600 text-gray-300 px-2 py-1 rounded">Round {match.round}</span>
+            <span
+              className={`ml-2 text-xs px-2 py-1 rounded text-white ${
+                match.state === 'verified'
+                  ? 'bg-green-600'
+                  : match.state === 'reported'
+                  ? 'bg-yellow-600'
+                  : match.state === 'live'
+                  ? 'bg-blue-600'
+                  : 'bg-gray-600'
+              }`}
+            >
+              {match.state === 'verified'
+                ? 'Terminé'
+                : match.state === 'reported'
+                ? 'Reporté'
+                : match.state === 'live'
+                ? 'En cours'
+                : 'À venir'}
+            </span>
+          </div>
+
+          {match.scheduled_at && (
+            <div className="text-xs text-gray-400">
+              {new Date(match.scheduled_at).toLocaleDateString('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </div>
+          )}
         </div>
-        
-        {match.scheduled_at && (
-          <div className="text-xs text-gray-400">
-            {new Date(match.scheduled_at).toLocaleDateString('fr-FR', {
-              day: '2-digit',
-              month: '2-digit',
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
+
+        <div className="flex items-center justify-between">
+          <div className="text-white">
+            <div className={`font-medium ${match.winner_team_id === match.team_a_id ? 'text-green-400' : ''}`}>
+              {match.team_a_name || 'TBD'}
+            </div>
+            <div className={`font-medium ${match.winner_team_id === match.team_b_id ? 'text-green-400' : ''}`}>
+              {match.team_b_name || 'TBD'}
+            </div>
+          </div>
+
+          {match.score_a !== null && match.score_b !== null && (
+            <div className="text-right">
+              <div
+                className={`font-bold ${
+                  match.winner_team_id === match.team_a_id ? 'text-green-400' : 'text-gray-400'
+                }`}
+              >
+                {match.score_a}
+              </div>
+              <div
+                className={`font-bold ${
+                  match.winner_team_id === match.team_b_id ? 'text-green-400' : 'text-gray-400'
+                }`}
+              >
+                {match.score_b}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {match.notes && <div className="mt-2 text-xs text-gray-400 italic">{match.notes}</div>}
+
+        {match.attachments && match.attachments.length > 0 && (
+          <div className="mt-2 text-xs space-y-1">
+            {match.attachments.map((att) => (
+              <a
+                key={att.id}
+                href={tournamentService.downloadAttachment(att.id)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-primary-400 hover:text-primary-300"
+              >
+                {att.description || att.filename}
+              </a>
+            ))}
+          </div>
+        )}
+
+        {/* Actions */}
+        {(canScheduleMatch(match) ||
+          (canReportScore(match) && match.state === 'pending') ||
+          canVerifyMatch(match) ||
+          canUploadAttachment(match)) && (
+          <div className="mt-3 text-center space-y-2">
+            {canScheduleMatch(match) && (
+              <button
+                onClick={() => handleScheduleMatch(match)}
+                disabled={actionLoading}
+                className="text-sm text-primary-400 hover:text-primary-300 font-medium block w-full"
+              >
+                Programmer le match →
+              </button>
+            )}
+            {canReportScore(match) && match.state === 'pending' && (
+              <button
+                onClick={() => handleMatchClick(match)}
+                className="text-sm text-primary-400 hover:text-primary-300 font-medium block w-full"
+              >
+                Reporter le score →
+              </button>
+            )}
+            {canVerifyMatch(match) && (
+              <button
+                onClick={() => handleVerifyMatch(match)}
+                disabled={actionLoading}
+                className="text-sm text-primary-400 hover:text-primary-300 font-medium block w-full"
+              >
+                Vérifier le match →
+              </button>
+            )}
+            {canUploadAttachment(match) && (
+              <>
+                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+                <button
+                  onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                  className="text-sm text-primary-400 hover:text-primary-300 font-medium block w-full flex items-center justify-center"
+                >
+                  <DocumentArrowUpIcon className="w-4 h-4 mr-1" /> Envoyer une preuve →
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>
-      
-      <div className="flex items-center justify-between">
-        <div className="text-white">
-          <div className={`font-medium ${match.winner_team_id === match.team_a_id ? 'text-green-400' : ''}`}>
-            {match.team_a_name || 'TBD'}
-          </div>
-          <div className={`font-medium ${match.winner_team_id === match.team_b_id ? 'text-green-400' : ''}`}>
-            {match.team_b_name || 'TBD'}
-          </div>
-        </div>
-        
-        {match.score_a !== null && match.score_b !== null && (
-          <div className="text-right">
-            <div className={`font-bold ${match.winner_team_id === match.team_a_id ? 'text-green-400' : 'text-gray-400'}`}>
-              {match.score_a}
-            </div>
-            <div className={`font-bold ${match.winner_team_id === match.team_b_id ? 'text-green-400' : 'text-gray-400'}`}>
-              {match.score_b}
-            </div>
-          </div>
-        )}
-      </div>
-      
-      {match.notes && (
-        <div className="mt-2 text-xs text-gray-400 italic">
-          {match.notes}
-        </div>
-      )}
-      
-      {/* Actions */}
-      {(canScheduleMatch(match) || (canReportScore(match) && match.state === 'pending')) && (
-        <div className="mt-3 text-center space-y-2">
-          {canScheduleMatch(match) && (
-            <button
-              onClick={() => handleScheduleMatch(match)}
-              disabled={actionLoading}
-              className="text-sm text-primary-400 hover:text-primary-300 font-medium block w-full"
-            >
-              Programmer le match →
-            </button>
-          )}
-          {canReportScore(match) && match.state === 'pending' && (
-            <button
-              onClick={() => handleMatchClick(match)}
-              className="text-sm text-primary-400 hover:text-primary-300 font-medium block w-full"
-            >
-              Reporter le score →
-            </button>
-          )}
-        </div>
-      )}
-    </div>
-  );
+    );
+  };
 
   const BracketView = () => {
-    return (
-      <TournamentBracket 
-        tournament={tournament} 
-        onMatchClick={handleMatchClick}
-      />
-    );
+    return <TournamentBracket tournament={tournament} onMatchClick={handleMatchClick} />;
   };
 
   const CreateTeamForm = () => {
@@ -372,9 +460,7 @@ const TournamentDetailPage = () => {
         <h3 className="text-xl font-bold text-white mb-4">Créer une équipe</h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Nom de l'équipe
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Nom de l'équipe</label>
             <input
               type="text"
               value={teamName}
@@ -392,7 +478,7 @@ const TournamentDetailPage = () => {
             className="btn-primary w-full flex items-center justify-center"
           >
             <PlusIcon className="w-5 h-5 mr-2" />
-            {actionLoading ? 'Création...' : 'Créer l\'équipe'}
+            {actionLoading ? 'Création...' : "Créer l'équipe"}
           </button>
         </div>
       </form>
@@ -407,6 +493,9 @@ const TournamentDetailPage = () => {
     );
   }
 
+  // ✅ Affichage conditionnel du bloc Admin (corrige l’ancienne parenthèse orpheline)
+  const isTournamentAdmin = tournament?.can_admin || tournament?.can_manage || tournament?.is_admin || false;
+
   return (
     <div className="min-h-screen bg-dark-950 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -416,21 +505,23 @@ const TournamentDetailPage = () => {
             {/* Tournament Info */}
             <div className="flex-1">
               <div className="flex items-center mb-4">
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mr-3 text-white ${getStateColor(tournament.state)}`}>
+                <span
+                  className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mr-3 text-white ${getStateColor(
+                    tournament.state
+                  )}`}
+                >
                   {formatTournamentState(tournament.state)}
                 </span>
-                <Link 
+                <Link
                   to={`/organizations/${tournament.org_id}`}
                   className="text-primary-400 hover:text-primary-300 font-medium"
                 >
                   {tournament.org_name} ({tournament.org_tag})
                 </Link>
               </div>
-              
-              <h1 className="text-4xl font-bold text-white mb-4 text-shadow">
-                {tournament.name}
-              </h1>
-              
+
+              <h1 className="text-4xl font-bold text-white mb-4 text-shadow">{tournament.name}</h1>
+
               <div className="grid md:grid-cols-2 gap-4 mb-6 text-gray-300">
                 <div className="flex items-center">
                   <CalendarDaysIcon className="w-5 h-5 mr-2 text-primary-400" />
@@ -441,16 +532,16 @@ const TournamentDetailPage = () => {
                       month: 'long',
                       day: 'numeric',
                       hour: '2-digit',
-                      minute: '2-digit'
+                      minute: '2-digit',
                     })}
                   </span>
                 </div>
-                
+
                 <div className="flex items-center">
                   <TrophyIcon className="w-5 h-5 mr-2 text-primary-400" />
                   <span>{formatTournamentFormat(tournament.format)}</span>
                 </div>
-                
+
                 <div className="flex items-center">
                   <UsersIcon className="w-5 h-5 mr-2 text-primary-400" />
                   <span>
@@ -459,7 +550,7 @@ const TournamentDetailPage = () => {
                     {tournament.team_size} joueurs/équipe
                   </span>
                 </div>
-                
+
                 {tournament.prize_pool && (
                   <div className="flex items-center">
                     <StarIcon className="w-5 h-5 mr-2 text-accent-gold" />
@@ -468,7 +559,7 @@ const TournamentDetailPage = () => {
                 )}
               </div>
             </div>
-            
+
             {/* Banner */}
             {tournament.banner_url && (
               <div className="lg:ml-8 mt-6 lg:mt-0">
@@ -495,10 +586,13 @@ const TournamentDetailPage = () => {
                     : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
                 }`}
               >
-                {tab === 'bracket' ? 'Bracket' :
-                 tab === 'teams' ? `Équipes (${tournament.teams.length})` :
-                 tab === 'matches' ? `Matches (${tournament.matches.length})` :
-                 tab}
+                {tab === 'bracket'
+                  ? 'Bracket'
+                  : tab === 'teams'
+                  ? `Équipes (${tournament.teams.length})`
+                  : tab === 'matches'
+                  ? `Matches (${tournament.matches.length})`
+                  : tab}
               </button>
             ))}
           </nav>
@@ -516,10 +610,8 @@ const TournamentDetailPage = () => {
             <div className="grid lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
                 <div className="card p-6">
-                  <h3 className="text-2xl font-bold text-white mb-6">
-                    Équipes ({tournament.teams.length})
-                  </h3>
-                  
+                  <h3 className="text-2xl font-bold text-white mb-6">Équipes ({tournament.teams.length})</h3>
+
                   {tournament.teams.length > 0 ? (
                     <div className="grid gap-4">
                       {tournament.teams.map((team) => (
@@ -537,10 +629,8 @@ const TournamentDetailPage = () => {
 
               {/* Registration */}
               <div className="lg:col-span-1">
-                {tournament.can_register && isAuthenticated && !tournament.my_team && (
-                  <CreateTeamForm />
-                )}
-                
+                {tournament.can_register && isAuthenticated && !tournament.my_team && <CreateTeamForm />}
+
                 {tournament.my_team && (
                   <div className="glass-effect rounded-lg p-6">
                     <div className="flex items-center justify-between mb-4">
@@ -564,10 +654,8 @@ const TournamentDetailPage = () => {
 
           {activeTab === 'matches' && (
             <div className="card p-6">
-              <h3 className="text-2xl font-bold text-white mb-6">
-                Matches ({tournament.matches.length})
-              </h3>
-              
+              <h3 className="text-2xl font-bold text-white mb-6">Matches ({tournament.matches.length})</h3>
+
               {tournament.matches.length > 0 ? (
                 <div className="space-y-4">
                   {tournament.matches.map((match) => (
@@ -588,10 +676,7 @@ const TournamentDetailPage = () => {
         <div className="glass-effect rounded-lg p-4 mb-6">
           <div className="flex flex-wrap gap-4 justify-center">
             {tournament.can_register && isAuthenticated && !tournament.my_team && (
-              <Link
-                to={`/tournaments/${tournament.id}/players`}
-                className="btn-secondary flex items-center"
-              >
+              <Link to={`/tournaments/${tournament.id}/players`} className="btn-secondary flex items-center">
                 <MagnifyingGlassIcon className="w-4 h-4 mr-2" />
                 Recherche d'équipiers
               </Link>
@@ -600,22 +685,20 @@ const TournamentDetailPage = () => {
         </div>
 
         {/* Admin Actions - Only show to tournament admins */}
+        {isTournamentAdmin && (
           <div className="glass-effect rounded-lg p-4 mb-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <CogIcon className="w-5 h-5 text-primary-400" />
                 <span className="font-medium text-white">Administration</span>
               </div>
-              
+
               <div className="flex space-x-3">
-                <Link 
-                  to={`/tournaments/${tournament.id}/admin`}
-                  className="btn-secondary flex items-center"
-                >
+                <Link to={`/tournaments/${tournament.id}/admin`} className="btn-secondary flex items-center">
                   <CogIcon className="w-4 h-4 mr-2" />
                   Gérer le tournoi
                 </Link>
-                
+
                 {tournament.state === 'open_registration' && tournament.team_count >= 2 && (
                   <button
                     onClick={async () => {
@@ -633,7 +716,7 @@ const TournamentDetailPage = () => {
                     Fermer inscriptions
                   </button>
                 )}
-                
+
                 {tournament.state === 'registration_closed' && tournament.team_count >= 2 && (
                   <button
                     onClick={async () => {
@@ -659,9 +742,7 @@ const TournamentDetailPage = () => {
         {/* Description */}
         <div className="card p-6 mt-6">
           <h3 className="text-2xl font-bold text-white mb-4">Description</h3>
-          <div className="text-gray-300 leading-relaxed whitespace-pre-wrap">
-            {tournament.description}
-          </div>
+          <div className="text-gray-300 leading-relaxed whitespace-pre-wrap">{tournament.description}</div>
         </div>
       </div>
 
