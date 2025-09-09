@@ -20,6 +20,7 @@ import CreateTournamentPage from './pages/CreateTournamentPage';
 import TournamentDetailPage from './pages/TournamentDetailPage';
 import TeamManagementPage from './pages/TeamManagementPage';
 import TournamentAdminPage from './pages/TournamentAdminPage';
+import UserInvitationsPage from './pages/UserInvitationsPage';
 import NotificationsPage from './pages/NotificationsPage';
 import NotificationPreferencesPage from './pages/NotificationPreferencesPage';
 import ModerationDashboardPage from './pages/ModerationDashboardPage';
