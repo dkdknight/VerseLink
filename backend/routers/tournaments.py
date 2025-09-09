@@ -9,7 +9,8 @@ from models.user import User
 from models.tournament import (
     Tournament, TournamentCreate, TournamentUpdate, TournamentResponse, TournamentDetailResponse,
     Team, TeamCreate, TeamUpdate, TeamResponse, ScoreReport, MatchSchedule, AttachmentResponse,
-    TournamentFormat, TournamentState
+    TournamentFormat, TournamentState, TeamInvitationCreate, TeamInvitationResponse,
+    InvitationStatus, MatchDisputeCreate, MatchDisputeResponse, DisputeStatus
 )
 from services.tournament_service import TournamentService
 from services.bracket_service import BracketService
