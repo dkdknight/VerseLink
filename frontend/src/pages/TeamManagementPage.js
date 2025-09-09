@@ -28,6 +28,11 @@ const TeamManagementPage = () => {
   const [teamName, setTeamName] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState(null);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteHandle, setInviteHandle] = useState('');
+  const [inviteMessage, setInviteMessage] = useState('');
+  const [teamInvitations, setTeamInvitations] = useState([]);
+  const [activeTab, setActiveTab] = useState('members');
   const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
