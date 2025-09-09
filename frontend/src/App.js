@@ -185,6 +185,8 @@ function App() {
               <Route path="/tournaments" element={<TournamentsPage />} />
               <Route path="/tournaments/new" element={<ProtectedRoute><CreateTournamentPage /></ProtectedRoute>} />
               <Route path="/tournaments/:id" element={<TournamentDetailPage />} />
+              <Route path="/tournaments/:tournamentId/teams/:teamId/manage" element={<ProtectedRoute><TeamManagementPage /></ProtectedRoute>} />
+              <Route path="/tournaments/:id/admin" element={<ProtectedRoute><TournamentAdminPage /></ProtectedRoute>} />
               
               {/* Protected routes */}
               <Route 
