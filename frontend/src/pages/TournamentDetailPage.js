@@ -560,6 +560,64 @@ const TournamentDetailPage = () => {
           )}
         </div>
 
+        {/* Admin Actions - Only show to tournament admins */}
+        {tournament.can_edit && (
+          <div className="glass-effect rounded-lg p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <CogIcon className="w-5 h-5 text-primary-400" />
+                <span className="font-medium text-white">Administration</span>
+              </div>
+              
+              <div className="flex space-x-3">
+                <Link 
+                  to={`/tournaments/${tournament.id}/admin`}
+                  className="btn-secondary flex items-center"
+                >
+                  <CogIcon className="w-4 h-4 mr-2" />
+                  Gérer le tournoi
+                </Link>
+                
+                {tournament.state === 'open_registration' && tournament.team_count >= 2 && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await tournamentService.closeTournamentRegistration(tournament.id);
+                        toast.success('Inscriptions fermées');
+                        await loadTournament();
+                      } catch (error) {
+                        toast.error('Erreur lors de la fermeture des inscriptions');
+                      }
+                    }}
+                    className="btn-primary flex items-center"
+                  >
+                    <LockClosedIcon className="w-4 h-4 mr-2" />
+                    Fermer inscriptions
+                  </button>
+                )}
+                
+                {tournament.state === 'registration_closed' && tournament.team_count >= 2 && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await tournamentService.startTournament(tournament.id);
+                        toast.success('Tournoi démarré !');
+                        await loadTournament();
+                      } catch (error) {
+                        toast.error('Erreur lors du démarrage du tournoi');
+                      }
+                    }}
+                    className="btn-success flex items-center"
+                  >
+                    <PlayIcon className="w-4 h-4 mr-2" />
+                    Démarrer
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Description */}
         <div className="card p-6 mt-6">
           <h3 className="text-2xl font-bold text-white mb-4">Description</h3>
