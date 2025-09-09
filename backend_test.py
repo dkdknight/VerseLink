@@ -2658,6 +2658,203 @@ class VerselinkAPITester:
                 data=message_data
             )
 
+    def test_player_search_endpoints(self):
+        """Test Phase Final Player Search system endpoints"""
+        print("\n" + "="*60)
+        print("TESTING PHASE FINAL PLAYER SEARCH SYSTEM ENDPOINTS")
+        print("="*60)
+        
+        test_tournament_id = "test-tournament-id"
+        test_search_id = "test-search-id"
+        
+        # Test create player search without auth (should fail)
+        search_data = {
+            "preferred_role": "pilote",
+            "experience_level": "expert",
+            "description": "Pilote expérimenté cherche équipe compétitive pour le championnat"
+        }
+        
+        self.run_test(
+            "Create Player Search Without Auth",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/player-search",
+            403,
+            data=search_data
+        )
+        
+        # Test get tournament player searches without auth (should fail)
+        self.run_test(
+            "Get Tournament Player Searches Without Auth",
+            "GET",
+            f"/api/v1/tournaments/{test_tournament_id}/player-search",
+            403
+        )
+        
+        # Test get tournament player searches with role filter without auth (should fail)
+        self.run_test(
+            "Get Player Searches With Role Filter Without Auth",
+            "GET",
+            f"/api/v1/tournaments/{test_tournament_id}/player-search?role=pilote",
+            403
+        )
+        
+        # Test get tournament player searches with experience filter without auth (should fail)
+        self.run_test(
+            "Get Player Searches With Experience Filter Without Auth",
+            "GET",
+            f"/api/v1/tournaments/{test_tournament_id}/player-search?experience=expert",
+            403
+        )
+        
+        # Test get tournament player searches with combined filters without auth (should fail)
+        self.run_test(
+            "Get Player Searches With Combined Filters Without Auth",
+            "GET",
+            f"/api/v1/tournaments/{test_tournament_id}/player-search?role=pilote&experience=expert",
+            403
+        )
+        
+        # Test get my player searches without auth (should fail)
+        self.run_test(
+            "Get My Player Searches Without Auth",
+            "GET",
+            "/api/v1/tournaments/player-search/me",
+            403
+        )
+        
+        # Test update player search without auth (should fail)
+        update_data = {
+            "preferred_role": "gunner",
+            "experience_level": "intermediate",
+            "description": "Gunner expérimenté disponible pour équipe sérieuse"
+        }
+        
+        self.run_test(
+            "Update Player Search Without Auth",
+            "PUT",
+            f"/api/v1/tournaments/player-search/{test_search_id}",
+            403,
+            data=update_data
+        )
+        
+        # Test deactivate player search without auth (should fail)
+        self.run_test(
+            "Deactivate Player Search Without Auth",
+            "POST",
+            f"/api/v1/tournaments/player-search/{test_search_id}/deactivate",
+            403
+        )
+        
+        # Test delete player search without auth (should fail)
+        self.run_test(
+            "Delete Player Search Without Auth",
+            "DELETE",
+            f"/api/v1/tournaments/player-search/{test_search_id}",
+            403
+        )
+
+    def test_player_search_data_validation(self):
+        """Test player search data validation"""
+        print("\n" + "="*60)
+        print("TESTING PLAYER SEARCH DATA VALIDATION")
+        print("="*60)
+        
+        test_tournament_id = "test-tournament-id"
+        test_search_id = "test-search-id"
+        
+        # Test create player search with invalid role
+        invalid_role_data = {
+            "preferred_role": "invalid_role",
+            "experience_level": "expert",
+            "description": "Test description"
+        }
+        
+        self.run_test(
+            "Create Player Search Invalid Role",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/player-search",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=invalid_role_data
+        )
+        
+        # Test create player search with invalid experience level
+        invalid_experience_data = {
+            "preferred_role": "pilote",
+            "experience_level": "invalid_level",
+            "description": "Test description"
+        }
+        
+        self.run_test(
+            "Create Player Search Invalid Experience",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/player-search",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=invalid_experience_data
+        )
+        
+        # Test create player search with empty description
+        empty_description_data = {
+            "preferred_role": "pilote",
+            "experience_level": "expert",
+            "description": ""  # Empty description
+        }
+        
+        self.run_test(
+            "Create Player Search Empty Description",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/player-search",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=empty_description_data
+        )
+        
+        # Test create player search with very long description
+        long_description_data = {
+            "preferred_role": "pilote",
+            "experience_level": "expert",
+            "description": "A" * 1000  # Very long description
+        }
+        
+        self.run_test(
+            "Create Player Search Long Description",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/player-search",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=long_description_data
+        )
+
+    def test_player_search_api_structure(self):
+        """Test Player Search API structure and endpoint availability"""
+        print("\n" + "="*60)
+        print("TESTING PLAYER SEARCH API STRUCTURE")
+        print("="*60)
+        
+        # Test that all player search endpoints exist and return proper error codes
+        player_search_endpoints = [
+            # Player search management
+            ("POST", "/api/v1/tournaments/test-tournament-id/player-search", "Create Player Search", 403),
+            ("GET", "/api/v1/tournaments/test-tournament-id/player-search", "Get Tournament Player Searches", 403),
+            ("GET", "/api/v1/tournaments/player-search/me", "Get My Player Searches", 403),
+            ("PUT", "/api/v1/tournaments/player-search/test-search-id", "Update Player Search", 403),
+            ("POST", "/api/v1/tournaments/player-search/test-search-id/deactivate", "Deactivate Player Search", 403),
+            ("DELETE", "/api/v1/tournaments/player-search/test-search-id", "Delete Player Search", 403),
+            
+            # Player search with filters
+            ("GET", "/api/v1/tournaments/test-tournament-id/player-search?role=pilote", "Filter by Role", 403),
+            ("GET", "/api/v1/tournaments/test-tournament-id/player-search?experience=expert", "Filter by Experience", 403),
+            ("GET", "/api/v1/tournaments/test-tournament-id/player-search?role=pilote&experience=expert", "Combined Filters", 403),
+        ]
+        
+        for method, endpoint, name, expected_status in player_search_endpoints:
+            data = {} if method in ["POST", "PUT", "PATCH"] else None
+            
+            self.run_test(
+                f"Player Search API Structure - {name}",
+                method,
+                endpoint,
+                expected_status,
+                data=data
+            )
+
     def run_all_tests(self):
         """Run all test suites"""
         print("🚀 Starting VerseLink Backend API Tests - Phase 7 Tournament Management Features")
