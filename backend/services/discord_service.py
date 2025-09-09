@@ -1,4 +1,4 @@
-import aiohttp
+import httpx
 import asyncio
 import hmac
 import hashlib
@@ -337,19 +337,19 @@ class DiscordService:
             "Content-Type": "application/json"
         }
         
-        async with aiohttp.ClientSession() as session:
+        async with httpx.AsyncClient() as client:
             if method.upper() == "POST":
-                async with session.post(url, json=data, headers=headers) as response:
-                    return {
-                        "status_code": response.status,
-                        "data": await response.json() if response.content_type == "application/json" else await response.text()
-                    }
+                response = await client.post(url, json=data, headers=headers)
+                return {
+                    "status_code": response.status_code,
+                    "data": response.json() if response.headers.get("content-type", "").startswith("application/json") else response.text
+                }
             elif method.upper() == "GET":
-                async with session.get(url, headers=headers) as response:
-                    return {
-                        "status_code": response.status,
-                        "data": await response.json() if response.content_type == "application/json" else await response.text()
-                    }
+                response = await client.get(url, headers=headers)
+                return {
+                    "status_code": response.status_code,
+                    "data": response.json() if response.headers.get("content-type", "").startswith("application/json") else response.text
+                }
     
     # Authentication for Bot API
     async def verify_bot_auth(self, guild_id: str, api_key: str) -> bool:

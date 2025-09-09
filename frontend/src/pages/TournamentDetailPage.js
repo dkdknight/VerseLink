@@ -11,7 +11,11 @@ import {
   CheckCircleIcon,
   ClockIcon,
   PlayIcon,
-  StarIcon
+  StarIcon,
+  CogIcon,
+  LockClosedIcon,
+  LockOpenIcon,
+  MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 import { tournamentService } from '../services/tournamentService';
 import { useAuth } from '../App';
@@ -241,6 +245,18 @@ const TournamentDetailPage = () => {
           >
             Rejoindre l'équipe →
           </button>
+        </div>
+      )}
+      
+      {/* Team Management Link for Captain */}
+      {tournament.my_team && tournament.my_team.id === team.id && tournament.my_team.can_manage && (
+        <div className="mt-3 text-center">
+          <Link
+            to={`/tournaments/${tournament.id}/teams/${team.id}/manage`}
+            className="text-sm text-primary-400 hover:text-primary-300 font-medium"
+          >
+            Gérer l'équipe →
+          </Link>
         </div>
       )}
     </div>
@@ -527,7 +543,18 @@ const TournamentDetailPage = () => {
                 
                 {tournament.my_team && (
                   <div className="glass-effect rounded-lg p-6">
-                    <h3 className="text-xl font-bold text-white mb-4">Mon équipe</h3>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-xl font-bold text-white">Mon équipe</h3>
+                      {tournament.my_team.can_manage && (
+                        <Link
+                          to={`/tournaments/${tournament.id}/teams/${tournament.my_team.id}/manage`}
+                          className="btn-secondary flex items-center text-sm"
+                        >
+                          <CogIcon className="w-4 h-4 mr-1" />
+                          Gérer
+                        </Link>
+                      )}
+                    </div>
                     <TeamCard team={tournament.my_team} />
                   </div>
                 )}
@@ -556,6 +583,78 @@ const TournamentDetailPage = () => {
             </div>
           )}
         </div>
+
+        {/* Quick Actions */}
+        <div className="glass-effect rounded-lg p-4 mb-6">
+          <div className="flex flex-wrap gap-4 justify-center">
+            {tournament.can_register && isAuthenticated && !tournament.my_team && (
+              <Link
+                to={`/tournaments/${tournament.id}/players`}
+                className="btn-secondary flex items-center"
+              >
+                <MagnifyingGlassIcon className="w-4 h-4 mr-2" />
+                Recherche d'équipiers
+              </Link>
+            )}
+          </div>
+        </div>
+
+        {/* Admin Actions - Only show to tournament admins */}
+          <div className="glass-effect rounded-lg p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <CogIcon className="w-5 h-5 text-primary-400" />
+                <span className="font-medium text-white">Administration</span>
+              </div>
+              
+              <div className="flex space-x-3">
+                <Link 
+                  to={`/tournaments/${tournament.id}/admin`}
+                  className="btn-secondary flex items-center"
+                >
+                  <CogIcon className="w-4 h-4 mr-2" />
+                  Gérer le tournoi
+                </Link>
+                
+                {tournament.state === 'open_registration' && tournament.team_count >= 2 && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await tournamentService.closeTournamentRegistration(tournament.id);
+                        toast.success('Inscriptions fermées');
+                        await loadTournament();
+                      } catch (error) {
+                        toast.error('Erreur lors de la fermeture des inscriptions');
+                      }
+                    }}
+                    className="btn-primary flex items-center"
+                  >
+                    <LockClosedIcon className="w-4 h-4 mr-2" />
+                    Fermer inscriptions
+                  </button>
+                )}
+                
+                {tournament.state === 'registration_closed' && tournament.team_count >= 2 && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await tournamentService.startTournament(tournament.id);
+                        toast.success('Tournoi démarré !');
+                        await loadTournament();
+                      } catch (error) {
+                        toast.error('Erreur lors du démarrage du tournoi');
+                      }
+                    }}
+                    className="btn-success flex items-center"
+                  >
+                    <PlayIcon className="w-4 h-4 mr-2" />
+                    Démarrer
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Description */}
         <div className="card p-6 mt-6">

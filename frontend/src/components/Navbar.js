@@ -105,6 +105,16 @@ const Navbar = () => {
                         Profil
                       </Link>
                       
+                      {/* Invitations Link */}
+                      <Link
+                        to="/invitations"
+                        className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-dark-700 hover:text-white"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        <span className="w-4 h-4 mr-2 text-primary-400">📬</span>
+                        Mes invitations
+                      </Link>
+                      
                       {/* Admin Setup Link */}
                       <Link
                         to="/admin/setup"

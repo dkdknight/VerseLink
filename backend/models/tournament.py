@@ -32,6 +32,18 @@ class AttachmentType(str, Enum):
     LOG = "log"
     OTHER = "other"
 
+class InvitationStatus(str, Enum):
+    PENDING = "pending"
+    ACCEPTED = "accepted"
+    DECLINED = "declined"
+    EXPIRED = "expired"
+
+class DisputeStatus(str, Enum):
+    OPEN = "open"
+    UNDER_REVIEW = "under_review"
+    RESOLVED = "resolved"
+    REJECTED = "rejected"
+
 class TournamentBase(BaseModel):
     name: str = Field(..., min_length=3, max_length=200)
     description: str = Field(..., min_length=10, max_length=5000)
@@ -280,3 +292,103 @@ class BracketNode(BaseModel):
     state: str
     next_match_id: Optional[str] = None
     previous_matches: List[str] = Field(default_factory=list)
+
+# Team Invitation System
+class TeamInvitation(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    team_id: str
+    tournament_id: str
+    invited_user_id: str
+    invited_by: str  # Captain user ID
+    status: InvitationStatus = Field(default=InvitationStatus.PENDING)
+    message: Optional[str] = Field(None, max_length=500)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    expires_at: datetime
+    responded_at: Optional[datetime] = None
+    
+    class Config:
+        use_enum_values = True
+
+class TeamInvitationCreate(BaseModel):
+    invited_user_handle: str = Field(..., min_length=2, max_length=50)
+    message: Optional[str] = Field(None, max_length=500)
+
+class TeamInvitationResponse(BaseModel):
+    id: str
+    team_id: str
+    team_name: str
+    tournament_id: str
+    tournament_name: str
+    invited_user_id: str
+    invited_user_handle: str
+    invited_by: str
+    invited_by_handle: str
+    status: str
+    message: Optional[str]
+    created_at: datetime
+    expires_at: datetime
+    responded_at: Optional[datetime]
+
+# Match Dispute System
+class MatchDispute(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    match_id: str
+    disputed_by: str  # User ID who filed the dispute
+    dispute_reason: str = Field(..., min_length=10, max_length=1000)
+    status: DisputeStatus = Field(default=DisputeStatus.OPEN)
+    admin_response: Optional[str] = Field(None, max_length=1000)
+    resolved_by: Optional[str] = None  # Admin user ID
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    resolved_at: Optional[datetime] = None
+    
+    class Config:
+        use_enum_values = True
+
+class MatchDisputeCreate(BaseModel):
+    dispute_reason: str = Field(..., min_length=10, max_length=1000)
+
+class MatchDisputeResponse(BaseModel):
+    id: str
+    match_id: str
+    match_details: Dict[str, Any]
+    disputed_by: str
+    disputed_by_handle: str
+    dispute_reason: str
+    status: str
+    admin_response: Optional[str]
+    resolved_by: Optional[str]
+    resolved_by_handle: Optional[str]
+    created_at: datetime
+    resolved_at: Optional[datetime]
+
+# Player Search and Recruitment
+class PlayerSearch(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    tournament_id: str
+    looking_for_team: bool = Field(default=True)
+    preferred_role: Optional[str] = Field(None, max_length=100)
+    experience_level: Optional[str] = Field(None, max_length=50)
+    description: Optional[str] = Field(None, max_length=500)
+    is_active: bool = Field(default=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class PlayerSearchCreate(BaseModel):
+    preferred_role: Optional[str] = Field(None, max_length=100)
+    experience_level: Optional[str] = Field(None, max_length=50)
+    description: Optional[str] = Field(None, max_length=500)
+
+class PlayerSearchResponse(BaseModel):
+    id: str
+    user_id: str
+    user_handle: str
+    user_avatar_url: Optional[str]
+    tournament_id: str
+    tournament_name: str
+    looking_for_team: bool
+    preferred_role: Optional[str]
+    experience_level: Optional[str]
+    description: Optional[str]
+    created_at: datetime
+    updated_at: datetime

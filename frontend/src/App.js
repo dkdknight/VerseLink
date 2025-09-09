@@ -18,6 +18,10 @@ import EventDetailPage from './pages/EventDetailPage';
 import TournamentsPage from './pages/TournamentsPage';
 import CreateTournamentPage from './pages/CreateTournamentPage';
 import TournamentDetailPage from './pages/TournamentDetailPage';
+import TeamManagementPage from './pages/TeamManagementPage';
+import TournamentAdminPage from './pages/TournamentAdminPage';
+import UserInvitationsPage from './pages/UserInvitationsPage';
+import PlayerSearchPage from './pages/PlayerSearchPage';
 import NotificationsPage from './pages/NotificationsPage';
 import NotificationPreferencesPage from './pages/NotificationPreferencesPage';
 import ModerationDashboardPage from './pages/ModerationDashboardPage';
@@ -183,6 +187,10 @@ function App() {
               <Route path="/tournaments" element={<TournamentsPage />} />
               <Route path="/tournaments/new" element={<ProtectedRoute><CreateTournamentPage /></ProtectedRoute>} />
               <Route path="/tournaments/:id" element={<TournamentDetailPage />} />
+              <Route path="/tournaments/:tournamentId/teams/:teamId/manage" element={<ProtectedRoute><TeamManagementPage /></ProtectedRoute>} />
+              <Route path="/tournaments/:id/admin" element={<ProtectedRoute><TournamentAdminPage /></ProtectedRoute>} />
+              <Route path="/tournaments/:id/players" element={<PlayerSearchPage />} />
+              <Route path="/invitations" element={<ProtectedRoute><UserInvitationsPage /></ProtectedRoute>} />
               
               {/* Protected routes */}
               <Route 

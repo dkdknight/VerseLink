@@ -12,7 +12,7 @@ from typing import Dict, Any, Optional
 import io
 
 class VerselinkAPITester:
-    def __init__(self, base_url: str = "https://cosmic-verselink.preview.emergentagent.com"):
+    def __init__(self, base_url: str = "https://team-tournament-3.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.tests_run = 0
@@ -1257,8 +1257,17 @@ class VerselinkAPITester:
             
             # Team management
             ("POST", "/api/v1/tournaments/test-id/teams", "Create Team"),
+            ("GET", "/api/v1/tournaments/test-id/teams/test-team-id", "Get Team Details"),
+            ("PUT", "/api/v1/tournaments/test-id/teams/test-team-id", "Update Team"),
+            ("DELETE", "/api/v1/tournaments/test-id/teams/test-team-id", "Delete Team"),
+            ("POST", "/api/v1/tournaments/test-id/teams/test-team-id/leave", "Leave Team"),
             ("POST", "/api/v1/tournaments/test-id/teams/test-team-id/members", "Add Team Member"),
             ("DELETE", "/api/v1/tournaments/test-id/teams/test-team-id/members/test-user-id", "Remove Team Member"),
+            
+            # Tournament administration
+            ("POST", "/api/v1/tournaments/test-id/start", "Start Tournament"),
+            ("POST", "/api/v1/tournaments/test-id/close-registration", "Close Registration"),
+            ("POST", "/api/v1/tournaments/test-id/reopen-registration", "Reopen Registration"),
             
             # Match management
             ("POST", "/api/v1/tournaments/matches/test-match-id/report", "Report Match Score"),
@@ -1490,7 +1499,529 @@ class VerselinkAPITester:
                 expected_status
             )
 
-    def test_authentication_edge_cases(self):
+    def test_new_tournament_team_management_endpoints(self):
+        """Test new Phase 7 tournament team management endpoints"""
+        print("\n" + "="*60)
+        print("TESTING PHASE 7 TOURNAMENT TEAM MANAGEMENT ENDPOINTS")
+        print("="*60)
+        
+        test_tournament_id = "test-tournament-id"
+        test_team_id = "test-team-id"
+        
+        # Test get team details without auth (should fail)
+        self.run_test(
+            "Get Team Details Without Auth",
+            "GET",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}",
+            403
+        )
+        
+        # Test update team without auth (should fail)
+        team_update_data = {
+            "name": "Updated Team Name"
+        }
+        
+        self.run_test(
+            "Update Team Without Auth",
+            "PUT",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}",
+            403,
+            data=team_update_data
+        )
+        
+        # Test delete team without auth (should fail)
+        self.run_test(
+            "Delete Team Without Auth",
+            "DELETE",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}",
+            403
+        )
+        
+        # Test leave team without auth (should fail)
+        self.run_test(
+            "Leave Team Without Auth",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}/leave",
+            403
+        )
+
+    def test_new_tournament_administration_endpoints(self):
+        """Test new Phase 7 tournament administration endpoints"""
+        print("\n" + "="*60)
+        print("TESTING PHASE 7 TOURNAMENT ADMINISTRATION ENDPOINTS")
+        print("="*60)
+        
+        test_tournament_id = "test-tournament-id"
+        
+        # Test start tournament without auth (should fail)
+        self.run_test(
+            "Start Tournament Without Auth",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/start",
+            403
+        )
+        
+        # Test close registration without auth (should fail)
+        self.run_test(
+            "Close Tournament Registration Without Auth",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/close-registration",
+            403
+        )
+        
+        # Test reopen registration without auth (should fail)
+        self.run_test(
+            "Reopen Tournament Registration Without Auth",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/reopen-registration",
+            403
+        )
+
+    def test_tournament_team_management_data_validation(self):
+        """Test tournament team management data validation"""
+        print("\n" + "="*60)
+        print("TESTING TOURNAMENT TEAM MANAGEMENT DATA VALIDATION")
+        print("="*60)
+        
+        test_tournament_id = "test-tournament-id"
+        test_team_id = "test-team-id"
+        
+        # Test update team with invalid data
+        invalid_team_data = {
+            "name": ""  # Empty name should be invalid
+        }
+        
+        self.run_test(
+            "Update Team Invalid Data (Empty Name)",
+            "PUT",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=invalid_team_data
+        )
+        
+        # Test update team with very long name
+        long_name_data = {
+            "name": "A" * 200  # Very long name should be invalid
+        }
+        
+        self.run_test(
+            "Update Team Invalid Data (Long Name)",
+            "PUT",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=long_name_data
+        )
+        
+        # Test valid team update data structure
+        valid_team_data = {
+            "name": "Valid Team Name"
+        }
+        
+        self.run_test(
+            "Update Team Valid Data Structure",
+            "PUT",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=valid_team_data
+        )
+
+    def test_tournament_state_management(self):
+        """Test tournament state management scenarios"""
+        print("\n" + "="*60)
+        print("TESTING TOURNAMENT STATE MANAGEMENT")
+        print("="*60)
+        
+        # Test various tournament states to ensure state system is working
+        tournament_states = [
+            "draft",
+            "open_registration", 
+            "registration_closed",
+            "ongoing",
+            "finished",
+            "cancelled"
+        ]
+        
+        for state in tournament_states:
+            self.run_test(
+                f"Filter Tournaments by State ({state})",
+                "GET",
+                f"/api/v1/tournaments/?state={state}&limit=5",
+                200
+            )
+        
+        # Test tournament administration actions for different states
+        test_tournament_id = "test-tournament-id"
+        
+        # These should all fail with 403 (auth required) but test endpoint structure
+        admin_actions = [
+            ("start", "Start Tournament"),
+            ("close-registration", "Close Registration"),
+            ("reopen-registration", "Reopen Registration")
+        ]
+        
+        for action, description in admin_actions:
+            self.run_test(
+                f"Tournament Admin Action - {description}",
+                "POST",
+                f"/api/v1/tournaments/{test_tournament_id}/{action}",
+                403
+            )
+
+    def test_phase3_team_invitations_endpoints(self):
+        """Test Phase 3 Team Invitations system endpoints"""
+        print("\n" + "="*60)
+        print("TESTING PHASE 3 TEAM INVITATIONS SYSTEM ENDPOINTS")
+        print("="*60)
+        
+        test_tournament_id = "test-tournament-id"
+        test_team_id = "test-team-id"
+        test_invitation_id = "test-invitation-id"
+        
+        # Test create team invitation without auth (should fail)
+        invitation_data = {
+            "invited_user_id": "test-user-id",
+            "message": "Join our elite team for the championship!"
+        }
+        
+        self.run_test(
+            "Create Team Invitation Without Auth",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}/invitations",
+            403,
+            data=invitation_data
+        )
+        
+        # Test get team invitations without auth (should fail)
+        self.run_test(
+            "Get Team Invitations Without Auth",
+            "GET",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}/invitations",
+            403
+        )
+        
+        # Test respond to invitation without auth (should fail)
+        self.run_test(
+            "Respond to Invitation Without Auth",
+            "POST",
+            f"/api/v1/tournaments/invitations/{test_invitation_id}/respond",
+            403,
+            data={"accept": True}
+        )
+        
+        # Test cancel invitation without auth (should fail)
+        self.run_test(
+            "Cancel Invitation Without Auth",
+            "DELETE",
+            f"/api/v1/tournaments/invitations/{test_invitation_id}",
+            403
+        )
+        
+        # Test get my invitations without auth (should fail)
+        self.run_test(
+            "Get My Invitations Without Auth",
+            "GET",
+            "/api/v1/tournaments/invitations/me",
+            403
+        )
+        
+        # Test get my invitations with status filter without auth (should fail)
+        self.run_test(
+            "Get My Invitations With Status Filter Without Auth",
+            "GET",
+            "/api/v1/tournaments/invitations/me?status=pending",
+            403
+        )
+
+    def test_phase3_match_disputes_endpoints(self):
+        """Test Phase 3 Match Disputes system endpoints"""
+        print("\n" + "="*60)
+        print("TESTING PHASE 3 MATCH DISPUTES SYSTEM ENDPOINTS")
+        print("="*60)
+        
+        test_match_id = "test-match-id"
+        test_dispute_id = "test-dispute-id"
+        
+        # Test create match dispute without auth (should fail)
+        dispute_data = {
+            "reason": "The opposing team used illegal tactics during the match",
+            "description": "Detailed description of the dispute with evidence and timestamps"
+        }
+        
+        self.run_test(
+            "Create Match Dispute Without Auth",
+            "POST",
+            f"/api/v1/tournaments/matches/{test_match_id}/dispute",
+            403,
+            data=dispute_data
+        )
+        
+        # Test get match disputes without auth (should fail)
+        self.run_test(
+            "Get Match Disputes Without Auth",
+            "GET",
+            f"/api/v1/tournaments/matches/{test_match_id}/disputes",
+            403
+        )
+        
+        # Test list all disputes without auth (should fail)
+        self.run_test(
+            "List All Disputes Without Auth",
+            "GET",
+            "/api/v1/tournaments/disputes",
+            403
+        )
+        
+        # Test list disputes with tournament filter without auth (should fail)
+        self.run_test(
+            "List Disputes With Tournament Filter Without Auth",
+            "GET",
+            "/api/v1/tournaments/disputes?tournament_id=test-tournament-id",
+            403
+        )
+        
+        # Test list disputes with status filter without auth (should fail)
+        self.run_test(
+            "List Disputes With Status Filter Without Auth",
+            "GET",
+            "/api/v1/tournaments/disputes?status=pending",
+            403
+        )
+        
+        # Test get dispute details without auth (should fail)
+        self.run_test(
+            "Get Dispute Details Without Auth",
+            "GET",
+            f"/api/v1/tournaments/disputes/{test_dispute_id}",
+            403
+        )
+        
+        # Test set dispute under review without auth (should fail)
+        self.run_test(
+            "Set Dispute Under Review Without Auth",
+            "POST",
+            f"/api/v1/tournaments/disputes/{test_dispute_id}/review",
+            403
+        )
+        
+        # Test resolve dispute without auth (should fail)
+        resolve_data = {
+            "approve": True,
+            "admin_response": "After reviewing the evidence, the dispute is approved"
+        }
+        
+        self.run_test(
+            "Resolve Dispute Without Auth",
+            "POST",
+            f"/api/v1/tournaments/disputes/{test_dispute_id}/resolve",
+            403,
+            data=resolve_data
+        )
+
+    def test_phase3_invitations_data_validation(self):
+        """Test Phase 3 invitations data validation"""
+        print("\n" + "="*60)
+        print("TESTING PHASE 3 INVITATIONS DATA VALIDATION")
+        print("="*60)
+        
+        test_tournament_id = "test-tournament-id"
+        test_team_id = "test-team-id"
+        test_invitation_id = "test-invitation-id"
+        
+        # Test create invitation with invalid data
+        invalid_invitation_data = {
+            "invited_user_id": "",  # Empty user ID
+            "message": ""  # Empty message
+        }
+        
+        self.run_test(
+            "Create Invitation Invalid Data (Empty Fields)",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}/invitations",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=invalid_invitation_data
+        )
+        
+        # Test create invitation with very long message
+        long_message_data = {
+            "invited_user_id": "test-user-id",
+            "message": "A" * 1000  # Very long message
+        }
+        
+        self.run_test(
+            "Create Invitation Invalid Data (Long Message)",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}/invitations",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=long_message_data
+        )
+        
+        # Test respond to invitation with invalid data
+        invalid_response_data = {
+            "accept": "invalid_boolean"  # Should be boolean
+        }
+        
+        self.run_test(
+            "Respond to Invitation Invalid Data",
+            "POST",
+            f"/api/v1/tournaments/invitations/{test_invitation_id}/respond",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=invalid_response_data
+        )
+
+    def test_phase3_disputes_data_validation(self):
+        """Test Phase 3 disputes data validation"""
+        print("\n" + "="*60)
+        print("TESTING PHASE 3 DISPUTES DATA VALIDATION")
+        print("="*60)
+        
+        test_match_id = "test-match-id"
+        test_dispute_id = "test-dispute-id"
+        
+        # Test create dispute with invalid data
+        invalid_dispute_data = {
+            "reason": "",  # Empty reason
+            "description": ""  # Empty description
+        }
+        
+        self.run_test(
+            "Create Dispute Invalid Data (Empty Fields)",
+            "POST",
+            f"/api/v1/tournaments/matches/{test_match_id}/dispute",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=invalid_dispute_data
+        )
+        
+        # Test create dispute with very long fields
+        long_fields_data = {
+            "reason": "A" * 500,  # Very long reason
+            "description": "B" * 2000  # Very long description
+        }
+        
+        self.run_test(
+            "Create Dispute Invalid Data (Long Fields)",
+            "POST",
+            f"/api/v1/tournaments/matches/{test_match_id}/dispute",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=long_fields_data
+        )
+        
+        # Test resolve dispute with invalid data
+        invalid_resolve_data = {
+            "approve": "invalid_boolean",  # Should be boolean
+            "admin_response": ""  # Empty response
+        }
+        
+        self.run_test(
+            "Resolve Dispute Invalid Data",
+            "POST",
+            f"/api/v1/tournaments/disputes/{test_dispute_id}/resolve",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=invalid_resolve_data
+        )
+
+    def test_phase3_api_structure(self):
+        """Test Phase 3 API structure and endpoint availability"""
+        print("\n" + "="*60)
+        print("TESTING PHASE 3 API STRUCTURE")
+        print("="*60)
+        
+        # Test that all Phase 3 endpoints exist and return proper error codes
+        phase3_endpoints = [
+            # Team Invitations
+            ("POST", "/api/v1/tournaments/test-tournament/teams/test-team/invitations", "Create Team Invitation", 403),
+            ("GET", "/api/v1/tournaments/test-tournament/teams/test-team/invitations", "Get Team Invitations", 403),
+            ("POST", "/api/v1/tournaments/invitations/test-invitation/respond", "Respond to Invitation", 403),
+            ("DELETE", "/api/v1/tournaments/invitations/test-invitation", "Cancel Invitation", 403),
+            ("GET", "/api/v1/tournaments/invitations/me", "Get My Invitations", 403),
+            
+            # Match Disputes
+            ("POST", "/api/v1/tournaments/matches/test-match/dispute", "Create Match Dispute", 403),
+            ("GET", "/api/v1/tournaments/matches/test-match/disputes", "Get Match Disputes", 403),
+            ("GET", "/api/v1/tournaments/disputes", "List All Disputes", 403),
+            ("GET", "/api/v1/tournaments/disputes/test-dispute", "Get Dispute Details", 403),
+            ("POST", "/api/v1/tournaments/disputes/test-dispute/review", "Set Dispute Under Review", 403),
+            ("POST", "/api/v1/tournaments/disputes/test-dispute/resolve", "Resolve Dispute", 403),
+        ]
+        
+        for method, endpoint, name, expected_status in phase3_endpoints:
+            data = {} if method in ["POST", "PUT", "PATCH"] else None
+            
+            self.run_test(
+                f"Phase 3 API Structure - {name}",
+                method,
+                endpoint,
+                expected_status,
+                data=data
+            )
+
+    def test_new_tournament_management_endpoints(self):
+        """Test new tournament management endpoints requested by main agent"""
+        print("\n" + "="*60)
+        print("TESTING NEW TOURNAMENT MANAGEMENT ENDPOINTS")
+        print("="*60)
+        
+        test_tournament_id = "test-tournament-id"
+        test_team_id = "test-team-id"
+        
+        # Test GET /api/v1/tournaments/{tournament_id}/teams/{team_id} - Team details
+        self.run_test(
+            "Get Team Details",
+            "GET",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}",
+            403  # Should fail without auth
+        )
+        
+        # Test PUT /api/v1/tournaments/{tournament_id}/teams/{team_id} - Update team
+        team_update_data = {
+            "name": "Updated Team Name"
+        }
+        self.run_test(
+            "Update Team",
+            "PUT",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}",
+            403,  # Should fail without auth
+            data=team_update_data
+        )
+        
+        # Test DELETE /api/v1/tournaments/{tournament_id}/teams/{team_id} - Delete team
+        self.run_test(
+            "Delete Team",
+            "DELETE",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}",
+            403  # Should fail without auth
+        )
+        
+        # Test POST /api/v1/tournaments/{tournament_id}/teams/{team_id}/leave - Leave team
+        self.run_test(
+            "Leave Team",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}/leave",
+            403  # Should fail without auth
+        )
+        
+        # Test POST /api/v1/tournaments/{tournament_id}/start - Start tournament
+        self.run_test(
+            "Start Tournament",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/start",
+            403  # Should fail without auth
+        )
+        
+        # Test POST /api/v1/tournaments/{tournament_id}/close-registration - Close registration
+        self.run_test(
+            "Close Tournament Registration",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/close-registration",
+            403  # Should fail without auth
+        )
+        
+        # Test POST /api/v1/tournaments/{tournament_id}/reopen-registration - Reopen registration
+        self.run_test(
+            "Reopen Tournament Registration",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/reopen-registration",
+            403  # Should fail without auth
+        )
         """Test authentication edge cases for tournament endpoints"""
         print("\n" + "="*60)
         print("TESTING AUTHENTICATION EDGE CASES")
@@ -2127,15 +2658,249 @@ class VerselinkAPITester:
                 data=message_data
             )
 
+    def test_player_search_endpoints(self):
+        """Test Phase Final Player Search system endpoints"""
+        print("\n" + "="*60)
+        print("TESTING PHASE FINAL PLAYER SEARCH SYSTEM ENDPOINTS")
+        print("="*60)
+        
+        test_tournament_id = "test-tournament-id"
+        test_search_id = "test-search-id"
+        
+        # Test create player search without auth (should fail)
+        search_data = {
+            "preferred_role": "pilote",
+            "experience_level": "expert",
+            "description": "Pilote expérimenté cherche équipe compétitive pour le championnat"
+        }
+        
+        self.run_test(
+            "Create Player Search Without Auth",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/player-search",
+            403,
+            data=search_data
+        )
+        
+        # Test get tournament player searches without auth (should fail)
+        self.run_test(
+            "Get Tournament Player Searches Without Auth",
+            "GET",
+            f"/api/v1/tournaments/{test_tournament_id}/player-search",
+            403
+        )
+        
+        # Test get tournament player searches with role filter without auth (should fail)
+        self.run_test(
+            "Get Player Searches With Role Filter Without Auth",
+            "GET",
+            f"/api/v1/tournaments/{test_tournament_id}/player-search?role=pilote",
+            403
+        )
+        
+        # Test get tournament player searches with experience filter without auth (should fail)
+        self.run_test(
+            "Get Player Searches With Experience Filter Without Auth",
+            "GET",
+            f"/api/v1/tournaments/{test_tournament_id}/player-search?experience=expert",
+            403
+        )
+        
+        # Test get tournament player searches with combined filters without auth (should fail)
+        self.run_test(
+            "Get Player Searches With Combined Filters Without Auth",
+            "GET",
+            f"/api/v1/tournaments/{test_tournament_id}/player-search?role=pilote&experience=expert",
+            403
+        )
+        
+        # Test get my player searches without auth (should fail)
+        self.run_test(
+            "Get My Player Searches Without Auth",
+            "GET",
+            "/api/v1/tournaments/player-search/me",
+            403
+        )
+        
+        # Test update player search without auth (should fail)
+        update_data = {
+            "preferred_role": "gunner",
+            "experience_level": "intermediate",
+            "description": "Gunner expérimenté disponible pour équipe sérieuse"
+        }
+        
+        self.run_test(
+            "Update Player Search Without Auth",
+            "PUT",
+            f"/api/v1/tournaments/player-search/{test_search_id}",
+            403,
+            data=update_data
+        )
+        
+        # Test deactivate player search without auth (should fail)
+        self.run_test(
+            "Deactivate Player Search Without Auth",
+            "POST",
+            f"/api/v1/tournaments/player-search/{test_search_id}/deactivate",
+            403
+        )
+        
+        # Test delete player search without auth (should fail)
+        self.run_test(
+            "Delete Player Search Without Auth",
+            "DELETE",
+            f"/api/v1/tournaments/player-search/{test_search_id}",
+            403
+        )
+
+    def test_player_search_data_validation(self):
+        """Test player search data validation"""
+        print("\n" + "="*60)
+        print("TESTING PLAYER SEARCH DATA VALIDATION")
+        print("="*60)
+        
+        test_tournament_id = "test-tournament-id"
+        test_search_id = "test-search-id"
+        
+        # Test create player search with invalid role
+        invalid_role_data = {
+            "preferred_role": "invalid_role",
+            "experience_level": "expert",
+            "description": "Test description"
+        }
+        
+        self.run_test(
+            "Create Player Search Invalid Role",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/player-search",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=invalid_role_data
+        )
+        
+        # Test create player search with invalid experience level
+        invalid_experience_data = {
+            "preferred_role": "pilote",
+            "experience_level": "invalid_level",
+            "description": "Test description"
+        }
+        
+        self.run_test(
+            "Create Player Search Invalid Experience",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/player-search",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=invalid_experience_data
+        )
+        
+        # Test create player search with empty description
+        empty_description_data = {
+            "preferred_role": "pilote",
+            "experience_level": "expert",
+            "description": ""  # Empty description
+        }
+        
+        self.run_test(
+            "Create Player Search Empty Description",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/player-search",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=empty_description_data
+        )
+        
+        # Test create player search with very long description
+        long_description_data = {
+            "preferred_role": "pilote",
+            "experience_level": "expert",
+            "description": "A" * 1000  # Very long description
+        }
+        
+        self.run_test(
+            "Create Player Search Long Description",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/player-search",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=long_description_data
+        )
+
+    def test_player_search_api_structure(self):
+        """Test Player Search API structure and endpoint availability"""
+        print("\n" + "="*60)
+        print("TESTING PLAYER SEARCH API STRUCTURE")
+        print("="*60)
+        
+        # Test that all player search endpoints exist and return proper error codes
+        player_search_endpoints = [
+            # Player search management
+            ("POST", "/api/v1/tournaments/test-tournament-id/player-search", "Create Player Search", 403),
+            ("GET", "/api/v1/tournaments/test-tournament-id/player-search", "Get Tournament Player Searches", 403),
+            ("GET", "/api/v1/tournaments/player-search/me", "Get My Player Searches", 403),
+            ("PUT", "/api/v1/tournaments/player-search/test-search-id", "Update Player Search", 403),
+            ("POST", "/api/v1/tournaments/player-search/test-search-id/deactivate", "Deactivate Player Search", 403),
+            ("DELETE", "/api/v1/tournaments/player-search/test-search-id", "Delete Player Search", 403),
+            
+            # Player search with filters
+            ("GET", "/api/v1/tournaments/test-tournament-id/player-search?role=pilote", "Filter by Role", 403),
+            ("GET", "/api/v1/tournaments/test-tournament-id/player-search?experience=expert", "Filter by Experience", 403),
+            ("GET", "/api/v1/tournaments/test-tournament-id/player-search?role=pilote&experience=expert", "Combined Filters", 403),
+        ]
+        
+        for method, endpoint, name, expected_status in player_search_endpoints:
+            data = {} if method in ["POST", "PUT", "PATCH"] else None
+            
+            self.run_test(
+                f"Player Search API Structure - {name}",
+                method,
+                endpoint,
+                expected_status,
+                data=data
+            )
+
     def run_all_tests(self):
         """Run all test suites"""
-        print("🚀 Starting VerseLink Backend API Tests - Phase 6 Notifications, Moderation & Auto-Moderation System")
+        print("🚀 Starting VerseLink Backend API Tests - Phase 7 Tournament Management Features")
         print(f"📡 Testing against: {self.base_url}")
         print(f"⏰ Started at: {datetime.now().isoformat()}")
         
         # Run basic health and auth tests first
         self.test_health_endpoints()
         self.test_auth_endpoints()
+        
+        # Run Phase 3 Advanced Tournament Features Testing
+        print("\n🏆 TESTING PHASE 3 - ADVANCED TOURNAMENT FEATURES")
+        self.test_phase3_team_invitations_endpoints()
+        self.test_phase3_match_disputes_endpoints()
+        self.test_phase3_invitations_data_validation()
+        self.test_phase3_disputes_data_validation()
+        self.test_phase3_api_structure()
+        
+        # Run Phase 7 Tournament Management Testing
+        print("\n🏆 TESTING PHASE 7 - NEW TOURNAMENT MANAGEMENT FEATURES")
+        self.test_new_tournament_management_endpoints()
+        self.test_new_tournament_team_management_endpoints()
+        self.test_new_tournament_administration_endpoints()
+        self.test_tournament_team_management_data_validation()
+        self.test_tournament_state_management()
+        
+        # Run Phase Final Player Search Testing
+        print("\n🔍 TESTING PHASE FINAL - PLAYER SEARCH SYSTEM")
+        self.test_player_search_endpoints()
+        self.test_player_search_data_validation()
+        self.test_player_search_api_structure()
+        
+        # Run existing tournament tests
+        print("\n🏆 TESTING EXISTING TOURNAMENT FEATURES")
+        self.test_tournaments_endpoints()
+        self.test_tournament_api_comprehensive()
+        self.test_tournament_team_management_without_auth()
+        self.test_match_score_reporting_without_auth()
+        self.test_file_upload_api_without_auth()
+        self.test_tournament_creation_without_auth()
+        self.test_tournament_api_structure()
+        self.test_tournament_data_validation()
+        self.test_tournament_state_transitions()
+        self.test_match_score_validation()
+        self.test_file_upload_validation()
+        self.test_tournament_bracket_generation()
         
         # Run Phase 6 comprehensive testing
         print("\n🔔 TESTING PHASE 6 - NOTIFICATIONS SYSTEM")
@@ -2146,12 +2911,12 @@ class VerselinkAPITester:
         self.test_moderation_endpoints()
         self.test_moderation_data_validation()
         
-        print("\n🤖 TESTING PHASE 6 - AUTO-MODERATION SYSTEM (NEW)")
+        print("\n🤖 TESTING PHASE 6 - AUTO-MODERATION SYSTEM")
         self.test_auto_moderation_endpoints()
         self.test_auto_moderation_data_validation()
         self.test_auto_moderation_toggle_functionality()
         
-        print("\n🔗 TESTING PHASE 6 - API STRUCTURE & INTEGRATION")
+        print("\n🔗 TESTING API STRUCTURE & INTEGRATION")
         self.test_phase6_api_structure()
         self.test_phase6_integration_scenarios()
         
@@ -2183,9 +2948,9 @@ class VerselinkAPITester:
 def main():
     """Main test runner"""
     # Use the external URL from frontend/.env for testing
-    base_url = "https://cosmic-verselink.preview.emergentagent.com"
+    base_url = "https://team-tournament-3.preview.emergentagent.com"
     
-    print("VerseLink Phase 6 Backend API Test Suite - Notifications, Moderation & Auto-Moderation System")
+    print("VerseLink Phase 7 Backend API Test Suite - Tournament Management Features")
     print("=" * 90)
     
     tester = VerselinkAPITester(base_url)
