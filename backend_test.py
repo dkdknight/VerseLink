@@ -1257,8 +1257,17 @@ class VerselinkAPITester:
             
             # Team management
             ("POST", "/api/v1/tournaments/test-id/teams", "Create Team"),
+            ("GET", "/api/v1/tournaments/test-id/teams/test-team-id", "Get Team Details"),
+            ("PUT", "/api/v1/tournaments/test-id/teams/test-team-id", "Update Team"),
+            ("DELETE", "/api/v1/tournaments/test-id/teams/test-team-id", "Delete Team"),
+            ("POST", "/api/v1/tournaments/test-id/teams/test-team-id/leave", "Leave Team"),
             ("POST", "/api/v1/tournaments/test-id/teams/test-team-id/members", "Add Team Member"),
             ("DELETE", "/api/v1/tournaments/test-id/teams/test-team-id/members/test-user-id", "Remove Team Member"),
+            
+            # Tournament administration
+            ("POST", "/api/v1/tournaments/test-id/start", "Start Tournament"),
+            ("POST", "/api/v1/tournaments/test-id/close-registration", "Close Registration"),
+            ("POST", "/api/v1/tournaments/test-id/reopen-registration", "Reopen Registration"),
             
             # Match management
             ("POST", "/api/v1/tournaments/matches/test-match-id/report", "Report Match Score"),
