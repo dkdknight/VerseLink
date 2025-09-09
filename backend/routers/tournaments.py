@@ -14,6 +14,8 @@ from models.tournament import (
 from services.tournament_service import TournamentService
 from services.bracket_service import BracketService
 from services.file_upload_service import FileUploadService
+from services.team_invitation_service import TeamInvitationService
+from services.match_dispute_service import MatchDisputeService
 from utils.permissions import EventPermissions  # Reuse event permissions for now
 from middleware.auth import get_current_active_user
 
