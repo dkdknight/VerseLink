@@ -596,20 +596,10 @@ const TournamentDetailPage = () => {
                 Recherche d'équipiers
               </Link>
             )}
-            
-            {tournament.can_register && isAuthenticated && !tournament.my_team && (
-              <button
-                onClick={() => setShowCreateTeamModal(true)}
-                disabled={actionLoading}
-                className="btn-primary flex items-center"
-              >
-                <PlusIcon className="w-4 h-4 mr-2" />
-                Créer une équipe
-              </button>
-            )}
           </div>
         </div>
-        {tournament.can_edit && (
+
+        {/* Admin Actions - Only show to tournament admins */}
           <div className="glass-effect rounded-lg p-4 mb-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
