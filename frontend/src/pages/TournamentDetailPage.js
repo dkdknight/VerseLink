@@ -11,7 +11,10 @@ import {
   CheckCircleIcon,
   ClockIcon,
   PlayIcon,
-  StarIcon
+  StarIcon,
+  CogIcon,
+  LockClosedIcon,
+  LockOpenIcon
 } from '@heroicons/react/24/outline';
 import { tournamentService } from '../services/tournamentService';
 import { useAuth } from '../App';
