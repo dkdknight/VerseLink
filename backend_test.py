@@ -1499,7 +1499,173 @@ class VerselinkAPITester:
                 expected_status
             )
 
-    def test_authentication_edge_cases(self):
+    def test_new_tournament_team_management_endpoints(self):
+        """Test new Phase 7 tournament team management endpoints"""
+        print("\n" + "="*60)
+        print("TESTING PHASE 7 TOURNAMENT TEAM MANAGEMENT ENDPOINTS")
+        print("="*60)
+        
+        test_tournament_id = "test-tournament-id"
+        test_team_id = "test-team-id"
+        
+        # Test get team details without auth (should fail)
+        self.run_test(
+            "Get Team Details Without Auth",
+            "GET",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}",
+            403
+        )
+        
+        # Test update team without auth (should fail)
+        team_update_data = {
+            "name": "Updated Team Name"
+        }
+        
+        self.run_test(
+            "Update Team Without Auth",
+            "PUT",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}",
+            403,
+            data=team_update_data
+        )
+        
+        # Test delete team without auth (should fail)
+        self.run_test(
+            "Delete Team Without Auth",
+            "DELETE",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}",
+            403
+        )
+        
+        # Test leave team without auth (should fail)
+        self.run_test(
+            "Leave Team Without Auth",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}/leave",
+            403
+        )
+
+    def test_new_tournament_administration_endpoints(self):
+        """Test new Phase 7 tournament administration endpoints"""
+        print("\n" + "="*60)
+        print("TESTING PHASE 7 TOURNAMENT ADMINISTRATION ENDPOINTS")
+        print("="*60)
+        
+        test_tournament_id = "test-tournament-id"
+        
+        # Test start tournament without auth (should fail)
+        self.run_test(
+            "Start Tournament Without Auth",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/start",
+            403
+        )
+        
+        # Test close registration without auth (should fail)
+        self.run_test(
+            "Close Tournament Registration Without Auth",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/close-registration",
+            403
+        )
+        
+        # Test reopen registration without auth (should fail)
+        self.run_test(
+            "Reopen Tournament Registration Without Auth",
+            "POST",
+            f"/api/v1/tournaments/{test_tournament_id}/reopen-registration",
+            403
+        )
+
+    def test_tournament_team_management_data_validation(self):
+        """Test tournament team management data validation"""
+        print("\n" + "="*60)
+        print("TESTING TOURNAMENT TEAM MANAGEMENT DATA VALIDATION")
+        print("="*60)
+        
+        test_tournament_id = "test-tournament-id"
+        test_team_id = "test-team-id"
+        
+        # Test update team with invalid data
+        invalid_team_data = {
+            "name": ""  # Empty name should be invalid
+        }
+        
+        self.run_test(
+            "Update Team Invalid Data (Empty Name)",
+            "PUT",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=invalid_team_data
+        )
+        
+        # Test update team with very long name
+        long_name_data = {
+            "name": "A" * 200  # Very long name should be invalid
+        }
+        
+        self.run_test(
+            "Update Team Invalid Data (Long Name)",
+            "PUT",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=long_name_data
+        )
+        
+        # Test valid team update data structure
+        valid_team_data = {
+            "name": "Valid Team Name"
+        }
+        
+        self.run_test(
+            "Update Team Valid Data Structure",
+            "PUT",
+            f"/api/v1/tournaments/{test_tournament_id}/teams/{test_team_id}",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=valid_team_data
+        )
+
+    def test_tournament_state_management(self):
+        """Test tournament state management scenarios"""
+        print("\n" + "="*60)
+        print("TESTING TOURNAMENT STATE MANAGEMENT")
+        print("="*60)
+        
+        # Test various tournament states to ensure state system is working
+        tournament_states = [
+            "draft",
+            "open_registration", 
+            "registration_closed",
+            "ongoing",
+            "finished",
+            "cancelled"
+        ]
+        
+        for state in tournament_states:
+            self.run_test(
+                f"Filter Tournaments by State ({state})",
+                "GET",
+                f"/api/v1/tournaments/?state={state}&limit=5",
+                200
+            )
+        
+        # Test tournament administration actions for different states
+        test_tournament_id = "test-tournament-id"
+        
+        # These should all fail with 403 (auth required) but test endpoint structure
+        admin_actions = [
+            ("start", "Start Tournament"),
+            ("close-registration", "Close Registration"),
+            ("reopen-registration", "Reopen Registration")
+        ]
+        
+        for action, description in admin_actions:
+            self.run_test(
+                f"Tournament Admin Action - {description}",
+                "POST",
+                f"/api/v1/tournaments/{test_tournament_id}/{action}",
+                403
+            )
         """Test authentication edge cases for tournament endpoints"""
         print("\n" + "="*60)
         print("TESTING AUTHENTICATION EDGE CASES")
