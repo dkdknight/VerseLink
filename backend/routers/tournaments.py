@@ -8,7 +8,7 @@ from database import get_database
 from models.user import User
 from models.tournament import (
     Tournament, TournamentCreate, TournamentUpdate, TournamentResponse, TournamentDetailResponse,
-    Team, TeamCreate, TeamResponse, ScoreReport, MatchSchedule, AttachmentResponse,
+    Team, TeamCreate, TeamUpdate, TeamResponse, ScoreReport, MatchSchedule, AttachmentResponse,
     TournamentFormat, TournamentState
 )
 from services.tournament_service import TournamentService
