@@ -21,6 +21,7 @@ import { tournamentService } from '../services/tournamentService';
 import { useAuth } from '../App';
 import MatchReportModal from '../components/MatchReportModal';
 import TournamentBracket from '../components/TournamentBracket';
+import MatchDisputeModal from '../components/MatchDisputeModal';
 
 const TournamentDetailPage = () => {
   const { id } = useParams();
@@ -30,6 +31,7 @@ const TournamentDetailPage = () => {
   const [activeTab, setActiveTab] = useState('bracket');
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState(null);
+  const [disputeModalOpen, setDisputeModalOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
@@ -99,6 +101,8 @@ const TournamentDetailPage = () => {
     setSelectedMatch(match);
     if (match.state === 'pending' && canReportScore(match)) {
       setReportModalOpen(true);
+    } else if (canDispute(match)) {
+      setDisputeModalOpen(true);
     }
   };
 
@@ -109,6 +113,14 @@ const TournamentDetailPage = () => {
       match.can_report ||
       match.team_a_captain_id === user.id ||
       match.team_b_captain_id === user.id
+    );
+  };
+
+  const canDispute = (match) => {
+    if (!isAuthenticated || !user) return false;
+    return (
+      ['reported', 'verified'].includes(match.state) &&
+      (match.team_a_captain_id === user.id || match.team_b_captain_id === user.id)
     );
   };
 
@@ -756,6 +768,17 @@ const TournamentDetailPage = () => {
         match={selectedMatch}
         currentUser={user}
         onMatchUpdated={loadTournament}
+      />
+
+      {/* Match Dispute Modal */}
+      <MatchDisputeModal
+        isOpen={disputeModalOpen}
+        onClose={() => {
+          setDisputeModalOpen(false);
+          setSelectedMatch(null);
+        }}
+        match={selectedMatch}
+        onDisputeCreated={loadTournament}
       />
     </div>
   );

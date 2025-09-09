@@ -143,6 +143,8 @@ const NotificationsPage = () => {
       case 'tournament_started':
       case 'match_result':
         return '🏆';
+      case 'match_disputed':
+        return '⚔️';
       case 'org_member_joined':
       case 'org_role_changed':
         return '👥';

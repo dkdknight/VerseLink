@@ -16,6 +16,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { tournamentService } from '../services/tournamentService';
 import { useAuth } from '../App';
+import TeamInvitationModal from '../components/TeamInvitationModal';
 
 const TeamManagementPage = () => {
   const { tournamentId, teamId } = useParams();
@@ -29,8 +30,6 @@ const TeamManagementPage = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState(null);
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const [inviteHandle, setInviteHandle] = useState('');
-  const [inviteMessage, setInviteMessage] = useState('');
   const [teamInvitations, setTeamInvitations] = useState([]);
   const [activeTab, setActiveTab] = useState('members');
   const { user, isAuthenticated } = useAuth();
@@ -408,8 +407,15 @@ const TeamManagementPage = () => {
                     <p className="text-gray-400 mb-4">
                       Il reste {tournament.team_size - team.member_count} place(s) disponible(s)
                     </p>
-                    <p className="text-sm text-gray-500">
-                      Les joueurs peuvent rejoindre votre équipe depuis la page du tournoi
+                    <button
+                      onClick={() => setShowInviteModal(true)}
+                      className="btn-primary flex items-center justify-center mx-auto"
+                    >
+                      <UserPlusIcon className="w-4 h-4 mr-2" />
+                      Inviter un joueur
+                    </button>
+                    <p className="text-sm text-gray-500 mt-3">
+                      Les joueurs peuvent également rejoindre votre équipe depuis la page du tournoi
                     </p>
                   </div>
                 </div>
@@ -578,6 +584,15 @@ const TeamManagementPage = () => {
           </div>
         </div>
       )}
+
+      {/* Team Invitation Modal */}
+      <TeamInvitationModal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        tournamentId={tournamentId}
+        teamId={teamId}
+        onInvitationSent={loadTeamInvitations}
+      />
     </div>
   );
 };

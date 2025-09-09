@@ -629,7 +629,7 @@ async def start_tournament(
     tournament_id: str,
     current_user: User = Depends(get_current_active_user)
 ):
-    """Start tournament (organizer only)"""
+    """Start tournament (organizer, org admin or staff)"""
     db = get_database()
     
     # Get tournament and verify permissions
@@ -637,9 +637,10 @@ async def start_tournament(
     if not tournament_doc:
         raise HTTPException(status_code=404, detail="Tournament not found")
     
-    # Check if user is tournament creator or org admin
+    # Check if user is tournament creator or has sufficient org permissions
     if tournament_doc["created_by"] != current_user.id:
-        await require_org_permission(tournament_doc["org_id"], current_user, OrgMemberRole.ADMIN)
+        # Allow organization admins and staff members to manage the tournament
+        await require_org_permission(tournament_doc["org_id"], current_user, OrgMemberRole.STAFF)
     
     # Check tournament state
     if tournament_doc["state"] != "registration_closed":
@@ -656,7 +657,7 @@ async def close_tournament_registration(
     tournament_id: str,
     current_user: User = Depends(get_current_active_user)
 ):
-    """Close tournament registration (organizer only)"""
+    """Close tournament registration (organizer, org admin or staff)"""
     db = get_database()
     
     # Get tournament and verify permissions
@@ -664,9 +665,9 @@ async def close_tournament_registration(
     if not tournament_doc:
         raise HTTPException(status_code=404, detail="Tournament not found")
     
-    # Check if user is tournament creator or org admin
+    # Check if user is tournament creator or has sufficient org permissions
     if tournament_doc["created_by"] != current_user.id:
-        await require_org_permission(tournament_doc["org_id"], current_user, OrgMemberRole.ADMIN)
+        await require_org_permission(tournament_doc["org_id"], current_user, OrgMemberRole.STAFF)
     
     # Check tournament state
     if tournament_doc["state"] != "open_registration":
@@ -685,7 +686,7 @@ async def reopen_tournament_registration(
     tournament_id: str,
     current_user: User = Depends(get_current_active_user)
 ):
-    """Reopen tournament registration (organizer only)"""
+    """Reopen tournament registration (organizer, org admin or staff)"""
     db = get_database()
     
     # Get tournament and verify permissions
@@ -695,7 +696,7 @@ async def reopen_tournament_registration(
     
     # Check if user is tournament creator or org admin
     if tournament_doc["created_by"] != current_user.id:
-        await require_org_permission(tournament_doc["org_id"], current_user, OrgMemberRole.ADMIN)
+        await require_org_permission(tournament_doc["org_id"], current_user, OrgMemberRole.STAFF)
     
     # Check tournament state
     if tournament_doc["state"] not in ["registration_closed", "draft"]:
