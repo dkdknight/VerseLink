@@ -222,5 +222,135 @@ export const tournamentService = {
   downloadAttachment: (attachmentId) => {
     // Return the download URL
     return `${api.defaults.baseURL}/tournaments/attachments/${attachmentId}/download`;
+  },
+
+  // Team Invitations
+  createTeamInvitation: async (tournamentId, teamId, invitationData) => {
+    try {
+      const response = await api.post(`/tournaments/${tournamentId}/teams/${teamId}/invitations`, invitationData);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create team invitation:', error);
+      throw error;
+    }
+  },
+
+  getTeamInvitations: async (tournamentId, teamId) => {
+    try {
+      const response = await api.get(`/tournaments/${tournamentId}/teams/${teamId}/invitations`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get team invitations:', error);
+      throw error;
+    }
+  },
+
+  respondToInvitation: async (invitationId, accept) => {
+    try {
+      const formData = new FormData();
+      formData.append('accept', accept);
+      
+      const response = await api.post(`/tournaments/invitations/${invitationId}/respond`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to respond to invitation:', error);
+      throw error;
+    }
+  },
+
+  cancelInvitation: async (invitationId) => {
+    try {
+      const response = await api.delete(`/tournaments/invitations/${invitationId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to cancel invitation:', error);
+      throw error;
+    }
+  },
+
+  getMyInvitations: async (status = null) => {
+    try {
+      const params = {};
+      if (status) params.status = status;
+      
+      const response = await api.get('/tournaments/invitations/me', { params });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get my invitations:', error);
+      throw error;
+    }
+  },
+
+  // Match Disputes
+  createMatchDispute: async (matchId, disputeData) => {
+    try {
+      const response = await api.post(`/tournaments/matches/${matchId}/dispute`, disputeData);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create match dispute:', error);
+      throw error;
+    }
+  },
+
+  getMatchDisputes: async (matchId) => {
+    try {
+      const response = await api.get(`/tournaments/matches/${matchId}/disputes`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get match disputes:', error);
+      throw error;
+    }
+  },
+
+  listDisputes: async (params = {}) => {
+    try {
+      const response = await api.get('/tournaments/disputes', { params });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to list disputes:', error);
+      throw error;
+    }
+  },
+
+  getDispute: async (disputeId) => {
+    try {
+      const response = await api.get(`/tournaments/disputes/${disputeId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get dispute:', error);
+      throw error;
+    }
+  },
+
+  setDisputeUnderReview: async (disputeId) => {
+    try {
+      const response = await api.post(`/tournaments/disputes/${disputeId}/review`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to set dispute under review:', error);
+      throw error;
+    }
+  },
+
+  resolveDispute: async (disputeId, approve, adminResponse) => {
+    try {
+      const formData = new FormData();
+      formData.append('approve', approve);
+      formData.append('admin_response', adminResponse);
+      
+      const response = await api.post(`/tournaments/disputes/${disputeId}/resolve`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to resolve dispute:', error);
+      throw error;
+    }
   }
 };
