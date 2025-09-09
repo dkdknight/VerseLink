@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Query, UploadFile, File, Form
 from fastapi.responses import FileResponse
-from typing import List, Optional
+from typing import List, Optional, Dict
 from datetime import datetime
 from pathlib import Path
 
