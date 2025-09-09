@@ -70,6 +70,7 @@ class UserResponse(BaseModel):
     locale: str
     roles: List[str]
     reputation: int
+    is_site_admin: bool
     is_verified: bool
     created_at: datetime
     
