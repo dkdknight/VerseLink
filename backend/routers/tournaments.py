@@ -20,7 +20,7 @@ from services.team_invitation_service import TeamInvitationService
 from services.match_dispute_service import MatchDisputeService
 from services.player_search_service import PlayerSearchService
 from utils.permissions import EventPermissions  # Reuse event permissions for now
-from middleware.auth import get_current_active_user
+from middleware.auth import get_current_active_user, get_current_user_optional
 
 router = APIRouter()
 tournament_service = TournamentService()
@@ -107,7 +107,10 @@ async def list_tournaments(
     return tournaments
 
 @router.get("/{tournament_id}", response_model=TournamentDetailResponse)
-async def get_tournament(tournament_id: str):
+async def get_tournament(
+    tournament_id: str,
+    current_user: Optional[User] = Depends(get_current_user_optional),
+):
     """Get tournament details with bracket"""
     db = get_database()
     
@@ -233,6 +236,12 @@ async def get_tournament(tournament_id: str):
     # Generate bracket visualization
     tournament_obj = Tournament(**tournament_doc)
     bracket = await bracket_service.generate_bracket_visualization(tournament_obj)
+
+    can_edit = False
+    if current_user:
+        can_edit = await EventPermissions.can_edit_event(
+            current_user, tournament_doc["org_id"], tournament_doc["created_by"]
+        )
     
     return TournamentDetailResponse(
         **tournament_doc,
@@ -243,7 +252,7 @@ async def get_tournament(tournament_id: str):
         bracket=bracket,
         my_team=None,  # Will be set in frontend
         can_create_team=tournament_doc.get("state") == TournamentState.OPEN_REGISTRATION,
-        can_edit=False,  # Will be set based on user permissions
+        can_edit=can_edit,
         is_registration_open=tournament_doc.get("state") == TournamentState.OPEN_REGISTRATION,
         can_register=tournament_doc.get("state") == TournamentState.OPEN_REGISTRATION and tournament_doc.get("team_count", 0) < tournament_doc.get("max_teams", 0)
     )

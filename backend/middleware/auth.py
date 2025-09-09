@@ -13,6 +13,7 @@ JWT_ALGORITHM = config("JWT_ALGORITHM", default="HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(config("ACCESS_TOKEN_EXPIRE_MINUTES", default=30))
 
 security = HTTPBearer()
+optional_security = HTTPBearer(auto_error=False)
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """Create JWT access token"""
@@ -67,6 +68,36 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         {"$set": {"last_seen_at": datetime.utcnow()}}
     )
     
+    return User(**user_doc)
+
+async def get_current_user_optional(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(optional_security),
+):
+    """Return current user if JWT token is provided, otherwise None."""
+    if credentials is None:
+        return None
+
+    if await is_token_revoked(credentials.credentials):
+        return None
+
+    try:
+        payload = jwt.decode(credentials.credentials, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        user_id: Optional[str] = payload.get("sub")
+        if user_id is None:
+            return None
+    except JWTError:
+        return None
+
+    db = get_database()
+    user_doc = await db.users.find_one({"id": user_id})
+    if not user_doc:
+        return None
+
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"last_seen_at": datetime.utcnow()}},
+    )
+
     return User(**user_doc)
 
 async def get_current_active_user(current_user: User = Depends(get_current_user)):
