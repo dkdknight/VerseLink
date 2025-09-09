@@ -45,6 +45,50 @@ export const tournamentService = {
     }
   },
 
+  // Get detailed team information
+  getTeamDetails: async (tournamentId, teamId) => {
+    try {
+      const response = await api.get(`/tournaments/${tournamentId}/teams/${teamId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get team details:', error);
+      throw error;
+    }
+  },
+
+  // Update team information (captain only)
+  updateTeam: async (tournamentId, teamId, teamData) => {
+    try {
+      const response = await api.put(`/tournaments/${tournamentId}/teams/${teamId}`, teamData);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update team:', error);
+      throw error;
+    }
+  },
+
+  // Delete team (captain only)
+  deleteTeam: async (tournamentId, teamId) => {
+    try {
+      const response = await api.delete(`/tournaments/${tournamentId}/teams/${teamId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to delete team:', error);
+      throw error;
+    }
+  },
+
+  // Leave team (non-captain members)
+  leaveTeam: async (tournamentId, teamId) => {
+    try {
+      const response = await api.post(`/tournaments/${tournamentId}/teams/${teamId}/leave`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to leave team:', error);
+      throw error;
+    }
+  },
+
   // Add member to team
   addTeamMember: async (tournamentId, teamId, userId) => {
     try {
@@ -70,6 +114,39 @@ export const tournamentService = {
       return response.data;
     } catch (error) {
       console.error('Failed to remove team member:', error);
+      throw error;
+    }
+  },
+
+  // Tournament Administration
+  startTournament: async (tournamentId) => {
+    try {
+      const response = await api.post(`/tournaments/${tournamentId}/start`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to start tournament:', error);
+      throw error;
+    }
+  },
+
+  // Close tournament registration
+  closeTournamentRegistration: async (tournamentId) => {
+    try {
+      const response = await api.post(`/tournaments/${tournamentId}/close-registration`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to close tournament registration:', error);
+      throw error;
+    }
+  },
+
+  // Reopen tournament registration
+  reopenTournamentRegistration: async (tournamentId) => {
+    try {
+      const response = await api.post(`/tournaments/${tournamentId}/reopen-registration`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to reopen tournament registration:', error);
       throw error;
     }
   },
