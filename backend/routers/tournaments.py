@@ -8,7 +8,7 @@ from database import get_database
 from models.user import User
 from models.tournament import (
     Tournament, TournamentCreate, TournamentUpdate, TournamentResponse, TournamentDetailResponse,
-    Team, TeamCreate, TeamResponse, ScoreReport, AttachmentResponse,
+    Team, TeamCreate, TeamResponse, ScoreReport, MatchSchedule, AttachmentResponse,
     TournamentFormat, TournamentState
 )
 from services.tournament_service import TournamentService
@@ -268,6 +268,19 @@ async def create_team(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.post("/{tournament_id}/teams/{team_id}/join")
+async def join_team(
+    tournament_id: str,
+    team_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Join a team"""
+    try:
+        await tournament_service.join_team(team_id, current_user.id)
+        return {"message": "Joined team successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 @router.post("/{tournament_id}/teams/{team_id}/members")
 async def add_team_member(
     tournament_id: str,
@@ -293,6 +306,19 @@ async def remove_team_member(
     try:
         await tournament_service.remove_team_member(team_id, user_id, current_user.id)
         return {"message": "Member removed successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/matches/{match_id}/schedule")
+async def schedule_match(
+    match_id: str,
+    schedule: MatchSchedule,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Schedule a match"""
+    try:
+        await tournament_service.schedule_match(match_id, schedule.scheduled_at, current_user.id)
+        return {"message": "Match scheduled successfully"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

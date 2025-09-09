@@ -231,6 +231,9 @@ class ScoreReport(BaseModel):
             raise ValueError('Scores cannot be tied - there must be a winner')
         return v
 
+class MatchSchedule(BaseModel):
+    scheduled_at: datetime
+
 class Attachment(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     match_id: str

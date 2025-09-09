@@ -136,6 +136,47 @@ class TournamentService:
         )
         
         return team
+
+    async def join_team(self, team_id: str, user_id: str) -> bool:
+        """Join a team in a tournament"""
+        team_doc = await self.db.teams.find_one({"id": team_id})
+        if not team_doc:
+            raise ValueError("Team not found")
+
+        team = Team(**team_doc)
+
+        tournament = await self.get_tournament(team.tournament_id)
+        if not tournament:
+            raise ValueError("Tournament not found")
+
+        if tournament.state != TournamentState.OPEN_REGISTRATION:
+            raise ValueError("Tournament registration is not open")
+
+        if team.member_count >= tournament.team_size:
+            raise ValueError("Team is full")
+
+        existing_membership = await self.db.team_members.find_one({
+            "team_id": team_id,
+            "user_id": user_id
+        })
+        if existing_membership:
+            raise ValueError("User already in team")
+
+        other_team_membership = await self.db.team_members.find_one({
+            "user_id": user_id,
+            "team_id": {
+                "$in": [t["id"] async for t in self.db.teams.find({"tournament_id": team.tournament_id})]
+            }
+        })
+        if other_team_membership:
+            raise ValueError("User is already in a team for this tournament")
+
+        member = TeamMember(team_id=team_id, user_id=user_id, is_captain=False)
+        await self.db.team_members.insert_one(member.dict())
+
+        await self.db.teams.update_one({"id": team_id}, {"$inc": {"member_count": 1}})
+
+        return True
     
     async def add_team_member(self, team_id: str, user_id: str, requester_id: str) -> bool:
         """Add member to team (captain only)"""
@@ -366,6 +407,34 @@ class TournamentService:
                     )
                     await self.db.matches.insert_one(match.dict())
                     match_position += 1
+
+    async def schedule_match(self, match_id: str, scheduled_at: datetime, requester_id: str) -> bool:
+        """Schedule a match time"""
+        match_doc = await self.db.matches.find_one({"id": match_id})
+        if not match_doc:
+            raise ValueError("Match not found")
+
+        match = Match(**match_doc)
+
+        captain_ids = []
+        if match.team_a_id:
+            team_a = await self.db.teams.find_one({"id": match.team_a_id})
+            if team_a:
+                captain_ids.append(team_a.get("captain_user_id"))
+        if match.team_b_id:
+            team_b = await self.db.teams.find_one({"id": match.team_b_id})
+            if team_b:
+                captain_ids.append(team_b.get("captain_user_id"))
+
+        if requester_id not in captain_ids:
+            raise ValueError("Only team captains can schedule matches")
+
+        await self.db.matches.update_one(
+            {"id": match_id},
+            {"$set": {"scheduled_at": scheduled_at, "updated_at": datetime.utcnow()}}
+        )
+
+        return True
     
     async def report_match_score(self, match_id: str, score_report: ScoreReport, reporter_id: str) -> bool:
         """Report match score"""
