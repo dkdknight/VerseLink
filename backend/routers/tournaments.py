@@ -688,3 +688,156 @@ async def reopen_tournament_registration(
     )
     
     return {"message": "Tournament registration reopened successfully"}
+
+# Team Invitation Routes
+
+@router.post("/{tournament_id}/teams/{team_id}/invitations", response_model=Dict[str, str])
+async def create_team_invitation(
+    tournament_id: str,
+    team_id: str,
+    invitation_data: TeamInvitationCreate,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Create a team invitation (captain only)"""
+    try:
+        await invitation_service.create_invitation(team_id, invitation_data, current_user.id)
+        return {"message": "Invitation sent successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/{tournament_id}/teams/{team_id}/invitations", response_model=List[TeamInvitationResponse])
+async def get_team_invitations(
+    tournament_id: str,
+    team_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Get team invitations (captain only)"""
+    try:
+        return await invitation_service.get_team_invitations(team_id, current_user.id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/invitations/{invitation_id}/respond")
+async def respond_to_invitation(
+    invitation_id: str,
+    accept: bool = Form(...),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Respond to a team invitation"""
+    try:
+        await invitation_service.respond_to_invitation(invitation_id, current_user.id, accept)
+        action = "accepted" if accept else "declined"
+        return {"message": f"Invitation {action} successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.delete("/invitations/{invitation_id}")
+async def cancel_invitation(
+    invitation_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Cancel a team invitation (captain only)"""
+    try:
+        await invitation_service.cancel_invitation(invitation_id, current_user.id)
+        return {"message": "Invitation cancelled successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/invitations/me", response_model=List[TeamInvitationResponse])
+async def get_my_invitations(
+    status: Optional[str] = Query(None, description="Filter by status"),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Get current user's invitations"""
+    try:
+        invitation_status = None
+        if status and status in [s.value for s in InvitationStatus]:
+            invitation_status = InvitationStatus(status)
+        
+        return await invitation_service.get_user_invitations(current_user.id, invitation_status)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# Match Dispute Routes
+
+@router.post("/matches/{match_id}/dispute", response_model=Dict[str, str])
+async def create_match_dispute(
+    match_id: str,
+    dispute_data: MatchDisputeCreate,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Create a match dispute (team captain only)"""
+    try:
+        await dispute_service.create_dispute(match_id, dispute_data, current_user.id)
+        return {"message": "Dispute created successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/matches/{match_id}/disputes", response_model=List[MatchDisputeResponse])
+async def get_match_disputes(
+    match_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Get disputes for a specific match"""
+    try:
+        disputes = await dispute_service.list_disputes(limit=50)
+        # Filter by match_id
+        return [d for d in disputes if d.match_id == match_id]
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/disputes", response_model=List[MatchDisputeResponse])
+async def list_disputes(
+    tournament_id: Optional[str] = Query(None, description="Filter by tournament"),
+    status: Optional[str] = Query(None, description="Filter by status"),
+    limit: int = Query(20, ge=1, le=100),
+    skip: int = Query(0, ge=0),
+    current_user: User = Depends(get_current_active_user)
+):
+    """List disputes with optional filters"""
+    try:
+        dispute_status = None
+        if status and status in [s.value for s in DisputeStatus]:
+            dispute_status = DisputeStatus(status)
+        
+        return await dispute_service.list_disputes(tournament_id, dispute_status, limit, skip)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/disputes/{dispute_id}", response_model=MatchDisputeResponse)
+async def get_dispute(
+    dispute_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Get dispute details"""
+    dispute = await dispute_service.get_dispute(dispute_id)
+    if not dispute:
+        raise HTTPException(status_code=404, detail="Dispute not found")
+    return dispute
+
+@router.post("/disputes/{dispute_id}/review")
+async def set_dispute_under_review(
+    dispute_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Set dispute under review (admin only)"""
+    try:
+        await dispute_service.set_dispute_under_review(dispute_id, current_user.id)
+        return {"message": "Dispute set under review"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/disputes/{dispute_id}/resolve")
+async def resolve_dispute(
+    dispute_id: str,
+    approve: bool = Form(...),
+    admin_response: str = Form(...),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Resolve a dispute (admin only)"""
+    try:
+        await dispute_service.resolve_dispute(dispute_id, current_user.id, admin_response, approve)
+        action = "approved" if approve else "rejected"
+        return {"message": f"Dispute {action} successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
