@@ -53,6 +53,11 @@ const TeamManagementPage = () => {
       setTournament(tournamentData);
       setTeamName(teamData.name);
       
+      // Load team invitations if user is captain
+      if (teamData.can_manage) {
+        await loadTeamInvitations();
+      }
+      
       // Check if user has permission to manage this team
       if (!teamData.can_manage && !teamData.is_member) {
         toast.error('Vous n\'avez pas accès à cette équipe');
@@ -64,6 +69,15 @@ const TeamManagementPage = () => {
       navigate(`/tournaments/${tournamentId}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTeamInvitations = async () => {
+    try {
+      const invitations = await tournamentService.getTeamInvitations(tournamentId, teamId);
+      setTeamInvitations(invitations);
+    } catch (error) {
+      console.error('Failed to load team invitations:', error);
     }
   };
 
