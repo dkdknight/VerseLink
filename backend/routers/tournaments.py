@@ -10,7 +10,8 @@ from models.tournament import (
     Tournament, TournamentCreate, TournamentUpdate, TournamentResponse, TournamentDetailResponse,
     Team, TeamCreate, TeamUpdate, TeamResponse, ScoreReport, MatchSchedule, AttachmentResponse,
     TournamentFormat, TournamentState, TeamInvitationCreate, TeamInvitationResponse,
-    InvitationStatus, MatchDisputeCreate, MatchDisputeResponse, DisputeStatus
+    InvitationStatus, MatchDisputeCreate, MatchDisputeResponse, DisputeStatus,
+    PlayerSearchCreate, PlayerSearchResponse
 )
 from services.tournament_service import TournamentService
 from services.bracket_service import BracketService
