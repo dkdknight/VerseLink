@@ -2382,7 +2382,7 @@ def main():
     # Use the external URL from frontend/.env for testing
     base_url = "https://team-tournament-3.preview.emergentagent.com"
     
-    print("VerseLink Phase 6 Backend API Test Suite - Notifications, Moderation & Auto-Moderation System")
+    print("VerseLink Phase 7 Backend API Test Suite - Tournament Management Features")
     print("=" * 90)
     
     tester = VerselinkAPITester(base_url)
