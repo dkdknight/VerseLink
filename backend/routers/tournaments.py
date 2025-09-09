@@ -27,6 +27,7 @@ bracket_service = BracketService()
 file_service = FileUploadService()
 invitation_service = TeamInvitationService()
 dispute_service = MatchDisputeService()
+player_search_service = PlayerSearchService()
 
 @router.get("/", response_model=List[TournamentResponse])
 async def list_tournaments(
