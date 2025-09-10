@@ -506,7 +506,13 @@ const TournamentDetailPage = () => {
   }
 
   // ✅ Affichage conditionnel du bloc Admin (corrige l’ancienne parenthèse orpheline)
-  const isTournamentAdmin = tournament?.can_admin || tournament?.can_manage || tournament?.is_admin || false;
+  // Inclut désormais la permission can_edit renvoyée par l'API pour les administrateurs
+  const isTournamentAdmin =
+    tournament?.can_edit ||
+    tournament?.can_admin ||
+    tournament?.can_manage ||
+    tournament?.is_admin ||
+    false;
 
   return (
     <div className="min-h-screen bg-dark-950 py-8">
