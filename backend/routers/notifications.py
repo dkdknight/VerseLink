@@ -125,6 +125,8 @@ async def get_notification_preferences(
         NotificationType.EVENT_SIGNUP_CONFIRMED: {"in_app_enabled": True, "email_enabled": True, "discord_dm_enabled": False},
         NotificationType.TOURNAMENT_CREATED: {"in_app_enabled": True, "email_enabled": False, "discord_dm_enabled": False},
         NotificationType.MATCH_RESULT: {"in_app_enabled": True, "email_enabled": True, "discord_dm_enabled": False},
+        NotificationType.EVENT_CHAT_MESSAGE: {"in_app_enabled": True, "email_enabled": False, "discord_dm_enabled": True},
+        NotificationType.MATCH_CHAT_MESSAGE: {"in_app_enabled": True, "email_enabled": False, "discord_dm_enabled": True},
         NotificationType.ORG_MEMBER_JOINED: {"in_app_enabled": True, "email_enabled": False, "discord_dm_enabled": False},
         NotificationType.WARNING_RECEIVED: {"in_app_enabled": True, "email_enabled": True, "discord_dm_enabled": False},
         NotificationType.STRIKE_RECEIVED: {"in_app_enabled": True, "email_enabled": True, "discord_dm_enabled": False},

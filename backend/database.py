@@ -166,6 +166,9 @@ async def create_indexes():
     # Reminder configs indexes
     await database.reminder_configs.create_index("guild_id")
     await database.reminder_configs.create_index([("guild_id", 1), ("reminder_type", 1)], unique=True)
+
+    # Chat messages indexes
+    await database.chat_messages.create_index([("context", 1), ("context_id", 1), ("created_at", 1)])
     
     # Discord guilds indexes
     try:

@@ -22,6 +22,7 @@ import { useAuth } from '../App';
 import MatchReportModal from '../components/MatchReportModal';
 import TournamentBracket from '../components/TournamentBracket';
 import MatchDisputeModal from '../components/MatchDisputeModal';
+import Chat from '../components/Chat';
 
 const TournamentDetailPage = () => {
   const { id } = useParams();
@@ -33,6 +34,7 @@ const TournamentDetailPage = () => {
   const [selectedMatch, setSelectedMatch] = useState(null);
   const [disputeModalOpen, setDisputeModalOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
+  const [chatMatch, setChatMatch] = useState(null);
 
   useEffect(() => {
     if (id) {
@@ -99,6 +101,9 @@ const TournamentDetailPage = () => {
 
   const handleMatchClick = (match) => {
     setSelectedMatch(match);
+    if (isMatchCaptain(match)) {
+      setChatMatch(match);
+    }
     if (match.state === 'pending' && canReportScore(match)) {
       setReportModalOpen(true);
     } else if (canDispute(match)) {
@@ -130,6 +135,14 @@ const TournamentDetailPage = () => {
     return (
       match.state === 'pending' &&
       !match.scheduled_at &&
+      (match.team_a_captain_id === user.id || match.team_b_captain_id === user.id)
+    );
+  };
+
+  const isMatchCaptain = (match) => {
+    return (
+      isAuthenticated &&
+      user &&
       (match.team_a_captain_id === user.id || match.team_b_captain_id === user.id)
     );
   };
@@ -797,6 +810,12 @@ const TournamentDetailPage = () => {
           <h3 className="text-2xl font-bold text-white mb-4">Description</h3>
           <div className="text-gray-300 leading-relaxed whitespace-pre-wrap">{tournament.description}</div>
         </div>
+        {chatMatch && isMatchCaptain(chatMatch) && (
+          <div className="card p-6 mt-6">
+            <h3 className="text-2xl font-bold text-white mb-4">Chat du match</h3>
+            <Chat contextType="matches" contextId={chatMatch.id} />
+          </div>
+        )}
       </div>
 
       {/* Match Report Modal */}

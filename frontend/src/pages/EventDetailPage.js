@@ -18,6 +18,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { eventService } from '../services/eventService';
 import { useAuth } from '../App';
+import Chat from '../components/Chat';
 
 const EventDetailPage = () => {
   const { id } = useParams();
@@ -120,6 +121,10 @@ const EventDetailPage = () => {
     } finally {
       setActionLoading(false);
     }
+  };
+
+  const canChat = () => {
+    return !!(event && (event.my_signup || canManage));
   };
 
   const handleRemoveParticipant = async (userId) => {
@@ -594,6 +599,13 @@ const EventDetailPage = () => {
                 <SignupCard key={signup.id} signup={signup} />
               ))}
             </div>
+          </div>
+        )}
+
+        {canChat() && (
+          <div className="card p-6 mt-6">
+            <h3 className="text-2xl font-bold text-white mb-4">Chat de l'événement</h3>
+            <Chat contextType="events" contextId={event.id} />
           </div>
         )}
       </div>

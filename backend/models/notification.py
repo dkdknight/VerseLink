@@ -21,6 +21,8 @@ class NotificationType(str, Enum):
     MATCH_RESULT = "match_result"
     MATCH_DISPUTED = "match_disputed"
     TOURNAMENT_WON = "tournament_won"
+    EVENT_CHAT_MESSAGE = "event_chat_message"
+    MATCH_CHAT_MESSAGE = "match_chat_message"
     
     # Organization notifications
     ORG_MEMBER_JOINED = "org_member_joined"

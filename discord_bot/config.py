@@ -22,6 +22,8 @@ class Config:
     DEBUG_MODE = os.getenv('DEBUG_MODE', 'false').lower() == 'true'
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
     ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
+    BOT_API_PORT = int(os.getenv('BOT_API_PORT', '8050'))
+    BOT_API_TOKEN = os.getenv('BOT_API_TOKEN', '')
     
     # Validation
     @classmethod

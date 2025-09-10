@@ -350,6 +350,21 @@ class DiscordService:
                     "status_code": response.status_code,
                     "data": response.json() if response.headers.get("content-type", "").startswith("application/json") else response.text
                 }
+
+    async def send_dm(self, discord_id: str, message: str):
+        """Send direct message via bot"""
+        if not self.bot_api_base_url or not self.bot_api_token:
+            return
+        try:
+            async with httpx.AsyncClient() as client:
+                await client.post(
+                    f"{self.bot_api_base_url.rstrip('/')}/dm",
+                    json={"discord_id": discord_id, "message": message},
+                    headers={"Authorization": f"Bearer {self.bot_api_token}"},
+                    timeout=10,
+                )
+        except Exception:
+            pass
     
     # Authentication for Bot API
     async def verify_bot_auth(self, guild_id: str, api_key: str) -> bool:

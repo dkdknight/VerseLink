@@ -5,6 +5,7 @@ import logging
 import sys
 import traceback
 from datetime import datetime
+from aiohttp import web
 
 from config import Config
 from verselink_api import VerselinkAPI
@@ -54,6 +55,9 @@ class VerselinkBot(commands.Bot):
         
         self.api = VerselinkAPI()
         self.start_time = datetime.utcnow()
+        self.web_app = web.Application()
+        self.web_app.router.add_post('/dm', self.handle_dm)
+        self._runner = None
         
     async def setup_hook(self):
         """Setup hook called when bot is starting"""
@@ -103,6 +107,12 @@ class VerselinkBot(commands.Bot):
                 self.tree.copy_global_to(guild=guild)
                 await self.tree.sync(guild=guild)
             self._synced = True
+
+        # Start web server
+        self._runner = web.AppRunner(self.web_app)
+        await self._runner.setup()
+        site = web.TCPSite(self._runner, '0.0.0.0', Config.BOT_API_PORT)
+        await site.start()
     
     async def on_guild_join(self, guild: discord.Guild):
         """Called when bot joins a new guild"""
@@ -173,6 +183,22 @@ class VerselinkBot(commands.Bot):
                 await self.check_message_moderation(message)
             except Exception as e:
                 logger.error(f"Auto-moderation error: {e}")
+
+    async def handle_dm(self, request: web.Request):
+        auth = request.headers.get('Authorization')
+        if auth != f"Bearer {Config.BOT_API_TOKEN}":
+            return web.json_response({'error': 'unauthorized'}, status=401)
+        data = await request.json()
+        discord_id = data.get('discord_id')
+        content = data.get('message')
+        if not discord_id or not content:
+            return web.json_response({'error': 'missing fields'}, status=400)
+        try:
+            user = await self.fetch_user(int(discord_id))
+            await user.send(content)
+            return web.json_response({'status': 'sent'})
+        except Exception as e:
+            return web.json_response({'error': str(e)}, status=500)
     
     async def check_message_moderation(self, message: discord.Message):
         """Check message for auto-moderation"""

@@ -6,7 +6,7 @@ import motor.motor_asyncio
 from decouple import config
 import logging
 
-from routers import auth, users, organizations, events, tournaments, discord_integration, discord_integration_v2, notifications, moderation, auto_moderation
+from routers import auth, users, organizations, events, tournaments, discord_integration, discord_integration_v2, notifications, moderation, auto_moderation, chat
 from database import init_db
 from middleware.auth import get_current_user
 from services.discord_scheduler import start_discord_scheduler, stop_discord_scheduler
@@ -62,6 +62,7 @@ app.include_router(discord_integration_v2.router, prefix="/api/v1/discord", tags
 app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["Notifications"])
 app.include_router(auto_moderation.router, prefix="/api/v1/auto-moderation", tags=["Auto Moderation"])
 app.include_router(moderation.router, prefix="/api/v1/moderation", tags=["Moderation"])
+app.include_router(chat.router, prefix="/api/v1/chat", tags=["Chat"])
 
 @app.get("/")
 async def root():
