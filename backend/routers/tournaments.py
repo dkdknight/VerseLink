@@ -8,7 +8,7 @@ from database import get_database
 from models.user import User
 from models.tournament import (
     Tournament, TournamentCreate, TournamentUpdate, TournamentResponse, TournamentDetailResponse,
-    Team, TeamCreate, TeamUpdate, TeamResponse, ScoreReport, MatchSchedule, AttachmentResponse,
+    Team, TeamCreate, TeamUpdate, TeamResponse, ScoreReport, MatchSchedule, MatchForfeit, AttachmentResponse,
     TournamentFormat, TournamentState, MatchState, TeamInvitationCreate, TeamInvitationResponse,
     InvitationStatus, MatchDisputeCreate, MatchDisputeResponse, DisputeStatus,
     PlayerSearchCreate, PlayerSearchResponse,
@@ -378,6 +378,19 @@ async def verify_match_result(
     try:
         await tournament_service.verify_match_result(match_id, current_user.id)
         return {"message": "Match result verified successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/matches/{match_id}/forfeit")
+async def forfeit_match(
+    match_id: str,
+    forfeit: MatchForfeit,
+    current_user: User = Depends(get_current_active_user),
+):
+    """Forfeit a match (organizer/admin only)"""
+    try:
+        await tournament_service.forfeit_match(match_id, forfeit.winner_team_id, current_user, forfeit.notes)
+        return {"message": "Match forfeited successfully"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

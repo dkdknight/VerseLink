@@ -173,6 +173,20 @@ export const tournamentService = {
     }
   },
 
+  // Forfeit match
+  forfeitMatch: async (matchId, winnerTeamId, notes = '') => {
+    try {
+      const response = await api.post(`/tournaments/matches/${matchId}/forfeit`, {
+        winner_team_id: winnerTeamId,
+        notes,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to forfeit match:', error);
+      throw error;
+    }
+  },
+
   // Upload match attachment
   uploadMatchAttachment: async (matchId, file, description = '') => {
     try {

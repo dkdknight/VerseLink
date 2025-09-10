@@ -246,6 +246,11 @@ class ScoreReport(BaseModel):
 class MatchSchedule(BaseModel):
     scheduled_at: datetime
 
+
+class MatchForfeit(BaseModel):
+    winner_team_id: str
+    notes: Optional[str] = Field(None, max_length=500)
+
 class Attachment(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     match_id: str

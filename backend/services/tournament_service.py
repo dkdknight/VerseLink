@@ -13,6 +13,7 @@ import uuid
 import math
 from services.match_dispute_service import MatchDisputeService
 from services.notification_service import NotificationService
+from utils.permissions import EventPermissions
 
 class TournamentService:
     def __init__(self):
@@ -521,6 +522,48 @@ class TournamentService:
             return True
 
         raise ValueError("Match result already finalized")
+
+    async def forfeit_match(self, match_id: str, winner_team_id: str, user: User, notes: Optional[str] = None) -> bool:
+        """Force end a match when a team doesn't show up"""
+        match_doc = await self.db.matches.find_one({"id": match_id})
+        if not match_doc:
+            raise ValueError("Match not found")
+
+        tournament = await self.get_tournament(match_doc["tournament_id"])
+        if not tournament:
+            raise ValueError("Tournament not found")
+
+        # Permission check
+        can_edit = await EventPermissions.can_edit_event(user, tournament.org_id, tournament.created_by)
+        if not can_edit:
+            raise ValueError("Insufficient permissions")
+
+        match = Match(**match_doc)
+
+        if match.state not in [MatchState.PENDING, MatchState.REPORTED]:
+            raise ValueError("Match result already finalized")
+
+        if winner_team_id not in [match.team_a_id, match.team_b_id]:
+            raise ValueError("Winner team not part of this match")
+
+        loser_team_id = match.team_b_id if winner_team_id == match.team_a_id else match.team_a_id
+
+        update_data = {
+            "score_a": 1 if winner_team_id == match.team_a_id else 0,
+            "score_b": 1 if winner_team_id == match.team_b_id else 0,
+            "winner_team_id": winner_team_id,
+            "loser_team_id": loser_team_id,
+            "state": MatchState.REPORTED,
+            "reported_by": user.id,
+            "notes": notes or "Forfeit",
+            "updated_at": datetime.utcnow(),
+        }
+
+        await self.db.matches.update_one({"id": match_id}, {"$set": update_data})
+
+        await self.verify_match_result(match_id, user.id)
+
+        return True
     
     async def verify_match_result(self, match_id: str, verifier_id: str) -> bool:
         """Verify match result (referee/admin only)"""

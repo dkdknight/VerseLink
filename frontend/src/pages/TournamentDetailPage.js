@@ -139,6 +139,11 @@ const TournamentDetailPage = () => {
     return match.state === 'reported' && match.can_verify;
   };
 
+  const canForfeitMatch = (match) => {
+    if (!isAuthenticated || !user) return false;
+    return match.state === 'pending' && match.can_verify;
+  };
+
   const canUploadAttachment = (match) => {
     if (!isAuthenticated || !user) return false;
     return canReportScore(match) || match.can_verify;
@@ -181,6 +186,26 @@ const TournamentDetailPage = () => {
         toast.error(error.response.data.detail);
       } else {
         toast.error('Erreur lors de la vérification du match');
+      }
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleForfeitMatch = async (match) => {
+    const choice = prompt(`Quelle équipe gagne par forfait ?\nA: ${match.team_a_name}\nB: ${match.team_b_name}`);
+    if (!choice) return;
+    const winnerTeamId = choice.toLowerCase().startsWith('b') ? match.team_b_id : match.team_a_id;
+    try {
+      setActionLoading(true);
+      await tournamentService.forfeitMatch(match.id, winnerTeamId);
+      toast.success('Match terminé par forfait');
+      await loadTournament();
+    } catch (error) {
+      if (error.response?.data?.detail) {
+        toast.error(error.response.data.detail);
+      } else {
+        toast.error('Erreur lors du forfait du match');
       }
     } finally {
       setActionLoading(false);
@@ -407,6 +432,7 @@ const TournamentDetailPage = () => {
         {(canScheduleMatch(match) ||
           (canReportScore(match) && match.state === 'pending') ||
           canVerifyMatch(match) ||
+          canForfeitMatch(match) ||
           canUploadAttachment(match)) && (
           <div className="mt-3 text-center space-y-2">
             {canScheduleMatch(match) && (
@@ -433,6 +459,15 @@ const TournamentDetailPage = () => {
                 className="text-sm text-primary-400 hover:text-primary-300 font-medium block w-full"
               >
                 Vérifier le match →
+              </button>
+            )}
+            {canForfeitMatch(match) && (
+              <button
+                onClick={() => handleForfeitMatch(match)}
+                disabled={actionLoading}
+                className="text-sm text-primary-400 hover:text-primary-300 font-medium block w-full"
+              >
+                Forfait du match →
               </button>
             )}
             {canUploadAttachment(match) && (
