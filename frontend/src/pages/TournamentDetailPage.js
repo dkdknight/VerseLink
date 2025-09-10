@@ -446,8 +446,17 @@ const TournamentDetailPage = () => {
           (canReportScore(match) && match.state === 'pending') ||
           canVerifyMatch(match) ||
           canForfeitMatch(match) ||
-          canUploadAttachment(match)) && (
+          canUploadAttachment(match) ||
+          isMatchCaptain(match)) && (
           <div className="mt-3 text-center space-y-2">
+            {isMatchCaptain(match) && (
+              <button
+                onClick={() => setChatMatch(match)}
+                className="text-sm text-primary-400 hover:text-primary-300 font-medium block w-full"
+              >
+                Ouvrir le chat →
+              </button>
+            )}
             {canScheduleMatch(match) && (
               <button
                 onClick={() => handleScheduleMatch(match)}

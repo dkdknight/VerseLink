@@ -51,12 +51,16 @@ const Chat = ({ contextType, contextId }) => {
           </div>
         ))}
       </div>
-      <form onSubmit={send} className="flex gap-2">
-        <input className="flex-1 border p-1" value={input} onChange={e => setInput(e.target.value)} />
-        <button type="submit" className="bg-blue-500 text-white px-3">Envoyer</button>
-      </form>
-    </div>
-  );
-};
+        <form onSubmit={send} className="flex gap-2">
+          <input
+            className="flex-1 border p-1 text-black bg-white"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+          />
+          <button type="submit" className="bg-blue-500 text-white px-3">Envoyer</button>
+        </form>
+      </div>
+    );
+  };
 
 export default Chat;
