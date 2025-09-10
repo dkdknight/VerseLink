@@ -1,4 +1,5 @@
 from typing import List
+from fastapi import HTTPException
 from database import get_database
 from models.chat import ChatMessage, ChatContext
 from models.notification import NotificationType
@@ -40,7 +41,7 @@ class ChatService:
 
     async def create_event_message(self, event_id: str, user: User, content: str) -> ChatMessage:
         if not await self._is_event_participant(event_id, user.id):
-            raise PermissionError("Not allowed")
+            raise HTTPException(status_code=403, detail="Not allowed")
         message = ChatMessage(context=ChatContext.EVENT, context_id=event_id, sender_id=user.id, sender_handle=user.handle, content=content)
         await self.db.chat_messages.insert_one(message.dict())
         recipients = []
@@ -69,9 +70,9 @@ class ChatService:
     async def create_match_message(self, match_id: str, user: User, content: str) -> ChatMessage:
         match_doc = await self.db.matches.find_one({"id": match_id})
         if not match_doc:
-            raise PermissionError("Match not found")
+            raise HTTPException(status_code=404, detail="Match not found")
         if user.id not in [match_doc.get("team_a_captain_id"), match_doc.get("team_b_captain_id")]:
-            raise PermissionError("Not allowed")
+            raise HTTPException(status_code=403, detail="Not allowed")
         message = ChatMessage(context=ChatContext.MATCH, context_id=match_id, sender_id=user.id, sender_handle=user.handle, content=content)
         await self.db.chat_messages.insert_one(message.dict())
         other_id = match_doc.get("team_a_captain_id") if user.id == match_doc.get("team_b_captain_id") else match_doc.get("team_b_captain_id")
