@@ -12,6 +12,7 @@ const Chat = ({ contextType, contextId }) => {
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
     let ws;
+    let poller;
     async function init() {
       try {
         const msgs = await chatService.getMessages(contextType, contextId);
@@ -22,20 +23,32 @@ const Chat = ({ contextType, contextId }) => {
             toast(`Nouveau message de ${msg.sender_handle}`);
           }
         });
+        poller = setInterval(async () => {
+          try {
+            const updated = await chatService.getMessages(contextType, contextId);
+            setMessages(updated);
+          } catch (err) {
+            console.error('Failed to refresh chat', err);
+          }
+        }, 5000);
         wsRef.current = ws;
       } catch (err) {
         console.error('Failed to load chat', err);
       }
     }
     init();
-    return () => { if (wsRef.current) wsRef.current.close(); };
+    return () => {
+      if (wsRef.current) wsRef.current.close();
+      if (poller) clearInterval(poller);
+    };
   }, [contextType, contextId, user]);
 
   const send = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
     try {
-      await chatService.postMessage(contextType, contextId, input.trim());
+      const newMessage = await chatService.postMessage(contextType, contextId, input.trim());
+      setMessages((prev) => [...prev, newMessage]);
       setInput('');
     } catch (err) {
       toast.error('Envoi échoué');

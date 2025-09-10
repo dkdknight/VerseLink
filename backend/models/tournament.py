@@ -195,6 +195,8 @@ class Match(MatchBase):
     tournament_id: str
     team_a_id: Optional[str] = None  # Can be None for bye rounds
     team_b_id: Optional[str] = None
+    team_a_captain_id: Optional[str] = None
+    team_b_captain_id: Optional[str] = None
     winner_team_id: Optional[str] = None
     loser_team_id: Optional[str] = None
     score_a: Optional[int] = None
@@ -218,6 +220,8 @@ class MatchResponse(BaseModel):
     team_a_name: Optional[str]
     team_b_id: Optional[str]
     team_b_name: Optional[str]
+    team_a_captain_id: Optional[str]
+    team_b_captain_id: Optional[str]
     winner_team_id: Optional[str]
     winner_team_name: Optional[str]
     score_a: Optional[int]
