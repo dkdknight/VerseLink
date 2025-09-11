@@ -11,6 +11,7 @@ import ProfilePage from './pages/ProfilePage';
 import OrganizationsPage from './pages/OrganizationsPage';
 import OrganizationDetailPage from './pages/OrganizationDetailPage';
 import CreateOrganizationPage from './pages/CreateOrganizationPage';
+import ManageOrganizationPage from './pages/ManageOrganizationPage';
 import CreateEventPage from './pages/CreateEventPage';
 import EditEventPage from './pages/EditEventPage';
 import EventsPage from './pages/EventsPage';
