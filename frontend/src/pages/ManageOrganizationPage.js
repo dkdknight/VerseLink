@@ -170,6 +170,60 @@ const ManageOrganizationPage = () => {
     }
   };
 
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Le fichier ne doit pas dépasser 10MB');
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Seules les images sont acceptées');
+      return;
+    }
+
+    try {
+      const response = await organizationService.uploadLogo(id, file);
+      toast.success('Logo téléchargé avec succès');
+      // Refresh organization data
+      loadData();
+    } catch (error) {
+      console.error('Failed to upload logo:', error);
+      toast.error('Erreur lors du téléchargement du logo');
+    }
+  };
+
+  const handleBannerUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Le fichier ne doit pas dépasser 10MB');
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Seules les images sont acceptées');
+      return;
+    }
+
+    try {
+      const response = await organizationService.uploadBanner(id, file);
+      toast.success('Bannière téléchargée avec succès');
+      // Refresh organization data
+      loadData();
+    } catch (error) {
+      console.error('Failed to upload banner:', error);
+      toast.error('Erreur lors du téléchargement de la bannière');
+    }
+  };
+
   const isOwner = user && organization && user.id === organization.owner_id;
   const isAdmin = members.find(m => m.user_id === user?.id)?.role === 'admin' || isOwner;
   const isModerator = members.find(m => m.user_id === user?.id)?.role === 'moderator' || isAdmin;
