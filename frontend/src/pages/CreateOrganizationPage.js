@@ -10,7 +10,14 @@ const CreateOrganizationPage = () => {
     tag: '',
     description: '',
     website_url: '',
-    visibility: 'public'
+    discord_url: '',
+    twitter_url: '',
+    youtube_url: '',
+    twitch_url: '',
+    visibility: 'public',
+    membership_policy: 'open',
+    logo_url: '',
+    banner_url: ''
   });
   const [loading, setLoading] = useState(false);
 
