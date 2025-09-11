@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { 
+import {
   UsersIcon,
   CalendarDaysIcon,
   TrophyIcon,
@@ -12,6 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { organizationService } from '../services/organizationService';
 import { useAuth } from '../App';
+import CopyButton from '../components/CopyButton';
 
 const OrganizationDetailPage = () => {
   const { id } = useParams();
@@ -292,6 +293,13 @@ const OrganizationDetailPage = () => {
                 <div>
                   <span className="text-gray-400">Tag :</span>
                   <div className="text-white font-mono">{organization.tag}</div>
+                </div>
+                <div>
+                  <span className="text-gray-400">ID :</span>
+                  <div className="flex items-center">
+                    <div className="text-white font-mono mr-2">{organization.id}</div>
+                    <CopyButton text={organization.id} />
+                  </div>
                 </div>
               </div>
             </div>
