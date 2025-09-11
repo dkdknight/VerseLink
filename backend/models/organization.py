@@ -78,7 +78,6 @@ class OrganizationUpdate(BaseModel):
 class Organization(OrganizationBase):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     discord_guild_id: Optional[str] = None
-    logo_path: Optional[str] = None
     owner_id: str
     member_count: int = Field(default=1)
     event_count: int = Field(default=0)
