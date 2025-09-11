@@ -67,6 +67,13 @@ app.include_router(auto_moderation.router, prefix="/api/v1/auto-moderation", tag
 app.include_router(moderation.router, prefix="/api/v1/moderation", tags=["Moderation"])
 app.include_router(chat.router, prefix="/api/v1/chat", tags=["Chat"])
 
+# Static file serving for uploads
+uploads_path = Path("uploads")
+uploads_path.mkdir(exist_ok=True)
+
+# Mount static files for uploads
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
 @app.get("/")
 async def root():
     return {"message": "VerseLink API", "version": "1.0.0", "status": "active"}
