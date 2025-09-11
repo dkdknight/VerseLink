@@ -451,6 +451,53 @@ const OrganizationDetailPage = () => {
             </div>
           </div>
         </div>
+
+        {/* Join Request Modal */}
+        {showJoinRequestModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-dark-800 rounded-lg p-6 max-w-md w-full">
+              <h3 className="text-xl font-bold text-white mb-4">
+                Demander à rejoindre {organization.name}
+              </h3>
+              <p className="text-gray-300 mb-4">
+                Cette organisation nécessite une approbation pour rejoindre. 
+                Vous pouvez ajouter un message pour expliquer pourquoi vous souhaitez rejoindre.
+              </p>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Message (optionnel)
+                </label>
+                <textarea
+                  value={joinRequestMessage}
+                  onChange={(e) => setJoinRequestMessage(e.target.value)}
+                  className="input-primary w-full"
+                  rows="3"
+                  placeholder="Expliquez pourquoi vous souhaitez rejoindre cette organisation..."
+                />
+              </div>
+              
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => {
+                    setShowJoinRequestModal(false);
+                    setJoinRequestMessage('');
+                  }}
+                  className="btn-ghost flex-1"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleSubmitJoinRequest}
+                  disabled={joining}
+                  className="btn-primary flex-1"
+                >
+                  {joining ? 'Envoi...' : 'Soumettre la demande'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
