@@ -1,10 +1,13 @@
 from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 import motor.motor_asyncio
 from decouple import config
 import logging
+from pathlib import Path
 
 from routers import auth, users, organizations, events, tournaments, discord_integration, discord_integration_v2, notifications, moderation, auto_moderation, chat
 from database import init_db
