@@ -548,3 +548,126 @@ class DiscordService:
         stats["recent_webhooks"] = await self.db.webhook_logs.count_documents({"created_at": {"$gte": yesterday}})
         
         return stats
+    
+    # New job processors for extended functionality
+    async def _process_create_channels_job(self, job: DiscordJob) -> Dict[str, Any]:
+        """Process create channels job"""
+        payload = job.payload
+        event_id = payload.get("event_id")
+        guild_id = job.guild_id
+        
+        # Get event details
+        event_doc = await self.db.events.find_one({"id": event_id})
+        if not event_doc:
+            raise ValueError("Event not found")
+        
+        # Create channels via bot API
+        channel_data = {
+            "guild_id": guild_id,
+            "event_id": event_id,
+            "event_name": event_doc["title"],
+            "create_text": payload.get("create_text", True),
+            "create_voice": payload.get("create_voice", True),
+            "permissions": payload.get("permissions", {})
+        }
+        
+        return await self.call_bot_api("channels/create", data=channel_data)
+    
+    async def _process_manage_roles_job(self, job: DiscordJob) -> Dict[str, Any]:
+        """Process manage roles job"""
+        payload = job.payload
+        guild_id = job.guild_id
+        
+        role_data = {
+            "guild_id": guild_id,
+            "action": payload.get("action", "assign"),  # assign, remove, create
+            "user_id": payload.get("user_id"),
+            "role_id": payload.get("role_id"),
+            "role_name": payload.get("role_name"),
+            "role_permissions": payload.get("role_permissions", {})
+        }
+        
+        return await self.call_bot_api("roles/manage", data=role_data)
+    
+    async def _process_sync_reactions_job(self, job: DiscordJob) -> Dict[str, Any]:
+        """Process sync reactions job"""
+        payload = job.payload
+        guild_id = job.guild_id
+        
+        reaction_data = {
+            "guild_id": guild_id,
+            "message_id": payload.get("message_id"),
+            "channel_id": payload.get("channel_id"),
+            "reaction_data": payload.get("reaction_data", {}),
+            "sync_type": payload.get("sync_type", "signup")
+        }
+        
+        return await self.call_bot_api("reactions/sync", data=reaction_data)
+    
+    # Enhanced event management
+    async def queue_discord_event_creation(self, event_id: str, guild_ids: List[str], 
+                                           create_channels: bool = True, create_signup_message: bool = True):
+        """Queue Discord scheduled event creation for multiple guilds"""
+        for guild_id in guild_ids:
+            # Check if guild has auto-event creation enabled
+            guild = await self.get_guild(guild_id)
+            if not guild or not guild.reminder_enabled:  # Using reminder_enabled as feature flag
+                continue
+            
+            job_data = DiscordJobCreate(
+                job_type=JobType.CREATE_DISCORD_EVENT,
+                guild_id=guild_id,
+                event_id=event_id,
+                payload={
+                    "event_id": event_id,
+                    "create_channels": create_channels,
+                    "create_signup_message": create_signup_message,
+                    "signup_channel_id": guild.event_channel_id or guild.announcement_channel_id
+                }
+            )
+            await self.queue_job(job_data)
+    
+    async def queue_discord_event_update(self, event_id: str, guild_ids: List[str]):
+        """Queue Discord scheduled event updates for multiple guilds"""
+        for guild_id in guild_ids:
+            job_data = DiscordJobCreate(
+                job_type=JobType.UPDATE_DISCORD_EVENT,
+                guild_id=guild_id,
+                event_id=event_id,
+                payload={"event_id": event_id}
+            )
+            await self.queue_job(job_data)
+    
+    async def queue_discord_event_deletion(self, event_id: str, guild_ids: List[str]):
+        """Queue Discord scheduled event deletion for multiple guilds"""
+        for guild_id in guild_ids:
+            job_data = DiscordJobCreate(
+                job_type=JobType.DELETE_DISCORD_EVENT,
+                guild_id=guild_id,
+                event_id=event_id,
+                payload={"event_id": event_id}
+            )
+            await self.queue_job(job_data)
+    
+    async def process_discord_interaction(self, interaction_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Process Discord interaction (buttons, select menus, etc.)"""
+        from services.discord_events_service import DiscordEventsService
+        events_service = DiscordEventsService()
+        
+        interaction_type = interaction_data.get("type")
+        
+        if interaction_type == 3:  # MESSAGE_COMPONENT
+            custom_id = interaction_data.get("data", {}).get("custom_id", "")
+            
+            # Handle event signup interactions
+            if any(prefix in custom_id for prefix in ["signup_", "withdraw_", "view_signups_", "select_role_"]):
+                response = await events_service.handle_signup_interaction(interaction_data)
+                return response.dict()
+        
+        return {
+            "type": 4,  # CHANNEL_MESSAGE_WITH_SOURCE
+            "data": {
+                "content": "❌ Interaction non prise en charge",
+                "flags": 64  # EPHEMERAL
+            }
+        }
