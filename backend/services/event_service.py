@@ -97,7 +97,12 @@ class EventService:
             {"$set": update_dict}
         )
         
-        return await self.get_event(event_id)
+        # Trigger Discord integration update if enabled
+        updated_event = await self.get_event(event_id)
+        if updated_event and updated_event.discord_integration_enabled:
+            await self._trigger_discord_event_update(event_id, updated_event.org_id)
+        
+        return updated_event
     
     async def delete_event(self, event_id: str) -> bool:
         """Delete event and all related data"""
