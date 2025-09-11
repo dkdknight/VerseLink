@@ -6,7 +6,7 @@ Final Discord Test - Test all fixed endpoints
 import requests
 import json
 
-base_url = "https://team-tournament-3.preview.emergentagent.com"
+base_url = "https://org-admin-revamp.preview.emergentagent.com"
 api_key = "210303df-9dbd-4bd3-add6-62e4e7b05977"  # The API key we added to the guild
 
 def test_all_discord_endpoints():
