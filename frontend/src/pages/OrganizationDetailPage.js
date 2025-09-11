@@ -189,11 +189,30 @@ const OrganizationDetailPage = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="glass-effect rounded-2xl p-8 mb-8">
+          {/* Banner */}
+          {organization.banner_url && (
+            <div className="mb-6 -m-8 mt-0">
+              <img
+                src={organization.banner_url}
+                alt="Bannière"
+                className="w-full h-48 object-cover rounded-t-2xl"
+              />
+            </div>
+          )}
+          
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between">
             <div className="flex items-center mb-6 lg:mb-0">
-              <div className="w-20 h-20 bg-gradient-star rounded-xl flex items-center justify-center mr-6">
-                <span className="text-white font-bold text-2xl">{organization.tag}</span>
-              </div>
+              {organization.logo_url ? (
+                <img
+                  src={organization.logo_url}
+                  alt="Logo"
+                  className="w-20 h-20 rounded-xl object-cover mr-6"
+                />
+              ) : (
+                <div className="w-20 h-20 bg-gradient-star rounded-xl flex items-center justify-center mr-6">
+                  <span className="text-white font-bold text-2xl">{organization.tag}</span>
+                </div>
+              )}
               
               <div>
                 <h1 className="text-4xl font-bold text-white mb-2 text-shadow">
