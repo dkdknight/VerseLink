@@ -7,6 +7,7 @@ import { authService } from '../services/authService';
 const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [authUrl, setAuthUrl] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const { isAuthenticated, login } = useAuth();
   const [searchParams] = useSearchParams();
 
@@ -41,19 +42,22 @@ const LoginPage = () => {
   const handleDiscordCallback = async (code, state) => {
     try {
       setLoading(true);
-      await login(code, state);
+      const remember = localStorage.getItem('remember_me') === 'true';
+      await login(code, state, remember);
       toast.success('Connexion réussie !');
     } catch (error) {
       console.error('Login failed:', error);
       const message = error.response?.data?.detail || 'Échec de la connexion. Veuillez réessayer.';
       toast.error(message);
     } finally {
+      localStorage.removeItem('remember_me');
       setLoading(false);
     }
   };
 
   const handleDiscordLogin = () => {
     if (authUrl) {
+      localStorage.setItem('remember_me', rememberMe ? 'true' : 'false');
       window.location.href = authUrl;
     } else {
       toast.error('URL d\'authentification non disponible');
@@ -103,6 +107,20 @@ const LoginPage = () => {
             <p className="text-gray-400 mb-8">
               Utilisez votre compte Discord pour accéder à toutes les fonctionnalités de VerseLink.
             </p>
+          </div>
+
+          {/* Remember Me Option */}
+          <div className="flex items-center justify-center mb-4">
+            <input
+              id="rememberMe"
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="h-4 w-4 text-primary-500 focus:ring-primary-400 border-gray-600 rounded"
+            />
+            <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-300">
+              Rester connecté
+            </label>
           </div>
 
           {/* Discord Login Button */}

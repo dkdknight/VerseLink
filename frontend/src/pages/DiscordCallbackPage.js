@@ -30,7 +30,8 @@ const DiscordCallbackPage = () => {
 
       try {
         console.log('Processing Discord OAuth callback with code:', code);
-        await login(code, state);
+        const remember = localStorage.getItem('remember_me') === 'true';
+        await login(code, state, remember);
         toast.success('Connexion réussie !');
         navigate('/');
       } catch (error) {
@@ -38,6 +39,8 @@ const DiscordCallbackPage = () => {
         const message = error.response?.data?.detail || 'Échec de la connexion. Veuillez réessayer.';
         toast.error(message);
         navigate('/login');
+      } finally {
+        localStorage.removeItem('remember_me');
       }
     };
 

@@ -80,9 +80,9 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (code, state) => {
+  const login = async (code, state, rememberMe = false) => {
     try {
-      const response = await authService.discordCallback(code, state);
+      const response = await authService.discordCallback(code, state, rememberMe);
       
       // Store token
       localStorage.setItem('auth_token', response.access_token);

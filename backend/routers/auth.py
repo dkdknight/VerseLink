@@ -5,7 +5,7 @@ from starlette.requests import Request
 from decouple import config
 import httpx
 from typing import Dict, Any
-from datetime import datetime
+from datetime import datetime, timedelta
 from pydantic import BaseModel
 import uuid
 import secrets
@@ -23,6 +23,7 @@ from middleware.auth import (
 class DiscordCallbackRequest(BaseModel):
     code: str
     state: str
+    remember_me: bool = False
 
 router = APIRouter()
 
@@ -164,8 +165,9 @@ async def discord_auth_callback(request: DiscordCallbackRequest):
             user = User(**user_data.dict())
             await db.users.insert_one(user.dict())
         
-        # Create JWT token
-        access_token = create_access_token(data={"sub": user.id})
+        # Create JWT token with optional extended expiration
+        expires_delta = timedelta(days=30) if request.remember_me else None
+        access_token = create_access_token(data={"sub": user.id}, expires_delta=expires_delta)
         
         return {
             "access_token": access_token,

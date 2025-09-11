@@ -38,9 +38,9 @@ export const authService = {
   },
 
   // Handle Discord OAuth callback
-  discordCallback: async (code, state) => {
+  discordCallback: async (code, state, rememberMe = false) => {
     try {
-      const response = await api.post('/auth/discord/callback', { code, state });
+      const response = await api.post('/auth/discord/callback', { code, state, remember_me: rememberMe });
       return response.data;
     } catch (error) {
       console.error('Discord callback failed:', error);
