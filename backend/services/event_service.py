@@ -117,10 +117,18 @@ class EventService:
 
     async def cancel_event(self, event_id: str) -> bool:
         """Mark an event as cancelled"""
+        # Get event first to check Discord integration
+        event = await self.get_event(event_id)
+        
         result = await self.db.events.update_one(
             {"id": event_id},
             {"$set": {"state": EventState.CANCELLED, "updated_at": datetime.utcnow()}}
         )
+        
+        # Trigger Discord integration update if enabled
+        if result.modified_count > 0 and event and event.discord_integration_enabled:
+            await self._trigger_discord_event_update(event_id, event.org_id, action="cancelled")
+        
         return result.modified_count > 0
     
     async def signup_for_event(self, event_id: str, user_id: str, signup_data: EventSignupCreate) -> EventSignup:
