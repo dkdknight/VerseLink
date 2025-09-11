@@ -428,10 +428,7 @@ const ManageOrganizationPage = () => {
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={(e) => {
-                          // TODO: Implement logo upload
-                          toast.info('Upload de logo - à implémenter');
-                        }}
+                        onChange={handleLogoUpload}
                         className="hidden"
                         id="logo-upload"
                       />
