@@ -230,7 +230,7 @@ async def join_organization(
     org_id: str,
     current_user: User = Depends(get_current_active_user)
 ):
-    """Join organization as member"""
+    """Join organization as member (for open membership policy only)"""
     db = get_database()
     
     # Check if org exists and is joinable
@@ -246,6 +246,13 @@ async def join_organization(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Cannot join private organization without invitation"
+        )
+    
+    # Check membership policy
+    if org.membership_policy == OrgMembershipPolicy.REQUEST_ONLY:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This organization requires a join request. Please submit a join request instead."
         )
     
     # Check if already member
