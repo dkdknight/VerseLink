@@ -244,17 +244,19 @@ async def get_tournament(
                 if match_doc.get("reported_by") != current_user.id and match_doc.get("state") in [MatchState.PENDING.value, MatchState.REPORTED.value]:
                     can_report = True
 
-        matches.append(MatchResponse(
+        match_data = {
             **match_doc,
-            team_a_name=team_a_name,
-            team_b_name=team_b_name,
-            team_a_captain_id=team_a_doc.get("captain_user_id") if team_a_doc else None,
-            team_b_captain_id=team_b_doc.get("captain_user_id") if team_b_doc else None,
-            winner_team_name=winner_team_name,
-            attachments=attachments,
-            can_report=can_report,
-            can_verify=can_verify,
-        ))
+            "team_a_name": team_a_name,
+            "team_b_name": team_b_name,
+            "team_a_captain_id": team_a_doc.get("captain_user_id") if team_a_doc else None,
+            "team_b_captain_id": team_b_doc.get("captain_user_id") if team_b_doc else None,
+            "winner_team_name": winner_team_name,
+            "attachments": attachments,
+            "can_report": can_report,
+            "can_verify": can_verify,
+        }
+
+        matches.append(MatchResponse(**match_data))
     
     # Generate bracket visualization
     tournament_obj = Tournament(**tournament_doc)
