@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends, File, UploadFile
 from typing import List, Optional
 from datetime import datetime
-import os
 import aiofiles
 import uuid as uuid_lib
 from pathlib import Path
@@ -10,10 +9,9 @@ from database import get_database
 from models.user import User
 from models.organization import (
     Organization, OrganizationCreate, OrganizationUpdate, OrganizationResponse,
-    OrgMember, OrgMemberBase, OrgMemberCreate, OrgMemberResponse, OrgMemberRole,
-    Subscription, SubscriptionCreate, SubscriptionResponse,
+    OrgMember, OrgMemberBase, OrgMemberResponse, OrgMemberRole,
     JoinRequest, JoinRequestCreate, JoinRequestResponse, JoinRequestUpdate, JoinRequestStatus,
-    OwnershipTransferRequest, MediaUploadResponse, OrgMembershipPolicy
+    OwnershipTransferRequest, OrgMembershipPolicy
 )
 from middleware.auth import get_current_active_user
 
@@ -354,7 +352,7 @@ async def create_organization_event(
     current_user: User = Depends(get_current_active_user)
 ):
     """Create event for organization"""
-    from models.event import EventCreate, EventResponse
+    from models.event import EventCreate
     from services.event_service import EventService
     from utils.permissions import EventPermissions
     
@@ -394,7 +392,7 @@ async def create_organization_event(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create event"
@@ -447,7 +445,7 @@ async def create_organization_tournament(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create tournament"
