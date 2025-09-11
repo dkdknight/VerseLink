@@ -332,6 +332,7 @@ class TournamentService:
         
         # Generate first round matches
         matches = []
+        auto_advances: List[Match] = []
         for i in range(0, len(teams), 2):
             team_a = teams[i]
             team_b = teams[i + 1] if i + 1 < len(teams) else None
@@ -348,6 +349,7 @@ class TournamentService:
             if not team_b:
                 match.winner_team_id = team_a.id
                 match.state = MatchState.VERIFIED
+                auto_advances.append(match)
             
             matches.append(match)
             await self.db.matches.insert_one(match.dict())
@@ -364,6 +366,14 @@ class TournamentService:
                 )
                 await self.db.matches.insert_one(match.dict())
             current_matches = next_round_matches
+
+        # Process automatic advancements after bracket structure created
+        for match in auto_advances:
+            await self.db.teams.update_one(
+                {"id": match.winner_team_id},
+                {"$inc": {"wins": 1, "points": 3}}
+            )
+            await self._advance_single_elimination(tournament, match)
     
     async def _generate_double_elimination_bracket(self, tournament: Tournament):
         """Generate double elimination bracket - simplified version"""
