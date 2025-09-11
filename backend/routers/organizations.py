@@ -1,9 +1,11 @@
 from fastapi import APIRouter, HTTPException, status, Depends, File, UploadFile
+from fastapi.responses import FileResponse
 from typing import List, Optional
 from datetime import datetime
 import aiofiles
 import uuid as uuid_lib
 from pathlib import Path
+import os
 
 from database import get_database
 from models.user import User
