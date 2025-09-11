@@ -618,6 +618,39 @@ class TournamentService:
 
         raise ValueError("Match result already finalized")
 
+    async def confirm_match_score(self, match_id: str, confirmer_id: str) -> bool:
+        """Confirm a reported match score by the opposing team captain."""
+        match_doc = await self.db.matches.find_one({"id": match_id})
+        if not match_doc:
+            raise ValueError("Match not found")
+
+        match = Match(**match_doc)
+
+        if match.state != MatchState.REPORTED:
+            raise ValueError("Match must be reported before confirmation")
+
+        if match.reported_by == confirmer_id:
+            raise ValueError("Reporting team cannot confirm their own score")
+
+        # Determine opposing captain
+        team_a_doc = team_b_doc = None
+        if match.team_a_id:
+            team_a_doc = await self.db.teams.find_one({"id": match.team_a_id})
+        if match.team_b_id:
+            team_b_doc = await self.db.teams.find_one({"id": match.team_b_id})
+
+        opponent_captain_id = None
+        if team_a_doc and team_a_doc.get("captain_user_id") == match.reported_by:
+            opponent_captain_id = team_b_doc.get("captain_user_id") if team_b_doc else None
+        elif team_b_doc and team_b_doc.get("captain_user_id") == match.reported_by:
+            opponent_captain_id = team_a_doc.get("captain_user_id") if team_a_doc else None
+
+        if opponent_captain_id != confirmer_id:
+            raise ValueError("Only the opposing team captain can confirm the score")
+
+        await self.verify_match_result(match_id, confirmer_id)
+        return True
+
     async def forfeit_match(self, match_id: str, winner_team_id: str, user: User, notes: Optional[str] = None) -> bool:
         """Force end a match when a team doesn't show up"""
         match_doc = await self.db.matches.find_one({"id": match_id})

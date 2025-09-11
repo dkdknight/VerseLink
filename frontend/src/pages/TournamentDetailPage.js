@@ -22,6 +22,7 @@ import { useAuth } from '../App';
 import MatchReportModal from '../components/MatchReportModal';
 import TournamentBracket from '../components/TournamentBracket';
 import MatchDisputeModal from '../components/MatchDisputeModal';
+import MatchConfirmModal from '../components/MatchConfirmModal';
 import Chat from '../components/Chat';
 
 const TournamentDetailPage = () => {
@@ -33,6 +34,7 @@ const TournamentDetailPage = () => {
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState(null);
   const [disputeModalOpen, setDisputeModalOpen] = useState(false);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
@@ -102,6 +104,12 @@ const TournamentDetailPage = () => {
     setSelectedMatch(match);
     if (match.state === 'pending' && canReportScore(match)) {
       setReportModalOpen(true);
+    } else if (
+      match.state === 'reported' &&
+      isMatchCaptain(match) &&
+      match.reported_by !== user?.id
+    ) {
+      setConfirmModalOpen(true);
     } else if (canDispute(match)) {
       setDisputeModalOpen(true);
     }
@@ -889,6 +897,21 @@ const TournamentDetailPage = () => {
         match={selectedMatch}
         currentUser={user}
         onMatchUpdated={loadTournament}
+      />
+
+      {/* Match Confirm Modal */}
+      <MatchConfirmModal
+        isOpen={confirmModalOpen}
+        onClose={() => {
+          setConfirmModalOpen(false);
+          setSelectedMatch(null);
+        }}
+        match={selectedMatch}
+        onConfirmed={loadTournament}
+        onContest={() => {
+          setConfirmModalOpen(false);
+          setDisputeModalOpen(true);
+        }}
       />
 
       {/* Match Dispute Modal */}

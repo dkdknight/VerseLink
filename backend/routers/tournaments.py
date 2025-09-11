@@ -387,6 +387,18 @@ async def report_match_score(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.post("/matches/{match_id}/confirm")
+async def confirm_match_score(
+    match_id: str,
+    current_user: User = Depends(get_current_active_user),
+):
+    """Confirm a reported match score"""
+    try:
+        await tournament_service.confirm_match_score(match_id, current_user.id)
+        return {"message": "Match score confirmed"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 @router.post("/matches/{match_id}/verify")
 async def verify_match_result(
     match_id: str,

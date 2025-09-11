@@ -162,6 +162,17 @@ export const tournamentService = {
     }
   },
 
+  // Confirm reported match score
+  confirmMatchScore: async (matchId) => {
+    try {
+      const response = await api.post(`/tournaments/matches/${matchId}/confirm`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to confirm match score:', error);
+      throw error;
+    }
+  },
+
   // Verify match result (referee only)
   verifyMatchResult: async (matchId) => {
     try {
