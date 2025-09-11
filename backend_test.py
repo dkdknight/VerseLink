@@ -3046,6 +3046,13 @@ class VerselinkAPITester:
         self.test_health_endpoints()
         self.test_auth_endpoints()
         
+        # Run Organization Management Tests
+        print("\n🏢 TESTING ORGANIZATION MANAGEMENT FEATURES")
+        self.test_organizations_endpoints()
+        self.test_organization_management_endpoints()
+        self.test_organization_membership_policies()
+        self.test_organization_data_validation()
+        
         # Run Phase 3 Advanced Tournament Features Testing
         print("\n🏆 TESTING PHASE 3 - ADVANCED TOURNAMENT FEATURES")
         self.test_phase3_team_invitations_endpoints()
