@@ -353,8 +353,10 @@ async def schedule_match(
 ):
     """Schedule a match"""
     try:
-        await tournament_service.schedule_match(match_id, schedule.scheduled_at, current_user.id)
-        return {"message": "Match scheduled successfully"}
+        confirmed = await tournament_service.schedule_match(match_id, schedule.scheduled_at, current_user.id)
+        if confirmed:
+            return {"message": "Match scheduled successfully"}
+        return {"message": "Schedule proposal recorded, awaiting opponent confirmation"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

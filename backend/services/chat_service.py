@@ -30,7 +30,16 @@ class ChatService:
         match_doc = await self.db.matches.find_one({"id": match_id})
         if not match_doc:
             return False
-        return user_id in [match_doc.get("team_a_captain_id"), match_doc.get("team_b_captain_id")]
+        captain_ids: List[str] = []
+        if match_doc.get("team_a_id"):
+            team_a = await self.db.teams.find_one({"id": match_doc["team_a_id"]})
+            if team_a:
+                captain_ids.append(team_a.get("captain_user_id"))
+        if match_doc.get("team_b_id"):
+            team_b = await self.db.teams.find_one({"id": match_doc["team_b_id"]})
+            if team_b:
+                captain_ids.append(team_b.get("captain_user_id"))
+        return user_id in captain_ids
 
     async def get_messages(self, context: ChatContext, context_id: str, limit: int = 50) -> List[ChatMessage]:
         cursor = self.db.chat_messages.find({"context": context, "context_id": context_id}).sort("created_at", 1).limit(limit)
@@ -71,11 +80,24 @@ class ChatService:
         match_doc = await self.db.matches.find_one({"id": match_id})
         if not match_doc:
             raise HTTPException(status_code=404, detail="Match not found")
-        if user.id not in [match_doc.get("team_a_captain_id"), match_doc.get("team_b_captain_id")]:
+        team_a_captain = None
+        team_b_captain = None
+        captain_ids: List[str] = []
+        if match_doc.get("team_a_id"):
+            team_a = await self.db.teams.find_one({"id": match_doc["team_a_id"]})
+            if team_a:
+                team_a_captain = team_a.get("captain_user_id")
+                captain_ids.append(team_a_captain)
+        if match_doc.get("team_b_id"):
+            team_b = await self.db.teams.find_one({"id": match_doc["team_b_id"]})
+            if team_b:
+                team_b_captain = team_b.get("captain_user_id")
+                captain_ids.append(team_b_captain)
+        if user.id not in captain_ids:
             raise HTTPException(status_code=403, detail="Not allowed")
         message = ChatMessage(context=ChatContext.MATCH, context_id=match_id, sender_id=user.id, sender_handle=user.handle, content=content)
         await self.db.chat_messages.insert_one(message.dict())
-        other_id = match_doc.get("team_a_captain_id") if user.id == match_doc.get("team_b_captain_id") else match_doc.get("team_b_captain_id")
+        other_id = team_a_captain if user.id == team_b_captain else team_b_captain
         if other_id:
             title = "Message privé de match"
             body = f"{user.handle}: {content}"

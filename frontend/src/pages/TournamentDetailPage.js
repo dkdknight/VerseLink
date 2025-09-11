@@ -34,7 +34,6 @@ const TournamentDetailPage = () => {
   const [selectedMatch, setSelectedMatch] = useState(null);
   const [disputeModalOpen, setDisputeModalOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
-  const [chatMatch, setChatMatch] = useState(null);
 
   useEffect(() => {
     if (id) {
@@ -101,9 +100,6 @@ const TournamentDetailPage = () => {
 
   const handleMatchClick = (match) => {
     setSelectedMatch(match);
-    if (isMatchCaptain(match)) {
-      setChatMatch(match);
-    }
     if (match.state === 'pending' && canReportScore(match)) {
       setReportModalOpen(true);
     } else if (canDispute(match)) {
@@ -174,8 +170,8 @@ const TournamentDetailPage = () => {
 
     try {
       setActionLoading(true);
-      await tournamentService.scheduleMatch(match.id, scheduledAt.toISOString());
-      toast.success('Match programmé');
+      const res = await tournamentService.scheduleMatch(match.id, scheduledAt.toISOString());
+      toast.success(res.message || 'Match programmé');
       await loadTournament();
     } catch (error) {
       if (error.response?.data?.detail) {
@@ -382,16 +378,26 @@ const TournamentDetailPage = () => {
           </div>
 
           {match.scheduled_at && (
-            <div className="text-xs text-gray-400">
-              {new Date(match.scheduled_at).toLocaleDateString('fr-FR', {
-                day: '2-digit',
-                month: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </div>
-          )}
-        </div>
+          <div className="text-xs text-gray-400">
+            {new Date(match.scheduled_at).toLocaleDateString('fr-FR', {
+              day: '2-digit',
+              month: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </div>
+        )}
+        {match.pending_scheduled_at && !match.scheduled_at && (
+          <div className="text-xs text-yellow-400">
+            {new Date(match.pending_scheduled_at).toLocaleDateString('fr-FR', {
+              day: '2-digit',
+              month: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+            })} (en attente de confirmation)
+          </div>
+        )}
+      </div>
 
         <div className="flex items-center justify-between">
           <div className="text-white">
@@ -446,17 +452,8 @@ const TournamentDetailPage = () => {
           (canReportScore(match) && match.state === 'pending') ||
           canVerifyMatch(match) ||
           canForfeitMatch(match) ||
-          canUploadAttachment(match) ||
-          isMatchCaptain(match)) && (
+          canUploadAttachment(match)) && (
           <div className="mt-3 text-center space-y-2">
-            {isMatchCaptain(match) && (
-              <button
-                onClick={() => setChatMatch(match)}
-                className="text-sm text-primary-400 hover:text-primary-300 font-medium block w-full"
-              >
-                Ouvrir le chat →
-              </button>
-            )}
             {canScheduleMatch(match) && (
               <button
                 onClick={() => handleScheduleMatch(match)}
@@ -503,6 +500,12 @@ const TournamentDetailPage = () => {
                 </button>
               </>
             )}
+          </div>
+        )}
+        {isMatchCaptain(match) && match.state === 'pending' && !match.scheduled_at && (
+          <div className="mt-4">
+            <h4 className="text-lg font-medium text-white mb-2">Chat du match</h4>
+            <Chat contextType="matches" contextId={match.id} />
           </div>
         )}
       </div>
@@ -819,12 +822,6 @@ const TournamentDetailPage = () => {
           <h3 className="text-2xl font-bold text-white mb-4">Description</h3>
           <div className="text-gray-300 leading-relaxed whitespace-pre-wrap">{tournament.description}</div>
         </div>
-        {chatMatch && isMatchCaptain(chatMatch) && (
-          <div className="card p-6 mt-6">
-            <h3 className="text-2xl font-bold text-white mb-4">Chat du match</h3>
-            <Chat contextType="matches" contextId={chatMatch.id} />
-          </div>
-        )}
       </div>
 
       {/* Match Report Modal */}

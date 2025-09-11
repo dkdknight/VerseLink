@@ -414,7 +414,7 @@ class TournamentService:
                     match_position += 1
 
     async def schedule_match(self, match_id: str, scheduled_at: datetime, requester_id: str) -> bool:
-        """Schedule a match time"""
+        """Propose or confirm a match time. Returns True when fully scheduled."""
         match_doc = await self.db.matches.find_one({"id": match_id})
         if not match_doc:
             raise ValueError("Match not found")
@@ -434,12 +434,50 @@ class TournamentService:
         if requester_id not in captain_ids:
             raise ValueError("Only team captains can schedule matches")
 
-        await self.db.matches.update_one(
-            {"id": match_id},
-            {"$set": {"scheduled_at": scheduled_at, "updated_at": datetime.utcnow()}}
-        )
+        pending_at = match_doc.get("pending_scheduled_at")
+        confirmations = match_doc.get("schedule_confirmations", [])
 
-        return True
+        if not pending_at or pending_at != scheduled_at:
+            await self.db.matches.update_one(
+                {"id": match_id},
+                {
+                    "$set": {
+                        "pending_scheduled_at": scheduled_at,
+                        "schedule_confirmations": [requester_id],
+                        "updated_at": datetime.utcnow(),
+                    },
+                },
+            )
+            return False
+
+        if requester_id in confirmations:
+            return False
+
+        confirmations.append(requester_id)
+        if len(confirmations) >= 2:
+            await self.db.matches.update_one(
+                {"id": match_id},
+                {
+                    "$set": {
+                        "scheduled_at": scheduled_at,
+                        "pending_scheduled_at": None,
+                        "schedule_confirmations": [],
+                        "updated_at": datetime.utcnow(),
+                    }
+                },
+            )
+            return True
+        else:
+            await self.db.matches.update_one(
+                {"id": match_id},
+                {
+                    "$set": {
+                        "schedule_confirmations": confirmations,
+                        "updated_at": datetime.utcnow(),
+                    }
+                },
+            )
+            return False
     
     async def report_match_score(self, match_id: str, score_report: ScoreReport, reporter_id: str) -> bool:
         """Report match score"""

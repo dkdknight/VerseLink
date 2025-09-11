@@ -205,6 +205,8 @@ class Match(MatchBase):
     reported_by: Optional[str] = None
     verified_by: Optional[str] = None
     notes: Optional[str] = None
+    pending_scheduled_at: Optional[datetime] = None
+    schedule_confirmations: List[str] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     
@@ -228,6 +230,8 @@ class MatchResponse(BaseModel):
     score_b: Optional[int]
     state: str
     scheduled_at: Optional[datetime]
+    pending_scheduled_at: Optional[datetime]
+    schedule_confirmations: List[str] = Field(default_factory=list)
     reported_by: Optional[str]
     verified_by: Optional[str]
     notes: Optional[str]
