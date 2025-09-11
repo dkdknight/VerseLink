@@ -25,6 +25,9 @@ const OrganizationDetailPage = () => {
   const [isMember, setIsMember] = useState(false);
   const { user, isAuthenticated } = useAuth();
   const isOwner = user && organization && user.id === organization.owner_id;
+  const isMember = user && members.some(member => member.user_id === user.id);
+  const userMember = members.find(member => member.user_id === user?.id);
+  const canManage = userMember && (userMember.role === 'admin' || userMember.role === 'moderator' || isOwner);
 
   useEffect(() => {
     if (id) {
