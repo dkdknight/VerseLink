@@ -80,5 +80,115 @@ export const organizationService = {
       console.error('Failed to leave organization:', error);
       throw error;
     }
+  },
+
+  // Update member role
+  updateMemberRole: async (orgId, userId, role) => {
+    try {
+      const response = await api.patch(`/orgs/${orgId}/members/${userId}/role`, { role });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update member role:', error);
+      throw error;
+    }
+  },
+
+  // Remove member
+  removeMember: async (orgId, userId) => {
+    try {
+      const response = await api.delete(`/orgs/${orgId}/members/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to remove member:', error);
+      throw error;
+    }
+  },
+
+  // Join request methods
+  createJoinRequest: async (orgId, message = '') => {
+    try {
+      const response = await api.post(`/orgs/${orgId}/join-requests`, { message });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create join request:', error);
+      throw error;
+    }
+  },
+
+  getJoinRequests: async (orgId) => {
+    try {
+      const response = await api.get(`/orgs/${orgId}/join-requests`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get join requests:', error);
+      throw error;
+    }
+  },
+
+  processJoinRequest: async (orgId, requestId, status) => {
+    try {
+      const response = await api.patch(`/orgs/${orgId}/join-requests/${requestId}`, { status });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to process join request:', error);
+      throw error;
+    }
+  },
+
+  // Media upload methods
+  uploadLogo: async (orgId, file) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await api.post(`/orgs/${orgId}/media/logo`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to upload logo:', error);
+      throw error;
+    }
+  },
+
+  uploadBanner: async (orgId, file) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await api.post(`/orgs/${orgId}/media/banner`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to upload banner:', error);
+      throw error;
+    }
+  },
+
+  // Ownership and deletion
+  transferOwnership: async (orgId, newOwnerId) => {
+    try {
+      const response = await api.post(`/orgs/${orgId}/transfer-ownership`, {
+        new_owner_id: newOwnerId,
+        confirmation: true
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to transfer ownership:', error);
+      throw error;
+    }
+  },
+
+  deleteOrganization: async (orgId) => {
+    try {
+      const response = await api.delete(`/orgs/${orgId}?confirmation=true`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to delete organization:', error);
+      throw error;
+    }
   }
 };
