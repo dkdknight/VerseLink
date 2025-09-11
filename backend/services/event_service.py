@@ -64,6 +64,10 @@ class EventService:
             {"$inc": {"event_count": 1}}
         )
         
+        # Trigger Discord integration if enabled
+        if event.discord_integration_enabled:
+            await self._trigger_discord_event_creation(event.id, org_id)
+        
         return event
     
     async def get_event(self, event_id: str) -> Optional[Event]:
