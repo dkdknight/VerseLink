@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi.encoders import jsonable_encoder
 from typing import List
 from models.chat import ChatMessage, ChatContext
 from models.user import User
@@ -29,7 +30,7 @@ class ConnectionManager:
     async def broadcast(self, context: ChatContext, context_id: str, message: ChatMessage):
         room = self._room(context, context_id)
         for ws in self.rooms.get(room, []):
-            await ws.send_json(message.dict())
+            await ws.send_json(jsonable_encoder(message))
 
 manager = ConnectionManager()
 
