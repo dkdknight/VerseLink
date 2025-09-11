@@ -13,6 +13,7 @@ import {
 import { organizationService } from '../services/organizationService';
 import { useAuth } from '../App';
 import CopyButton from '../components/CopyButton';
+import { getRoleBadgeClasses, getRoleLabel } from '../utils/roles';
 
 const OrganizationDetailPage = () => {
   const { id } = useParams();
@@ -23,6 +24,7 @@ const OrganizationDetailPage = () => {
   const [leaving, setLeaving] = useState(false);
   const [isMember, setIsMember] = useState(false);
   const { user, isAuthenticated } = useAuth();
+  const isOwner = user && organization && user.id === organization.owner_id;
 
   useEffect(() => {
     if (id) {
@@ -113,44 +115,42 @@ const OrganizationDetailPage = () => {
     }
   };
 
-  const MemberCard = ({ member }) => (
-    <div className="glass-effect rounded-lg p-4 flex items-center">
-      {member.avatar_url ? (
-        <img
-          src={member.avatar_url}
-          alt={member.handle}
-          className="w-12 h-12 rounded-full mr-4"
-        />
-      ) : (
-        <div className="w-12 h-12 bg-dark-600 rounded-full flex items-center justify-center mr-4">
-          <span className="text-white font-bold">
-            {member.handle.charAt(0).toUpperCase()}
-          </span>
+  const MemberCard = ({ member }) => {
+    const ownerOfOrg = member.user_id === organization.owner_id;
+    const badgeClasses = getRoleBadgeClasses(member.role, ownerOfOrg);
+    const roleLabel = getRoleLabel(member.role, ownerOfOrg);
+    return (
+      <div className="glass-effect rounded-lg p-4 flex items-center">
+        {member.avatar_url ? (
+          <img
+            src={member.avatar_url}
+            alt={member.handle}
+            className="w-12 h-12 rounded-full mr-4"
+          />
+        ) : (
+          <div className="w-12 h-12 bg-dark-600 rounded-full flex items-center justify-center mr-4">
+            <span className="text-white font-bold">
+              {member.handle.charAt(0).toUpperCase()}
+            </span>
+          </div>
+        )}
+
+        <div className="flex-1">
+          <h4 className="text-white font-semibold">{member.handle}</h4>
+          <p className="text-gray-400 text-sm">{member.discord_username}</p>
         </div>
-      )}
-      
-      <div className="flex-1">
-        <h4 className="text-white font-semibold">{member.handle}</h4>
-        <p className="text-gray-400 text-sm">{member.discord_username}</p>
+
+        <div className="text-right">
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badgeClasses}`}>
+            {roleLabel}
+          </span>
+          <p className="text-xs text-gray-500 mt-1">
+            Rejoint le {new Date(member.joined_at).toLocaleDateString('fr-FR')}
+          </p>
+        </div>
       </div>
-      
-      <div className="text-right">
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          member.role === 'admin'
-            ? 'bg-red-100 text-red-800'
-            : member.role === 'moderator'
-            ? 'bg-yellow-100 text-yellow-800'
-            : 'bg-gray-100 text-gray-800'
-        }`}>
-          {member.role === 'admin' ? 'Admin' :
-           member.role === 'moderator' ? 'Modérateur' : 'Membre'}
-        </span>
-        <p className="text-xs text-gray-500 mt-1">
-          Rejoint le {new Date(member.joined_at).toLocaleDateString('fr-FR')}
-        </p>
-      </div>
-    </div>
-  );
+    );
+  };
 
   if (loading || !organization) {
     return (
@@ -213,14 +213,16 @@ const OrganizationDetailPage = () => {
                   Créer un événement
                 </Link>
                 {isMember ? (
-                  <button
-                    onClick={handleLeave}
-                    disabled={leaving}
-                    className="btn-ghost flex items-center text-red-400 hover:text-red-300 border-red-400 hover:border-red-300"
-                  >
-                    <UserMinusIcon className="w-5 h-5 mr-2" />
-                    {leaving ? 'Départ...' : 'Quitter'}
-                  </button>
+                  !isOwner && (
+                    <button
+                      onClick={handleLeave}
+                      disabled={leaving}
+                      className="btn-ghost flex items-center text-red-400 hover:text-red-300 border-red-400 hover:border-red-300"
+                    >
+                      <UserMinusIcon className="w-5 h-5 mr-2" />
+                      {leaving ? 'Départ...' : 'Quitter'}
+                    </button>
+                  )
                 ) : (
                   <button
                     onClick={handleJoin}
