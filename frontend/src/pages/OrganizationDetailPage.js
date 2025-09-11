@@ -22,7 +22,8 @@ const OrganizationDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
   const [leaving, setLeaving] = useState(false);
-  const [isMember, setIsMember] = useState(false);
+  const [showJoinRequestModal, setShowJoinRequestModal] = useState(false);
+  const [joinRequestMessage, setJoinRequestMessage] = useState('');
   const { user, isAuthenticated } = useAuth();
   const isOwner = user && organization && user.id === organization.owner_id;
   const isMember = user && members.some(member => member.user_id === user.id);
