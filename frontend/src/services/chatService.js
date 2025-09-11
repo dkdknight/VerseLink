@@ -2,11 +2,21 @@ import { api } from './authService';
 
 export const chatService = {
   getMessages: async (type, id) => {
-    const response = await api.get(`/chat/${type}/${id}/messages`);
+    const token = localStorage.getItem('auth_token');
+    const response = await api.get(`/chat/${type}/${id}/messages`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
     return response.data;
   },
   postMessage: async (type, id, content) => {
-    const response = await api.post(`/chat/${type}/${id}/messages`, { content });
+    const token = localStorage.getItem('auth_token');
+    const response = await api.post(
+      `/chat/${type}/${id}/messages`,
+      { content },
+      {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      }
+    );
     return response.data;
   },
   connectWebSocket: (type, id, token, onMessage) => {
