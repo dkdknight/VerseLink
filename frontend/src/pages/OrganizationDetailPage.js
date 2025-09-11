@@ -205,9 +205,19 @@ const OrganizationDetailPage = () => {
               </div>
             </div>
 
-            {/* Join/Leave Button */}
+            {/* Action Buttons */}
             {isAuthenticated && (
               <div className="flex space-x-3">
+                {canManage && (
+                  <Link
+                    to={`/organizations/${id}/manage`}
+                    className="btn-secondary flex items-center"
+                  >
+                    <PencilIcon className="w-5 h-5 mr-2" />
+                    Gérer l'organisation
+                  </Link>
+                )}
+                
                 <Link
                   to={`/organizations/${id}/events/new`}
                   className="btn-primary flex items-center"
@@ -215,7 +225,28 @@ const OrganizationDetailPage = () => {
                   <PlusIcon className="w-5 h-5 mr-2" />
                   Créer un événement
                 </Link>
-                {isMember ? (
+                
+                {!isMember ? (
+                  organization.membership_policy === 'open' ? (
+                    <button
+                      onClick={handleJoin}
+                      disabled={joining || organization.visibility === 'private'}
+                      className="btn-primary flex items-center"
+                    >
+                      <UserPlusIcon className="w-5 h-5 mr-2" />
+                      {joining ? 'Adhésion...' : 'Rejoindre'}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleRequestJoin}
+                      disabled={joining}
+                      className="btn-primary flex items-center"
+                    >
+                      <UserPlusIcon className="w-5 h-5 mr-2" />
+                      {joining ? 'Demande...' : 'Demander à rejoindre'}
+                    </button>
+                  )
+                ) : (
                   !isOwner && (
                     <button
                       onClick={handleLeave}
@@ -226,15 +257,6 @@ const OrganizationDetailPage = () => {
                       {leaving ? 'Départ...' : 'Quitter'}
                     </button>
                   )
-                ) : (
-                  <button
-                    onClick={handleJoin}
-                    disabled={joining || organization.visibility === 'private'}
-                    className="btn-primary flex items-center"
-                  >
-                    <UserPlusIcon className="w-5 h-5 mr-2" />
-                    {joining ? 'Adhésion...' : 'Rejoindre'}
-                  </button>
                 )}
               </div>
             )}
