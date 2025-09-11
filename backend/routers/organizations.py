@@ -817,19 +817,3 @@ async def delete_organization(
     
     return {"message": "Organization deleted successfully"}
 
-# Static file serving for uploaded media
-@router.get("/uploads/organizations/logos/{filename}")
-async def serve_logo(filename: str):
-    """Serve organization logo files"""
-    file_path = Path("uploads/organizations/logos") / filename
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail="File not found")
-    return FileResponse(file_path)
-
-@router.get("/uploads/organizations/banners/{filename}")
-async def serve_banner(filename: str):
-    """Serve organization banner files"""
-    file_path = Path("uploads/organizations/banners") / filename
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail="File not found")
-    return FileResponse(file_path)
