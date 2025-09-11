@@ -437,18 +437,41 @@ class TournamentService:
         pending_at = match_doc.get("pending_scheduled_at")
         confirmations = match_doc.get("schedule_confirmations", [])
 
-        if not pending_at or pending_at != scheduled_at:
-            await self.db.matches.update_one(
-                {"id": match_id},
+        # First proposal or proposer updating their proposal
+        if not pending_at:
+            # Ensure only one proposal is recorded when teams propose simultaneously
+            result = await self.db.matches.update_one(
+                {"id": match_id, "pending_scheduled_at": None},
                 {
                     "$set": {
                         "pending_scheduled_at": scheduled_at,
                         "schedule_confirmations": [requester_id],
                         "updated_at": datetime.utcnow(),
-                    },
+                    }
                 },
             )
+            if result.modified_count == 0:
+                # Another proposal was recorded concurrently
+                raise ValueError("Another schedule proposal is already pending")
             return False
+
+        if pending_at != scheduled_at:
+            # Only the original proposer can change the pending date
+            if requester_id in confirmations:
+                await self.db.matches.update_one(
+                    {"id": match_id},
+                    {
+                        "$set": {
+                            "pending_scheduled_at": scheduled_at,
+                            "schedule_confirmations": [requester_id],
+                            "updated_at": datetime.utcnow(),
+                        }
+                    },
+                )
+                return False
+            raise ValueError("Another schedule proposal is pending. Please respond to it first")
+
+        # Confirmation from the opposing captain
 
         if requester_id in confirmations:
             return False
@@ -467,17 +490,51 @@ class TournamentService:
                 },
             )
             return True
-        else:
-            await self.db.matches.update_one(
-                {"id": match_id},
-                {
-                    "$set": {
-                        "schedule_confirmations": confirmations,
-                        "updated_at": datetime.utcnow(),
-                    }
-                },
-            )
-            return False
+        await self.db.matches.update_one(
+            {"id": match_id},
+            {
+                "$set": {
+                    "schedule_confirmations": confirmations,
+                    "updated_at": datetime.utcnow(),
+                }
+            },
+        )
+        return False
+
+    async def decline_match_schedule(self, match_id: str, requester_id: str) -> None:
+        """Decline a pending match schedule proposal."""
+        match_doc = await self.db.matches.find_one({"id": match_id})
+        if not match_doc:
+            raise ValueError("Match not found")
+
+        match = Match(**match_doc)
+
+        captain_ids = []
+        if match.team_a_id:
+            team_a = await self.db.teams.find_one({"id": match.team_a_id})
+            if team_a:
+                captain_ids.append(team_a.get("captain_user_id"))
+        if match.team_b_id:
+            team_b = await self.db.teams.find_one({"id": match.team_b_id})
+            if team_b:
+                captain_ids.append(team_b.get("captain_user_id"))
+
+        if requester_id not in captain_ids:
+            raise ValueError("Only team captains can decline schedules")
+
+        if not match_doc.get("pending_scheduled_at"):
+            raise ValueError("No schedule proposal to decline")
+
+        await self.db.matches.update_one(
+            {"id": match_id},
+            {
+                "$set": {
+                    "pending_scheduled_at": None,
+                    "schedule_confirmations": [],
+                    "updated_at": datetime.utcnow(),
+                }
+            },
+        )
     
     async def report_match_score(self, match_id: str, score_report: ScoreReport, reporter_id: str) -> bool:
         """Report match score"""

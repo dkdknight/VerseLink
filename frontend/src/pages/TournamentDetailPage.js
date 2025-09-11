@@ -131,7 +131,8 @@ const TournamentDetailPage = () => {
     return (
       match.state === 'pending' &&
       !match.scheduled_at &&
-      (match.team_a_captain_id === user.id || match.team_b_captain_id === user.id)
+      (match.team_a_captain_id === user.id || match.team_b_captain_id === user.id) &&
+      (!match.pending_scheduled_at || match.schedule_confirmations.includes(user.id))
     );
   };
 
@@ -182,6 +183,40 @@ const TournamentDetailPage = () => {
     } finally {
       setActionLoading(false);
     }
+  };
+
+  const handleAcceptSchedule = async (match) => {
+    try {
+      setActionLoading(true);
+      const res = await tournamentService.scheduleMatch(match.id, match.pending_scheduled_at);
+      toast.success(res.message || 'Match programmé');
+      await loadTournament();
+    } catch (error) {
+      if (error.response?.data?.detail) {
+        toast.error(error.response.data.detail);
+      } else {
+        toast.error("Erreur lors de l'acceptation de la date");
+      }
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeclineSchedule = async (match) => {
+    try {
+      setActionLoading(true);
+      await tournamentService.declineMatchSchedule(match.id);
+      toast.info('Proposition refusée');
+    } catch (error) {
+      if (error.response?.data?.detail) {
+        toast.error(error.response.data.detail);
+      } else {
+        toast.error("Erreur lors du refus de la date");
+      }
+    } finally {
+      setActionLoading(false);
+    }
+    handleScheduleMatch(match);
   };
 
   const handleVerifyMatch = async (match) => {
@@ -389,12 +424,32 @@ const TournamentDetailPage = () => {
         )}
         {match.pending_scheduled_at && !match.scheduled_at && (
           <div className="text-xs text-yellow-400">
-            {new Date(match.pending_scheduled_at).toLocaleDateString('fr-FR', {
+            {new Date(match.pending_scheduled_at).toLocaleString('fr-FR', {
               day: '2-digit',
               month: '2-digit',
               hour: '2-digit',
               minute: '2-digit',
-            })} (en attente de confirmation)
+            })}
+            {isMatchCaptain(match) && !match.schedule_confirmations.includes(user.id) ? (
+              <div className="mt-1 space-x-2">
+                <button
+                  onClick={() => handleAcceptSchedule(match)}
+                  disabled={actionLoading}
+                  className="px-2 py-1 bg-green-600 text-white rounded text-xs"
+                >
+                  Accepter
+                </button>
+                <button
+                  onClick={() => handleDeclineSchedule(match)}
+                  disabled={actionLoading}
+                  className="px-2 py-1 bg-red-600 text-white rounded text-xs"
+                >
+                  Refuser
+                </button>
+              </div>
+            ) : (
+              <span className="ml-1">(en attente de confirmation)</span>
+            )}
           </div>
         )}
       </div>

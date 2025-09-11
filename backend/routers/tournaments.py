@@ -362,6 +362,18 @@ async def schedule_match(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.post("/matches/{match_id}/schedule/decline")
+async def decline_match_schedule(
+    match_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Decline a pending match schedule"""
+    try:
+        await tournament_service.decline_match_schedule(match_id, current_user.id)
+        return {"message": "Schedule proposal declined"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 @router.post("/matches/{match_id}/report")
 async def report_match_score(
     match_id: str,

@@ -221,6 +221,17 @@ export const tournamentService = {
     }
   },
 
+  // Decline a match schedule
+  declineMatchSchedule: async (matchId) => {
+    try {
+      const response = await api.post(`/tournaments/matches/${matchId}/schedule/decline`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to decline match schedule:', error);
+      throw error;
+    }
+  },
+
   // Delete attachment
   deleteAttachment: async (attachmentId) => {
     try {
