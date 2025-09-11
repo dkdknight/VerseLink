@@ -169,6 +169,18 @@ class DiscordService:
                     result = await self._process_sync_message_job(job)
                 elif job.job_type == JobType.WEBHOOK_DELIVERY:
                     result = await self._process_webhook_delivery_job(job)
+                elif job.job_type in [JobType.CREATE_DISCORD_EVENT, JobType.UPDATE_DISCORD_EVENT, JobType.DELETE_DISCORD_EVENT]:
+                    # Delegate to Discord Events Service
+                    from services.discord_events_service import DiscordEventsService
+                    events_service = DiscordEventsService()
+                    await events_service.process_discord_event_jobs()
+                    result = {"delegated": "discord_events_service"}
+                elif job.job_type == JobType.CREATE_CHANNELS:
+                    result = await self._process_create_channels_job(job)
+                elif job.job_type == JobType.MANAGE_ROLES:
+                    result = await self._process_manage_roles_job(job)
+                elif job.job_type == JobType.SYNC_REACTIONS:
+                    result = await self._process_sync_reactions_job(job)
                 else:
                     raise ValueError(f"Unknown job type: {job.job_type}")
                 
