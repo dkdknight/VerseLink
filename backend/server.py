@@ -1,10 +1,13 @@
 from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 import motor.motor_asyncio
 from decouple import config
 import logging
+from pathlib import Path
 
 from routers import auth, users, organizations, events, tournaments, discord_integration, discord_integration_v2, notifications, moderation, auto_moderation, chat
 from database import init_db
@@ -42,7 +45,7 @@ app = FastAPI(
 # CORS Configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=".*",
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -63,6 +66,13 @@ app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["
 app.include_router(auto_moderation.router, prefix="/api/v1/auto-moderation", tags=["Auto Moderation"])
 app.include_router(moderation.router, prefix="/api/v1/moderation", tags=["Moderation"])
 app.include_router(chat.router, prefix="/api/v1/chat", tags=["Chat"])
+
+# Static file serving for uploads
+uploads_path = Path("uploads")
+uploads_path.mkdir(exist_ok=True)
+
+# Mount static files for uploads
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 @app.get("/")
 async def root():

@@ -12,7 +12,7 @@ from typing import Dict, Any, Optional
 import io
 
 class VerselinkAPITester:
-    def __init__(self, base_url: str = "https://team-tournament-3.preview.emergentagent.com"):
+    def __init__(self, base_url: str = "https://org-admin-revamp.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.tests_run = 0
@@ -186,6 +186,187 @@ class VerselinkAPITester:
             "GET",
             "/api/v1/orgs/non-existent-id",
             404
+        )
+
+    def test_organization_management_endpoints(self):
+        """Test new organization management endpoints"""
+        print("\n" + "="*60)
+        print("TESTING ORGANIZATION MANAGEMENT ENDPOINTS")
+        print("="*60)
+        
+        test_org_id = "test-org-id"
+        test_user_id = "test-user-id"
+        test_request_id = "test-request-id"
+        
+        # Test organization creation with new fields (without auth - should fail)
+        org_data = {
+            "name": "Test Organization",
+            "tag": "TEST",
+            "description": "Test organization for new features",
+            "website_url": "https://example.com",
+            "visibility": "public",
+            "membership_policy": "request_only",
+            "logo_url": "https://example.com/logo.png",
+            "banner_url": "https://example.com/banner.png",
+            "discord_url": "https://discord.gg/test",
+            "twitter_url": "https://twitter.com/test",
+            "youtube_url": "https://youtube.com/test",
+            "twitch_url": "https://twitch.tv/test"
+        }
+        
+        self.run_test(
+            "Create Organization With New Fields",
+            "POST",
+            "/api/v1/orgs/",
+            403,  # Should fail without auth
+            data=org_data
+        )
+        
+        # Test media upload endpoints (without auth - should fail)
+        self.run_test(
+            "Upload Organization Logo Without Auth",
+            "POST",
+            f"/api/v1/orgs/{test_org_id}/media/logo",
+            403
+        )
+        
+        self.run_test(
+            "Upload Organization Banner Without Auth",
+            "POST",
+            f"/api/v1/orgs/{test_org_id}/media/banner",
+            403
+        )
+        
+        # Test join request endpoints (without auth - should fail)
+        join_request_data = {
+            "message": "I would like to join this organization"
+        }
+        
+        self.run_test(
+            "Create Join Request Without Auth",
+            "POST",
+            f"/api/v1/orgs/{test_org_id}/join-requests",
+            403,
+            data=join_request_data
+        )
+        
+        self.run_test(
+            "Get Join Requests Without Auth",
+            "GET",
+            f"/api/v1/orgs/{test_org_id}/join-requests",
+            403
+        )
+        
+        self.run_test(
+            "Process Join Request Without Auth",
+            "PATCH",
+            f"/api/v1/orgs/{test_org_id}/join-requests/{test_request_id}",
+            403,
+            data={"status": "accepted"}
+        )
+        
+        # Test member role management (without auth - should fail)
+        self.run_test(
+            "Update Member Role Without Auth",
+            "PATCH",
+            f"/api/v1/orgs/{test_org_id}/members/{test_user_id}/role",
+            403,
+            data={"role": "admin"}
+        )
+        
+        # Test ownership transfer (without auth - should fail)
+        transfer_data = {
+            "new_owner_id": test_user_id,
+            "confirmation": True
+        }
+        
+        self.run_test(
+            "Transfer Ownership Without Auth",
+            "POST",
+            f"/api/v1/orgs/{test_org_id}/transfer-ownership",
+            403,
+            data=transfer_data
+        )
+        
+        # Test organization deletion (without auth - should fail)
+        self.run_test(
+            "Delete Organization Without Auth",
+            "DELETE",
+            f"/api/v1/orgs/{test_org_id}?confirmation=true",
+            403
+        )
+
+    def test_organization_membership_policies(self):
+        """Test organization membership policy features"""
+        print("\n" + "="*60)
+        print("TESTING ORGANIZATION MEMBERSHIP POLICIES")
+        print("="*60)
+        
+        test_org_id = "test-org-id"
+        
+        # Test joining organization with open policy (without auth - should fail)
+        self.run_test(
+            "Join Open Organization Without Auth",
+            "POST",
+            f"/api/v1/orgs/{test_org_id}/members",
+            403
+        )
+        
+        # Test creating join request for request-only organization (without auth - should fail)
+        self.run_test(
+            "Create Join Request Without Auth",
+            "POST",
+            f"/api/v1/orgs/{test_org_id}/join-requests",
+            403,
+            data={"message": "Please let me join"}
+        )
+
+    def test_organization_data_validation(self):
+        """Test organization data validation"""
+        print("\n" + "="*60)
+        print("TESTING ORGANIZATION DATA VALIDATION")
+        print("="*60)
+        
+        # Test invalid organization data
+        invalid_org_data = {
+            "name": "",  # Empty name
+            "tag": "TOOLONG123",  # Too long tag
+            "visibility": "invalid_visibility",  # Invalid visibility
+            "membership_policy": "invalid_policy",  # Invalid policy
+            "website_url": "not-a-url",  # Invalid URL
+            "discord_url": "not-a-url",  # Invalid URL
+        }
+        
+        self.run_test(
+            "Create Organization Invalid Data",
+            "POST",
+            "/api/v1/orgs/",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=invalid_org_data
+        )
+        
+        # Test valid organization data structure
+        valid_org_data = {
+            "name": "Valid Organization Name",
+            "tag": "VALID",
+            "description": "A valid organization description",
+            "website_url": "https://valid-website.com",
+            "visibility": "public",
+            "membership_policy": "open",
+            "logo_url": "https://example.com/valid-logo.png",
+            "banner_url": "https://example.com/valid-banner.png",
+            "discord_url": "https://discord.gg/validinvite",
+            "twitter_url": "https://twitter.com/validhandle",
+            "youtube_url": "https://youtube.com/validchannel",
+            "twitch_url": "https://twitch.tv/validchannel"
+        }
+        
+        self.run_test(
+            "Create Organization Valid Data Structure",
+            "POST",
+            "/api/v1/orgs/",
+            403,  # Will fail auth first, but tests endpoint structure
+            data=valid_org_data
         )
 
     def test_users_endpoints(self):
@@ -2865,6 +3046,13 @@ class VerselinkAPITester:
         self.test_health_endpoints()
         self.test_auth_endpoints()
         
+        # Run Organization Management Tests
+        print("\n🏢 TESTING ORGANIZATION MANAGEMENT FEATURES")
+        self.test_organizations_endpoints()
+        self.test_organization_management_endpoints()
+        self.test_organization_membership_policies()
+        self.test_organization_data_validation()
+        
         # Run Phase 3 Advanced Tournament Features Testing
         print("\n🏆 TESTING PHASE 3 - ADVANCED TOURNAMENT FEATURES")
         self.test_phase3_team_invitations_endpoints()
@@ -2948,7 +3136,7 @@ class VerselinkAPITester:
 def main():
     """Main test runner"""
     # Use the external URL from frontend/.env for testing
-    base_url = "https://team-tournament-3.preview.emergentagent.com"
+    base_url = "https://org-admin-revamp.preview.emergentagent.com"
     
     print("VerseLink Phase 7 Backend API Test Suite - Tournament Management Features")
     print("=" * 90)

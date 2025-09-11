@@ -6,7 +6,7 @@ Debug Discord Endpoint Issues
 import requests
 import json
 
-base_url = "https://team-tournament-3.preview.emergentagent.com"
+base_url = "https://org-admin-revamp.preview.emergentagent.com"
 
 def test_discord_config_endpoint():
     """Test the Discord config endpoint to see exact error"""

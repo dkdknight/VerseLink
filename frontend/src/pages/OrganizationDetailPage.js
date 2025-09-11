@@ -8,7 +8,8 @@ import {
   LinkIcon,
   UserPlusIcon,
   UserMinusIcon,
-  PlusIcon
+  PlusIcon,
+  PencilIcon
 } from '@heroicons/react/24/outline';
 import { organizationService } from '../services/organizationService';
 import { useAuth } from '../App';
@@ -22,9 +23,13 @@ const OrganizationDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
   const [leaving, setLeaving] = useState(false);
-  const [isMember, setIsMember] = useState(false);
+  const [showJoinRequestModal, setShowJoinRequestModal] = useState(false);
+  const [joinRequestMessage, setJoinRequestMessage] = useState('');
   const { user, isAuthenticated } = useAuth();
   const isOwner = user && organization && user.id === organization.owner_id;
+  const isMember = user && members.some(member => member.user_id === user.id);
+  const userMember = members.find(member => member.user_id === user?.id);
+  const canManage = userMember && (userMember.role === 'admin' || userMember.role === 'moderator' || isOwner);
 
   useEffect(() => {
     if (id) {
@@ -33,11 +38,7 @@ const OrganizationDetailPage = () => {
     }
   }, [id]);
 
-  useEffect(() => {
-    if (user && members.length > 0) {
-      setIsMember(members.some(member => member.user_id === user.id));
-    }
-  }, [user, members]);
+
 
   const loadOrganization = async () => {
     try {
@@ -115,6 +116,29 @@ const OrganizationDetailPage = () => {
     }
   };
 
+  const handleRequestJoin = () => {
+    setShowJoinRequestModal(true);
+  };
+
+  const handleSubmitJoinRequest = async () => {
+    try {
+      setJoining(true);
+      await organizationService.createJoinRequest(id, joinRequestMessage);
+      toast.success('Demande d\'adhésion soumise !');
+      setShowJoinRequestModal(false);
+      setJoinRequestMessage('');
+    } catch (error) {
+      console.error('Failed to create join request:', error);
+      if (error.response?.data?.detail) {
+        toast.error(error.response.data.detail);
+      } else {
+        toast.error('Erreur lors de la soumission de la demande');
+      }
+    } finally {
+      setJoining(false);
+    }
+  };
+
   const MemberCard = ({ member }) => {
     const ownerOfOrg = member.user_id === organization.owner_id;
     const badgeClasses = getRoleBadgeClasses(member.role, ownerOfOrg);
@@ -165,17 +189,36 @@ const OrganizationDetailPage = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="glass-effect rounded-2xl p-8 mb-8">
+          {/* Banner */}
+          {organization.banner_url && (
+            <div className="mb-6 -m-8 mt-0">
+              <img
+                src={organization.banner_url}
+                alt="Bannière"
+                className="w-full h-48 object-cover rounded-t-2xl"
+              />
+            </div>
+          )}
+          
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between">
             <div className="flex items-center mb-6 lg:mb-0">
-              <div className="w-20 h-20 bg-gradient-star rounded-xl flex items-center justify-center mr-6">
-                <span className="text-white font-bold text-2xl">{organization.tag}</span>
-              </div>
+              {organization.logo_url ? (
+                <img
+                  src={organization.logo_url}
+                  alt="Logo"
+                  className="w-20 h-20 rounded-xl object-cover mr-6"
+                />
+              ) : (
+                <div className="w-20 h-20 bg-gradient-star rounded-xl flex items-center justify-center mr-6">
+                  <span className="text-white font-bold text-2xl">{organization.tag}</span>
+                </div>
+              )}
               
               <div>
                 <h1 className="text-4xl font-bold text-white mb-2 text-shadow">
                   {organization.name}
                 </h1>
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-4 mb-3">
                   <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                     organization.visibility === 'public' 
                       ? 'bg-green-100 text-green-800' 
@@ -187,6 +230,17 @@ const OrganizationDetailPage = () => {
                      organization.visibility === 'unlisted' ? 'Non listée' : 'Privée'}
                   </span>
                   
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                    organization.membership_policy === 'open'
+                      ? 'bg-blue-100 text-blue-800'
+                      : 'bg-orange-100 text-orange-800'
+                  }`}>
+                    {organization.membership_policy === 'open' ? 'Adhésion ouverte' : 'Sur demande'}
+                  </span>
+                </div>
+                
+                {/* Social Links */}
+                <div className="flex items-center space-x-4">
                   {organization.website_url && (
                     <a
                       href={organization.website_url}
@@ -198,13 +252,67 @@ const OrganizationDetailPage = () => {
                       Site web
                     </a>
                   )}
+                  
+                  {organization.discord_url && (
+                    <a
+                      href={organization.discord_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-indigo-400 hover:text-indigo-300 text-sm"
+                    >
+                      Discord
+                    </a>
+                  )}
+                  
+                  {organization.twitter_url && (
+                    <a
+                      href={organization.twitter_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 text-sm"
+                    >
+                      Twitter
+                    </a>
+                  )}
+                  
+                  {organization.youtube_url && (
+                    <a
+                      href={organization.youtube_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-red-400 hover:text-red-300 text-sm"
+                    >
+                      YouTube
+                    </a>
+                  )}
+                  
+                  {organization.twitch_url && (
+                    <a
+                      href={organization.twitch_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-purple-400 hover:text-purple-300 text-sm"
+                    >
+                      Twitch
+                    </a>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Join/Leave Button */}
+            {/* Action Buttons */}
             {isAuthenticated && (
               <div className="flex space-x-3">
+                {canManage && (
+                  <Link
+                    to={`/organizations/${id}/manage`}
+                    className="btn-secondary flex items-center"
+                  >
+                    <PencilIcon className="w-5 h-5 mr-2" />
+                    Gérer l'organisation
+                  </Link>
+                )}
+                
                 <Link
                   to={`/organizations/${id}/events/new`}
                   className="btn-primary flex items-center"
@@ -212,7 +320,28 @@ const OrganizationDetailPage = () => {
                   <PlusIcon className="w-5 h-5 mr-2" />
                   Créer un événement
                 </Link>
-                {isMember ? (
+                
+                {!isMember ? (
+                  organization.membership_policy === 'open' ? (
+                    <button
+                      onClick={handleJoin}
+                      disabled={joining || organization.visibility === 'private'}
+                      className="btn-primary flex items-center"
+                    >
+                      <UserPlusIcon className="w-5 h-5 mr-2" />
+                      {joining ? 'Adhésion...' : 'Rejoindre'}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleRequestJoin}
+                      disabled={joining}
+                      className="btn-primary flex items-center"
+                    >
+                      <UserPlusIcon className="w-5 h-5 mr-2" />
+                      {joining ? 'Demande...' : 'Demander à rejoindre'}
+                    </button>
+                  )
+                ) : (
                   !isOwner && (
                     <button
                       onClick={handleLeave}
@@ -223,15 +352,6 @@ const OrganizationDetailPage = () => {
                       {leaving ? 'Départ...' : 'Quitter'}
                     </button>
                   )
-                ) : (
-                  <button
-                    onClick={handleJoin}
-                    disabled={joining || organization.visibility === 'private'}
-                    className="btn-primary flex items-center"
-                  >
-                    <UserPlusIcon className="w-5 h-5 mr-2" />
-                    {joining ? 'Adhésion...' : 'Rejoindre'}
-                  </button>
                 )}
               </div>
             )}
@@ -331,6 +451,53 @@ const OrganizationDetailPage = () => {
             </div>
           </div>
         </div>
+
+        {/* Join Request Modal */}
+        {showJoinRequestModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-dark-800 rounded-lg p-6 max-w-md w-full">
+              <h3 className="text-xl font-bold text-white mb-4">
+                Demander à rejoindre {organization.name}
+              </h3>
+              <p className="text-gray-300 mb-4">
+                Cette organisation nécessite une approbation pour rejoindre. 
+                Vous pouvez ajouter un message pour expliquer pourquoi vous souhaitez rejoindre.
+              </p>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Message (optionnel)
+                </label>
+                <textarea
+                  value={joinRequestMessage}
+                  onChange={(e) => setJoinRequestMessage(e.target.value)}
+                  className="input-primary w-full"
+                  rows="3"
+                  placeholder="Expliquez pourquoi vous souhaitez rejoindre cette organisation..."
+                />
+              </div>
+              
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => {
+                    setShowJoinRequestModal(false);
+                    setJoinRequestMessage('');
+                  }}
+                  className="btn-ghost flex-1"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleSubmitJoinRequest}
+                  disabled={joining}
+                  className="btn-primary flex-1"
+                >
+                  {joining ? 'Envoi...' : 'Soumettre la demande'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

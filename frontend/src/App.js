@@ -11,6 +11,7 @@ import ProfilePage from './pages/ProfilePage';
 import OrganizationsPage from './pages/OrganizationsPage';
 import OrganizationDetailPage from './pages/OrganizationDetailPage';
 import CreateOrganizationPage from './pages/CreateOrganizationPage';
+import ManageOrganizationPage from './pages/ManageOrganizationPage';
 import CreateEventPage from './pages/CreateEventPage';
 import EditEventPage from './pages/EditEventPage';
 import EventsPage from './pages/EventsPage';
@@ -180,6 +181,7 @@ function App() {
               <Route path="/organizations" element={<OrganizationsPage />} />
               <Route path="/organizations/create" element={<ProtectedRoute><CreateOrganizationPage /></ProtectedRoute>} />
               <Route path="/organizations/:id" element={<OrganizationDetailPage />} />
+              <Route path="/organizations/:id/manage" element={<ProtectedRoute><ManageOrganizationPage /></ProtectedRoute>} />
               <Route path="/organizations/:id/events/new" element={<ProtectedRoute><CreateEventPage /></ProtectedRoute>} />
               <Route path="/events" element={<EventsPage />} />
               <Route path="/events/:id" element={<EventDetailPage />} />
