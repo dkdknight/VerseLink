@@ -15,6 +15,8 @@ beforeEach(() => {
       writeText: jest.fn().mockResolvedValue(),
     },
   });
+  Object.assign(window, { isSecureContext: true });
+  document.execCommand = jest.fn();
 });
 
 test('copies text to clipboard and shows feedback', async () => {

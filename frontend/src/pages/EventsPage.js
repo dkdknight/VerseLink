@@ -12,6 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { eventService } from '../services/eventService';
 import { useAuth } from '../App';
+import { getMediaUrl } from '../utils/media';
 
 const EventsPage = () => {
   const [events, setEvents] = useState([]);
@@ -66,7 +67,7 @@ const EventsPage = () => {
         </div>
         {event.banner_url && (
           <img
-            src={event.banner_url}
+            src={getMediaUrl(event.banner_url)}
             alt={event.title}
             className="w-20 h-16 object-cover rounded-lg ml-4"
           />

@@ -24,6 +24,7 @@ import TournamentBracket from '../components/TournamentBracket';
 import MatchDisputeModal from '../components/MatchDisputeModal';
 import MatchConfirmModal from '../components/MatchConfirmModal';
 import Chat from '../components/Chat';
+import { getMediaUrl } from '../utils/media';
 
 const TournamentDetailPage = () => {
   const { id } = useParams();
@@ -699,7 +700,7 @@ const TournamentDetailPage = () => {
             {tournament.banner_url && (
               <div className="lg:ml-8 mt-6 lg:mt-0">
                 <img
-                  src={tournament.banner_url}
+                  src={getMediaUrl(tournament.banner_url)}
                   alt={tournament.name}
                   className="w-full lg:w-64 h-40 object-cover rounded-xl"
                 />

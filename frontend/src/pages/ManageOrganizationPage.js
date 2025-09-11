@@ -13,6 +13,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { organizationService } from '../services/organizationService';
 import { useAuth } from '../App';
+import { getMediaUrl } from '../utils/media';
 
 const ManageOrganizationPage = () => {
   const { id } = useParams();
@@ -469,7 +470,7 @@ const ManageOrganizationPage = () => {
                   <div className="flex items-center space-x-6">
                     {organization.logo_url ? (
                       <img
-                        src={organization.logo_url}
+                        src={getMediaUrl(organization.logo_url)}
                         alt="Logo"
                         className="w-20 h-20 rounded-lg object-cover"
                       />
@@ -502,7 +503,7 @@ const ManageOrganizationPage = () => {
                   <div className="space-y-4">
                     {organization.banner_url ? (
                       <img
-                        src={organization.banner_url}
+                        src={getMediaUrl(organization.banner_url)}
                         alt="Bannière"
                         className="w-full h-48 rounded-lg object-cover"
                       />

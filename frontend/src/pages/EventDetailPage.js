@@ -19,6 +19,7 @@ import {
 import { eventService } from '../services/eventService';
 import { useAuth } from '../App';
 import Chat from '../components/Chat';
+import { getMediaUrl } from '../utils/media';
 
 const EventDetailPage = () => {
   const { id } = useParams();
@@ -410,7 +411,7 @@ const EventDetailPage = () => {
             {event.banner_url && (
               <div className="lg:ml-8 mt-6 lg:mt-0">
                 <img
-                  src={event.banner_url}
+                  src={getMediaUrl(event.banner_url)}
                   alt={event.title}
                   className="w-full lg:w-64 h-40 object-cover rounded-xl"
                 />

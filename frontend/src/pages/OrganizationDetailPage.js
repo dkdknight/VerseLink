@@ -15,6 +15,7 @@ import { organizationService } from '../services/organizationService';
 import { useAuth } from '../App';
 import CopyButton from '../components/CopyButton';
 import { getRoleBadgeClasses, getRoleLabel } from '../utils/roles';
+import { getMediaUrl } from '../utils/media';
 
 const OrganizationDetailPage = () => {
   const { id } = useParams();
@@ -193,7 +194,7 @@ const OrganizationDetailPage = () => {
           {organization.banner_url && (
             <div className="mb-6 -m-8 mt-0">
               <img
-                src={organization.banner_url}
+                src={getMediaUrl(organization.banner_url)}
                 alt="Bannière"
                 className="w-full h-48 object-cover rounded-t-2xl"
               />
@@ -204,7 +205,7 @@ const OrganizationDetailPage = () => {
             <div className="flex items-center mb-6 lg:mb-0">
               {organization.logo_url ? (
                 <img
-                  src={organization.logo_url}
+                  src={getMediaUrl(organization.logo_url)}
                   alt="Logo"
                   className="w-20 h-20 rounded-xl object-cover mr-6"
                 />

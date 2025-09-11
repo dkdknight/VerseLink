@@ -14,6 +14,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { tournamentService } from '../services/tournamentService';
 import { useAuth } from '../App';
+import { getMediaUrl } from '../utils/media';
 
 const TournamentsPage = () => {
   const [tournaments, setTournaments] = useState([]);
@@ -68,7 +69,7 @@ const TournamentsPage = () => {
         </div>
         {tournament.banner_url && (
           <img
-            src={tournament.banner_url}
+            src={getMediaUrl(tournament.banner_url)}
             alt={tournament.name}
             className="w-20 h-16 object-cover rounded-lg ml-4"
           />
