@@ -12,7 +12,7 @@ from typing import Dict, Any, Optional
 import io
 
 class VerselinkAPITester:
-    def __init__(self, base_url: str = "https://org-admin-revamp.preview.emergentagent.com"):
+    def __init__(self, base_url: str = "https://community-pulse-23.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.tests_run = 0
@@ -3136,7 +3136,7 @@ class VerselinkAPITester:
 def main():
     """Main test runner"""
     # Use the external URL from frontend/.env for testing
-    base_url = "https://org-admin-revamp.preview.emergentagent.com"
+    base_url = "https://community-pulse-23.preview.emergentagent.com"
     
     print("VerseLink Phase 7 Backend API Test Suite - Tournament Management Features")
     print("=" * 90)

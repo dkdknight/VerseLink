@@ -5,7 +5,7 @@ Test Fixed Discord Endpoints
 
 import requests
 
-base_url = "https://org-admin-revamp.preview.emergentagent.com"
+base_url = "https://community-pulse-23.preview.emergentagent.com"
 api_key = "210303df-9dbd-4bd3-add6-62e4e7b05977"  # The API key we added to the guild
 
 def test_fixed_endpoints():
