@@ -142,6 +142,33 @@ async def create_indexes():
     await database.discord_guilds.create_index("status")
     await database.discord_guilds.create_index("api_key", unique=True)
     
+    # Discord events indexes
+    await database.discord_events.create_index([("guild_id", 1), ("verselink_event_id", 1)], unique=True)
+    await database.discord_events.create_index("discord_event_id", unique=True)
+    await database.discord_events.create_index("verselink_event_id")
+    await database.discord_events.create_index("status")
+    await database.discord_events.create_index("scheduled_start_time")
+    await database.discord_events.create_index("created_at")
+    
+    # Interactive messages indexes
+    await database.interactive_messages.create_index("guild_id")
+    await database.interactive_messages.create_index("verselink_event_id")
+    await database.interactive_messages.create_index("discord_message_id", unique=True, sparse=True)
+    await database.interactive_messages.create_index("active")
+    await database.interactive_messages.create_index("created_at")
+    
+    # Discord role mappings indexes  
+    await database.discord_role_mappings.create_index([("guild_id", 1), ("discord_role_id", 1)], unique=True)
+    await database.discord_role_mappings.create_index("verselink_entity_id")
+    await database.discord_role_mappings.create_index("verselink_role_type")
+    await database.discord_role_mappings.create_index("auto_assign")
+    
+    # Discord channel mappings indexes
+    await database.discord_channel_mappings.create_index([("guild_id", 1), ("discord_channel_id", 1)], unique=True)
+    await database.discord_channel_mappings.create_index("verselink_event_id")
+    await database.discord_channel_mappings.create_index("auto_created")
+    await database.discord_channel_mappings.create_index("created_at")
+    
     # Discord jobs indexes
     await database.discord_jobs.create_index("status")
     await database.discord_jobs.create_index("scheduled_at")
