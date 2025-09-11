@@ -5,7 +5,7 @@ from models.tournament import (
     Tournament, TournamentCreate, TournamentUpdate,
     Team, TeamCreate, TeamMember,
     Match, MatchState, TournamentState, TournamentFormat,
-    ScoreReport, MatchDisputeCreate
+    ScoreReport
 )
 from models.user import User
 import re
@@ -544,21 +544,22 @@ class TournamentService:
         
         match = Match(**match_doc)
         
-        # Check if reporter is captain of one of the teams
+        # Get team docs
+        team_a_doc = team_b_doc = None
         if match.team_a_id:
             team_a_doc = await self.db.teams.find_one({"id": match.team_a_id})
-            if team_a_doc and team_a_doc["captain_user_id"] == reporter_id:
-                pass  # Valid reporter
-            elif match.team_b_id:
-                team_b_doc = await self.db.teams.find_one({"id": match.team_b_id})
-                if team_b_doc and team_b_doc["captain_user_id"] == reporter_id:
-                    pass  # Valid reporter
-                else:
-                    raise ValueError("Only team captains can report scores")
-            else:
-                raise ValueError("Only team captains can report scores")
-        else:
+        if match.team_b_id:
+            team_b_doc = await self.db.teams.find_one({"id": match.team_b_id})
+        if not team_a_doc or not team_b_doc:
             raise ValueError("Match has no teams assigned")
+
+        # Check if reporter is captain of one of the teams
+        if team_a_doc.get("captain_user_id") == reporter_id:
+            opponent_captain_id = team_b_doc.get("captain_user_id")
+        elif team_b_doc.get("captain_user_id") == reporter_id:
+            opponent_captain_id = team_a_doc.get("captain_user_id")
+        else:
+            raise ValueError("Only team captains can report scores")
         
         # Determine winner
         winner_team_id = match.team_a_id if score_report.score_a > score_report.score_b else match.team_b_id
@@ -573,6 +574,7 @@ class TournamentService:
                 "loser_team_id": loser_team_id,
                 "state": MatchState.REPORTED,
                 "reported_by": reporter_id,
+                "reported_at": datetime.utcnow(),
                 "notes": score_report.notes,
                 "updated_at": datetime.utcnow(),
             }
@@ -582,41 +584,15 @@ class TournamentService:
                 {"$set": update_data},
             )
 
-            return True
-
-        # Second report - verify or dispute
-        if match.state == MatchState.REPORTED:
-            if match.reported_by == reporter_id:
-                raise ValueError("Score already reported by this team")
-
-            # If scores match, auto-verify
-            if match.score_a == score_report.score_a and match.score_b == score_report.score_b:
-                await self.verify_match_result(match_id, reporter_id)
-                return True
-
-            # Scores conflict -> create dispute and notify organizers
-            dispute_reason = (
-                f"Conflit entre les scores reportés: {match.score_a}-{match.score_b} vs {score_report.score_a}-{score_report.score_b}"
-            )
-            await self.match_dispute_service.create_dispute(
-                match_id,
-                MatchDisputeCreate(dispute_reason=dispute_reason),
-                reporter_id,
-            )
-            await self.db.matches.update_one(
-                {"id": match_id},
-                {
-                    "$set": {
-                        "notes": f"{match.notes or ''}| Conflicting report {score_report.score_a}-{score_report.score_b} by {reporter_id}",
-                        "updated_at": datetime.utcnow(),
-                    }
-                },
-            )
-            await self.notification_service.notify_match_disputed(match.tournament_id, match_id)
+            # Notify opposing team captain
+            if opponent_captain_id:
+                await self.notification_service.notify_match_score_reported(
+                    match.tournament_id, match_id, opponent_captain_id
+                )
 
             return True
 
-        raise ValueError("Match result already finalized")
+        raise ValueError("Match result already reported and awaiting confirmation")
 
     async def confirm_match_score(self, match_id: str, confirmer_id: str) -> bool:
         """Confirm a reported match score by the opposing team captain."""

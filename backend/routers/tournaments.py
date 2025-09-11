@@ -19,6 +19,7 @@ from services.file_upload_service import FileUploadService
 from services.team_invitation_service import TeamInvitationService
 from services.match_dispute_service import MatchDisputeService
 from services.player_search_service import PlayerSearchService
+from services.notification_service import NotificationService
 from utils.permissions import EventPermissions  # Reuse event permissions for now
 from middleware.auth import get_current_active_user, get_current_user_optional
 from routers.organizations import require_org_permission
@@ -31,6 +32,7 @@ file_service = FileUploadService()
 invitation_service = TeamInvitationService()
 dispute_service = MatchDisputeService()
 player_search_service = PlayerSearchService()
+notification_service = NotificationService()
 
 @router.get("/", response_model=List[TournamentResponse])
 async def list_tournaments(
@@ -235,14 +237,11 @@ async def get_tournament(
         from models.tournament import MatchResponse
 
         can_report = False
-        can_verify = user_can_verify
         if current_user:
-            if team_a_doc and team_a_doc.get("captain_user_id") == current_user.id:
-                if match_doc.get("reported_by") != current_user.id and match_doc.get("state") in [MatchState.PENDING.value, MatchState.REPORTED.value]:
-                    can_report = True
-            if not can_report and team_b_doc and team_b_doc.get("captain_user_id") == current_user.id:
-                if match_doc.get("reported_by") != current_user.id and match_doc.get("state") in [MatchState.PENDING.value, MatchState.REPORTED.value]:
-                    can_report = True
+            if team_a_doc and team_a_doc.get("captain_user_id") == current_user.id and match_doc.get("state") == MatchState.PENDING.value:
+                can_report = True
+            elif team_b_doc and team_b_doc.get("captain_user_id") == current_user.id and match_doc.get("state") == MatchState.PENDING.value:
+                can_report = True
 
         match_data = {
             **match_doc,
@@ -253,7 +252,6 @@ async def get_tournament(
             "winner_team_name": winner_team_name,
             "attachments": attachments,
             "can_report": can_report,
-            "can_verify": can_verify,
         }
 
         matches.append(MatchResponse(**match_data))
@@ -396,18 +394,6 @@ async def confirm_match_score(
     try:
         await tournament_service.confirm_match_score(match_id, current_user.id)
         return {"message": "Match score confirmed"}
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-@router.post("/matches/{match_id}/verify")
-async def verify_match_result(
-    match_id: str,
-    current_user: User = Depends(get_current_active_user)
-):
-    """Verify match result (referee/admin only)"""
-    try:
-        await tournament_service.verify_match_result(match_id, current_user.id)
-        return {"message": "Match result verified successfully"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -833,6 +819,10 @@ async def create_match_dispute(
     """Create a match dispute (team captain only)"""
     try:
         await dispute_service.create_dispute(match_id, dispute_data, current_user.id)
+        db = get_database()
+        match_doc = await db.matches.find_one({"id": match_id})
+        if match_doc:
+            await notification_service.notify_match_disputed(match_doc["tournament_id"], match_id)
         return {"message": "Dispute created successfully"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

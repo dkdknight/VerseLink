@@ -19,9 +19,12 @@ class MatchDisputeService:
         if not match_doc:
             raise ValueError("Match not found")
         
-        # Check if match has been reported (can only dispute reported matches)
-        if match_doc["state"] not in [MatchState.REPORTED, MatchState.VERIFIED]:
-            raise ValueError("Can only dispute reported or verified matches")
+        # Can only dispute reported matches
+        if match_doc["state"] != MatchState.REPORTED:
+            raise ValueError("Can only dispute matches awaiting confirmation")
+
+        if match_doc.get("reported_by") == user_id:
+            raise ValueError("Reporting team cannot dispute their own score")
         
         # Check if user is captain of one of the teams in the match
         user_is_captain = False

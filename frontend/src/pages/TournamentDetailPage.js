@@ -104,14 +104,8 @@ const TournamentDetailPage = () => {
     setSelectedMatch(match);
     if (match.state === 'pending' && canReportScore(match)) {
       setReportModalOpen(true);
-    } else if (
-      match.state === 'reported' &&
-      isMatchCaptain(match) &&
-      match.reported_by !== user?.id
-    ) {
+    } else if (canConfirmMatch(match)) {
       setConfirmModalOpen(true);
-    } else if (canDispute(match)) {
-      setDisputeModalOpen(true);
     }
   };
 
@@ -122,14 +116,6 @@ const TournamentDetailPage = () => {
       match.can_report ||
       match.team_a_captain_id === user.id ||
       match.team_b_captain_id === user.id
-    );
-  };
-
-  const canDispute = (match) => {
-    if (!isAuthenticated || !user) return false;
-    return (
-      ['reported', 'verified'].includes(match.state) &&
-      (match.team_a_captain_id === user.id || match.team_b_captain_id === user.id)
     );
   };
 
@@ -152,19 +138,19 @@ const TournamentDetailPage = () => {
     );
   };
 
-  const canVerifyMatch = (match) => {
+  const canConfirmMatch = (match) => {
     if (!isAuthenticated || !user) return false;
-    return match.state === 'reported' && match.can_verify;
+    return match.state === 'reported' && isMatchCaptain(match) && match.reported_by !== user.id;
   };
 
   const canForfeitMatch = (match) => {
     if (!isAuthenticated || !user) return false;
-    return match.state === 'pending' && match.can_verify;
+    return match.state === 'pending' && tournament?.can_edit;
   };
 
   const canUploadAttachment = (match) => {
     if (!isAuthenticated || !user) return false;
-    return canReportScore(match) || match.can_verify;
+    return canReportScore(match) || canConfirmMatch(match) || tournament?.can_edit;
   };
 
   const handleScheduleMatch = async (match) => {
@@ -225,23 +211,6 @@ const TournamentDetailPage = () => {
       setActionLoading(false);
     }
     handleScheduleMatch(match);
-  };
-
-  const handleVerifyMatch = async (match) => {
-    try {
-      setActionLoading(true);
-      await tournamentService.verifyMatchResult(match.id);
-      toast.success('Match vérifié');
-      await loadTournament();
-    } catch (error) {
-      if (error.response?.data?.detail) {
-        toast.error(error.response.data.detail);
-      } else {
-        toast.error('Erreur lors de la vérification du match');
-      }
-    } finally {
-      setActionLoading(false);
-    }
   };
 
   const handleForfeitMatch = async (match) => {
@@ -492,6 +461,16 @@ const TournamentDetailPage = () => {
           )}
         </div>
 
+        {match.state === 'reported' && (
+          <div className="mt-2 text-xs text-yellow-400">
+            Score proposé par{' '}
+            {match.reported_by === match.team_a_captain_id
+              ? match.team_a_name
+              : match.team_b_name}{' '}
+            : {match.score_a}-{match.score_b} (en attente de confirmation par l'adversaire)
+          </div>
+        )}
+
         {match.notes && <div className="mt-2 text-xs text-gray-400 italic">{match.notes}</div>}
 
         {match.attachments && match.attachments.length > 0 && (
@@ -513,7 +492,7 @@ const TournamentDetailPage = () => {
         {/* Actions */}
         {(canScheduleMatch(match) ||
           (canReportScore(match) && match.state === 'pending') ||
-          canVerifyMatch(match) ||
+          canConfirmMatch(match) ||
           canForfeitMatch(match) ||
           canUploadAttachment(match)) && (
           <div className="mt-3 text-center space-y-2">
@@ -534,14 +513,29 @@ const TournamentDetailPage = () => {
                 Reporter le score →
               </button>
             )}
-            {canVerifyMatch(match) && (
-              <button
-                onClick={() => handleVerifyMatch(match)}
-                disabled={actionLoading}
-                className="text-sm text-primary-400 hover:text-primary-300 font-medium block w-full"
-              >
-                Vérifier le match →
-              </button>
+            {canConfirmMatch(match) && (
+              <>
+                <button
+                  onClick={() => {
+                    setSelectedMatch(match);
+                    setConfirmModalOpen(true);
+                  }}
+                  disabled={actionLoading}
+                  className="text-sm text-primary-400 hover:text-primary-300 font-medium block w-full"
+                >
+                  Confirmer le score →
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedMatch(match);
+                    setDisputeModalOpen(true);
+                  }}
+                  disabled={actionLoading}
+                  className="text-sm text-red-400 hover:text-red-300 font-medium block w-full"
+                >
+                  Contester le score →
+                </button>
+              </>
             )}
             {canForfeitMatch(match) && (
               <button

@@ -18,6 +18,7 @@ class NotificationType(str, Enum):
     TOURNAMENT_STARTED = "tournament_started"
     TEAM_INVITED = "team_invited"
     MATCH_SCHEDULED = "match_scheduled"
+    MATCH_SCORE_REPORTED = "match_score_reported"
     MATCH_RESULT = "match_result"
     MATCH_DISPUTED = "match_disputed"
     TOURNAMENT_WON = "tournament_won"

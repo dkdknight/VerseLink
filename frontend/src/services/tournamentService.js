@@ -173,17 +173,6 @@ export const tournamentService = {
     }
   },
 
-  // Verify match result (referee only)
-  verifyMatchResult: async (matchId) => {
-    try {
-      const response = await api.post(`/tournaments/matches/${matchId}/verify`);
-      return response.data;
-    } catch (error) {
-      console.error('Failed to verify match result:', error);
-      throw error;
-    }
-  },
-
   // Forfeit match
   forfeitMatch: async (matchId, winnerTeamId, notes = '') => {
     try {

@@ -203,6 +203,7 @@ class Match(MatchBase):
     score_b: Optional[int] = None
     state: MatchState = Field(default=MatchState.PENDING)
     reported_by: Optional[str] = None
+    reported_at: Optional[datetime] = None
     verified_by: Optional[str] = None
     notes: Optional[str] = None
     pending_scheduled_at: Optional[datetime] = None
@@ -233,11 +234,11 @@ class MatchResponse(BaseModel):
     pending_scheduled_at: Optional[datetime]
     schedule_confirmations: List[str] = Field(default_factory=list)
     reported_by: Optional[str]
+    reported_at: Optional[datetime]
     verified_by: Optional[str]
     notes: Optional[str]
     attachments: List[Dict[str, Any]] = Field(default_factory=list)
     can_report: bool = Field(default=False)
-    can_verify: bool = Field(default=False)
     created_at: datetime
 
 class ScoreReport(BaseModel):

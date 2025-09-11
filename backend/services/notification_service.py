@@ -309,6 +309,22 @@ class NotificationService:
             priority=NotificationPriority.HIGH,
             data={"reason": reason}
         )
+
+    async def notify_match_score_reported(self, tournament_id: str, match_id: str, recipient_user_id: str):
+        """Notify opposing team captain that a score has been proposed"""
+        tournament_doc = await self.db.tournaments.find_one({"id": tournament_id})
+        if not tournament_doc:
+            return
+
+        await self.create_notification_for_user(
+            user_id=recipient_user_id,
+            type=NotificationType.MATCH_SCORE_REPORTED,
+            title="Score proposé",
+            message=f"Votre adversaire a proposé un score pour le tournoi '{tournament_doc['name']}'.",
+            priority=NotificationPriority.NORMAL,
+            data={"tournament_id": tournament_id, "match_id": match_id},
+            action_url=f"/tournaments/{tournament_id}#matches"
+        )
     
     async def notify_strike_received(self, user_id: str, reason: str, strike_count: int):
         """Notify user about strike"""
