@@ -155,3 +155,48 @@ class SubscriptionResponse(BaseModel):
     publisher_tag: str
     filters: Dict[str, Any]
     created_at: datetime
+
+# Join Request Models
+class JoinRequestBase(BaseModel):
+    message: Optional[str] = Field(None, max_length=500)
+
+class JoinRequestCreate(JoinRequestBase):
+    pass
+
+class JoinRequest(JoinRequestBase):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    org_id: str
+    user_id: str
+    status: JoinRequestStatus = Field(default=JoinRequestStatus.PENDING)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    processed_at: Optional[datetime] = None
+    processed_by: Optional[str] = None
+    
+    class Config:
+        use_enum_values = True
+
+class JoinRequestResponse(BaseModel):
+    id: str
+    org_id: str
+    user_id: str
+    user_handle: str
+    user_avatar_url: Optional[str]
+    message: Optional[str]
+    status: str
+    created_at: datetime
+    processed_at: Optional[datetime]
+    processed_by: Optional[str]
+
+class JoinRequestUpdate(BaseModel):
+    status: JoinRequestStatus
+    
+# Transfer Ownership Models
+class OwnershipTransferRequest(BaseModel):
+    new_owner_id: str
+    confirmation: bool = Field(..., description="Must be True to confirm transfer")
+
+# Media Upload Models
+class MediaUploadResponse(BaseModel):
+    url: str
+    filename: str
+    size: int
