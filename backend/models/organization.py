@@ -62,7 +62,18 @@ class OrganizationUpdate(BaseModel):
     description: Optional[str] = Field(None, max_length=1000)
     website_url: Optional[str] = None
     visibility: Optional[OrgVisibility] = None
+    membership_policy: Optional[OrgMembershipPolicy] = None
     discord_guild_id: Optional[str] = None
+    
+    # Media fields
+    logo_url: Optional[str] = None
+    banner_url: Optional[str] = None
+    
+    # Social links
+    discord_url: Optional[str] = None
+    twitter_url: Optional[str] = None
+    youtube_url: Optional[str] = None
+    twitch_url: Optional[str] = None
 
 class Organization(OrganizationBase):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
