@@ -21,18 +21,25 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    await init_db()
-    logger.info("Database initialized")
-    
-    # Start Discord scheduler
-    await start_discord_scheduler()
-    logger.info("Discord scheduler started")
+    try:
+        await init_db()
+        logger.info("Database initialized")
+        
+        # Start Discord scheduler
+        await start_discord_scheduler()
+        logger.info("Discord scheduler started")
+    except Exception as e:
+        logger.error(f"Startup error: {e}")
+        # Continue without Discord scheduler if it fails
     
     yield
     
     # Shutdown
-    await stop_discord_scheduler()
-    logger.info("Discord scheduler stopped")
+    try:
+        await stop_discord_scheduler()
+        logger.info("Discord scheduler stopped")
+    except Exception as e:
+        logger.error(f"Shutdown error: {e}")
     logger.info("Application shutting down")
 
 app = FastAPI(
