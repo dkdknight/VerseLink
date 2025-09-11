@@ -3213,6 +3213,10 @@ class VerselinkAPITester:
         self.test_phase6_api_structure()
         self.test_phase6_integration_scenarios()
         
+        # NEW: Discord Events Integration Testing
+        print("\n🎮 TESTING DISCORD EVENTS INTEGRATION")
+        self.test_discord_events_integration()
+        
         # Print summary
         self.print_summary()
 
