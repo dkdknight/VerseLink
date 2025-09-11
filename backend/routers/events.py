@@ -288,6 +288,23 @@ async def update_event(
     updated_event = await event_service.update_event(event_id, update_data)
     return updated_event
 
+@router.post("/{event_id}/complete")
+async def complete_event(
+    event_id: str,
+    current_user: User = Depends(get_current_active_user),
+):
+    """Mark an event as completed"""
+    event = await event_service.get_event(event_id)
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    if not await EventPermissions.can_edit_event(current_user, event.org_id, event.created_by):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+
+    success = await event_service.mark_event_completed(event_id)
+    if not success:
+        raise HTTPException(status_code=400, detail="Failed to complete event")
+    return {"message": "Event marked as completed"}
+
 @router.post("/{event_id}/cancel")
 async def cancel_event(
     event_id: str,
