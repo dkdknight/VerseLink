@@ -267,7 +267,7 @@ class NotificationService:
 
         org_id = tournament_doc["org_id"]
         recipients = {tournament_doc["created_by"]}
-        async for member_doc in self.db.org_members.find({"org_id": org_id, "role": {"$in": ["admin", "staff"]}}):
+        async for member_doc in self.db.org_members.find({"org_id": org_id, "role": {"$in": ["admin", "moderator"]}}):
             recipients.add(member_doc["user_id"])
 
         if recipients:
@@ -286,7 +286,7 @@ class NotificationService:
         """Notify org admins about new member"""
         # Get org admins
         admin_members = []
-        async for member_doc in self.db.org_members.find({"org_id": org_id, "role": {"$in": ["admin", "staff"]}}):
+        async for member_doc in self.db.org_members.find({"org_id": org_id, "role": {"$in": ["admin", "moderator"]}}):
             admin_members.append(member_doc["user_id"])
         
         if admin_members:

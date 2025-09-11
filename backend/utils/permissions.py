@@ -25,7 +25,7 @@ class EventPermissions:
         if user.is_site_admin:
             return True
         
-        # Check if user is org admin or staff
+        # Check if user is org admin or moderator
         db = get_database()
         member_doc = await db.org_members.find_one({
             "org_id": org_id,
@@ -39,7 +39,7 @@ class EventPermissions:
         if not member_role:
             return False
 
-        return member_role in (OrgMemberRole.ADMIN, OrgMemberRole.STAFF)
+        return member_role in (OrgMemberRole.ADMIN, OrgMemberRole.MODERATOR)
     
     @staticmethod
     async def can_edit_event(user: User, event_org_id: str, event_created_by: str) -> bool:

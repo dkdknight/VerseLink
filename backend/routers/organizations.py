@@ -6,7 +6,7 @@ from database import get_database
 from models.user import User
 from models.organization import (
     Organization, OrganizationCreate, OrganizationUpdate, OrganizationResponse,
-    OrgMember, OrgMemberCreate, OrgMemberResponse, OrgMemberRole,
+    OrgMember, OrgMemberBase, OrgMemberCreate, OrgMemberResponse, OrgMemberRole,
     Subscription, SubscriptionCreate, SubscriptionResponse
 )
 from middleware.auth import get_current_active_user
@@ -41,7 +41,7 @@ async def require_org_permission(org_id: str, user: User, min_role: OrgMemberRol
     
     role_hierarchy = {
         OrgMemberRole.MEMBER: 1,
-        OrgMemberRole.STAFF: 2,
+        OrgMemberRole.MODERATOR: 2,
         OrgMemberRole.ADMIN: 3
     }
     
@@ -311,6 +311,35 @@ async def remove_organization_member(
     )
     
     return {"message": "Member removed successfully"}
+
+@router.patch("/{org_id}/members/{user_id}/role", response_model=dict)
+async def update_organization_member_role(
+    org_id: str,
+    user_id: str,
+    role_update: OrgMemberBase,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Update a member's role in the organization (admin only)"""
+    await require_org_permission(org_id, current_user, OrgMemberRole.ADMIN)
+
+    db = get_database()
+
+    org_doc = await db.organizations.find_one({"id": org_id})
+    if not org_doc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
+
+    if org_doc["owner_id"] == user_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot modify owner's role")
+
+    result = await db.org_members.update_one(
+        {"org_id": org_id, "user_id": user_id},
+        {"$set": {"role": role_update.role}}
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Member not found")
+
+    return {"message": "Member role updated successfully"}
 
 @router.post("/{org_id}/events", response_model=dict)
 async def create_organization_event(

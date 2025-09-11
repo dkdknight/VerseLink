@@ -135,14 +135,14 @@ const OrganizationDetailPage = () => {
       
       <div className="text-right">
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          member.role === 'admin' 
-            ? 'bg-red-100 text-red-800' 
-            : member.role === 'staff'
+          member.role === 'admin'
+            ? 'bg-red-100 text-red-800'
+            : member.role === 'moderator'
             ? 'bg-yellow-100 text-yellow-800'
             : 'bg-gray-100 text-gray-800'
         }`}>
-          {member.role === 'admin' ? 'Admin' : 
-           member.role === 'staff' ? 'Staff' : 'Membre'}
+          {member.role === 'admin' ? 'Admin' :
+           member.role === 'moderator' ? 'Modérateur' : 'Membre'}
         </span>
         <p className="text-xs text-gray-500 mt-1">
           Rejoint le {new Date(member.joined_at).toLocaleDateString('fr-FR')}

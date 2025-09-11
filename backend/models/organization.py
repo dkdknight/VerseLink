@@ -11,7 +11,7 @@ class OrgVisibility(str, Enum):
 
 class OrgMemberRole(str, Enum):
     ADMIN = "admin"
-    STAFF = "staff"
+    MODERATOR = "moderator"
     MEMBER = "member"
 
 class OrganizationBase(BaseModel):
