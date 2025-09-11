@@ -8,7 +8,8 @@ import {
   LinkIcon,
   UserPlusIcon,
   UserMinusIcon,
-  PlusIcon
+  PlusIcon,
+  PencilIcon
 } from '@heroicons/react/24/outline';
 import { organizationService } from '../services/organizationService';
 import { useAuth } from '../App';
