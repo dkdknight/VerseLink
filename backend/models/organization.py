@@ -9,10 +9,19 @@ class OrgVisibility(str, Enum):
     UNLISTED = "unlisted"
     PRIVATE = "private"
 
+class OrgMembershipPolicy(str, Enum):
+    OPEN = "open"
+    REQUEST_ONLY = "request_only"
+
 class OrgMemberRole(str, Enum):
     ADMIN = "admin"
     MODERATOR = "moderator"
     MEMBER = "member"
+
+class JoinRequestStatus(str, Enum):
+    PENDING = "pending"
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
 
 class OrganizationBase(BaseModel):
     name: str = Field(..., min_length=3, max_length=100)
