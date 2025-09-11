@@ -29,12 +29,29 @@ class OrganizationBase(BaseModel):
     description: Optional[str] = Field(None, max_length=1000)
     website_url: Optional[str] = None
     visibility: OrgVisibility = Field(default=OrgVisibility.PUBLIC)
+    membership_policy: OrgMembershipPolicy = Field(default=OrgMembershipPolicy.OPEN)
+    
+    # Media fields
+    logo_url: Optional[str] = None
+    banner_url: Optional[str] = None
+    
+    # Social links
+    discord_url: Optional[str] = None
+    twitter_url: Optional[str] = None
+    youtube_url: Optional[str] = None
+    twitch_url: Optional[str] = None
     
     @validator('tag')
     def tag_uppercase_alphanumeric(cls, v):
         v = v.upper()
         if not v.isalnum():
             raise ValueError('Tag must contain only letters and numbers')
+        return v
+    
+    @validator('website_url', 'discord_url', 'twitter_url', 'youtube_url', 'twitch_url', 'logo_url', 'banner_url')
+    def validate_urls(cls, v):
+        if v and not (v.startswith('http://') or v.startswith('https://')):
+            raise ValueError('URL must start with http:// or https://')
         return v
 
 class OrganizationCreate(OrganizationBase):
