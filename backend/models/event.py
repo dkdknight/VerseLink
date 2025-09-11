@@ -148,6 +148,13 @@ class Event(EventBase):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     
+    # Discord Integration Fields
+    discord_integration_enabled: bool = Field(default=True)
+    discord_events: List[str] = Field(default_factory=list, description="List of Discord event IDs")
+    discord_channels: List[str] = Field(default_factory=list, description="List of Discord channel IDs")
+    discord_roles: List[str] = Field(default_factory=list, description="List of Discord role IDs")
+    discord_message_ids: List[str] = Field(default_factory=list, description="Interactive message IDs")
+    
     class Config:
         use_enum_values = True
 
@@ -177,6 +184,12 @@ class EventResponse(BaseModel):
     fleet_ships: List[FleetShipResponse] = Field(default_factory=list)
     is_full: bool = Field(default=False)
     checkin_available: bool = Field(default=False)
+    
+    # Discord Integration Fields
+    discord_integration_enabled: bool = Field(default=True)
+    discord_events: List[str] = Field(default_factory=list)
+    discord_channels: List[str] = Field(default_factory=list)
+    discord_roles: List[str] = Field(default_factory=list)
 
 class EventSignupBase(BaseModel):
     role_id: Optional[str] = None
@@ -200,6 +213,9 @@ class EventSignup(EventSignupBase):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     checked_in_at: Optional[datetime] = None
+    
+    # Discord Integration
+    discord_notified: bool = Field(default=False)
     
     class Config:
         use_enum_values = True

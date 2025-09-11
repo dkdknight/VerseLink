@@ -16,6 +16,14 @@ class WebhookEvent(str, Enum):
     MESSAGE_DELETE = "message_delete"
     CHANNEL_CREATE = "channel_create"
     ROLE_UPDATE = "role_update"
+    GUILD_SCHEDULED_EVENT_CREATE = "guild_scheduled_event_create"
+    GUILD_SCHEDULED_EVENT_UPDATE = "guild_scheduled_event_update"
+    GUILD_SCHEDULED_EVENT_DELETE = "guild_scheduled_event_delete"
+    GUILD_SCHEDULED_EVENT_USER_ADD = "guild_scheduled_event_user_add"
+    GUILD_SCHEDULED_EVENT_USER_REMOVE = "guild_scheduled_event_user_remove"
+    MESSAGE_REACTION_ADD = "message_reaction_add"
+    MESSAGE_REACTION_REMOVE = "message_reaction_remove"
+    INTERACTION_CREATE = "interaction_create"
     
     # VerseLink -> Discord
     EVENT_CREATED = "event_created"
@@ -44,6 +52,24 @@ class JobType(str, Enum):
     ANNOUNCEMENT = "announcement"
     SYNC_MESSAGE = "sync_message"
     WEBHOOK_DELIVERY = "webhook_delivery"
+    CREATE_DISCORD_EVENT = "create_discord_event"
+    UPDATE_DISCORD_EVENT = "update_discord_event"
+    DELETE_DISCORD_EVENT = "delete_discord_event"
+    CREATE_CHANNELS = "create_channels"
+    MANAGE_ROLES = "manage_roles"
+    SYNC_REACTIONS = "sync_reactions"
+
+# Discord Event Status matching Discord API
+class DiscordEventStatus(str, Enum):
+    SCHEDULED = "1"  # Discord uses integer strings
+    ACTIVE = "2"
+    COMPLETED = "3"
+    CANCELLED = "4"
+
+class DiscordEventEntityType(str, Enum):
+    STAGE_INSTANCE = "1"
+    VOICE = "2"
+    EXTERNAL = "3"
 
 # Discord Guild Management
 class DiscordGuildBase(BaseModel):
@@ -53,8 +79,11 @@ class DiscordGuildBase(BaseModel):
     webhook_url: Optional[str] = Field(None, description="Discord webhook URL for outgoing messages")
     announcement_channel_id: Optional[str] = Field(None, description="Channel for announcements")
     reminder_channel_id: Optional[str] = Field(None, description="Channel for reminders")
+    event_channel_id: Optional[str] = Field(None, description="Channel for event management")
     sync_enabled: bool = Field(default=True, description="Enable message synchronization")
     reminder_enabled: bool = Field(default=True, description="Enable automatic reminders")
+    auto_create_channels: bool = Field(default=True, description="Auto-create channels for events")
+    auto_manage_roles: bool = Field(default=True, description="Auto-manage roles for events")
 
 class DiscordGuildCreate(DiscordGuildBase):
     pass
@@ -82,9 +111,118 @@ class DiscordGuildResponse(BaseModel):
     status: str
     sync_enabled: bool
     reminder_enabled: bool
+    auto_create_channels: bool
+    auto_manage_roles: bool
     webhook_verified: bool
     last_sync_at: Optional[datetime]
     created_at: datetime
+
+# Discord Scheduled Event Management
+class DiscordEventBase(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    description: Optional[str] = Field(None, max_length=1000)
+    scheduled_start_time: datetime
+    scheduled_end_time: Optional[datetime] = None
+    entity_type: DiscordEventEntityType = Field(default=DiscordEventEntityType.EXTERNAL)
+    entity_metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    channel_id: Optional[str] = Field(None, description="Voice/Stage channel ID")
+    privacy_level: int = Field(default=2, description="Guild only")
+
+class DiscordEventCreate(DiscordEventBase):
+    guild_id: str
+    verselink_event_id: str
+
+class DiscordEvent(DiscordEventBase):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    discord_event_id: str = Field(..., description="Discord scheduled event ID")
+    guild_id: str = Field(..., description="Discord Guild ID")
+    verselink_event_id: str = Field(..., description="Associated VerseLink event ID")
+    status: DiscordEventStatus = Field(default=DiscordEventStatus.SCHEDULED)
+    creator_id: Optional[str] = None
+    user_count: int = Field(default=0, description="Number of interested users")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    class Config:
+        use_enum_values = True
+
+class DiscordEventResponse(BaseModel):
+    id: str
+    discord_event_id: str
+    guild_id: str
+    verselink_event_id: str
+    name: str
+    description: Optional[str]
+    status: str
+    scheduled_start_time: datetime
+    scheduled_end_time: Optional[datetime]
+    user_count: int
+    created_at: datetime
+
+# Interactive Message Management
+class InteractionType(str, Enum):
+    PING = "1"
+    APPLICATION_COMMAND = "2"
+    MESSAGE_COMPONENT = "3"
+    APPLICATION_COMMAND_AUTOCOMPLETE = "4"
+    MODAL_SUBMIT = "5"
+
+class ComponentType(str, Enum):
+    ACTION_ROW = "1"
+    BUTTON = "2"
+    SELECT_MENU = "3"
+    TEXT_INPUT = "4"
+
+class ButtonStyle(str, Enum):
+    PRIMARY = "1"    # Blue
+    SECONDARY = "2"  # Grey
+    SUCCESS = "3"    # Green
+    DANGER = "4"     # Red
+    LINK = "5"       # Grey with link
+
+class InteractiveMessageBase(BaseModel):
+    guild_id: str
+    channel_id: str
+    message_content: str
+    embed_data: Optional[Dict[str, Any]] = None
+    components: List[Dict[str, Any]] = Field(default_factory=list)
+    message_type: str = Field(default="event_signup")
+
+class InteractiveMessage(InteractiveMessageBase):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    discord_message_id: Optional[str] = None
+    verselink_event_id: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    active: bool = Field(default=True)
+
+class InteractionResponse(BaseModel):
+    type: int = Field(..., description="Interaction response type")
+    data: Optional[Dict[str, Any]] = None
+
+# Role Management
+class DiscordRoleMapping(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    guild_id: str
+    discord_role_id: str
+    discord_role_name: str
+    verselink_role_type: str = Field(..., description="event_participant, org_member, etc.")
+    verselink_entity_id: Optional[str] = Field(None, description="Event ID, Org ID, etc.")
+    auto_assign: bool = Field(default=False)
+    auto_remove: bool = Field(default=False)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Channel Management  
+class DiscordChannelMapping(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    guild_id: str
+    discord_channel_id: str
+    discord_channel_name: str
+    channel_type: str = Field(..., description="text, voice, category")
+    verselink_event_id: Optional[str] = None
+    auto_created: bool = Field(default=False)
+    auto_archive: bool = Field(default=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
 # Webhook Management
 class WebhookLogBase(BaseModel):
@@ -267,4 +405,6 @@ class DiscordIntegrationStats(BaseModel):
     pending_jobs: int = 0
     failed_jobs: int = 0
     total_synced_messages: int = 0
+    discord_events_created: int = 0
+    interactive_messages_sent: int = 0
     last_24h_activity: Dict[str, int] = Field(default_factory=dict)
