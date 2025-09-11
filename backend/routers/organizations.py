@@ -452,3 +452,360 @@ async def create_organization_tournament(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create tournament"
         )
+
+# Media Upload Endpoints
+@router.post("/{org_id}/media/logo", response_model=dict)
+async def upload_organization_logo(
+    org_id: str,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Upload organization logo (admin only)"""
+    await require_org_permission(org_id, current_user, OrgMemberRole.ADMIN)
+    
+    # Validate file type and size
+    if not file.content_type.startswith('image/'):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File must be an image"
+        )
+    
+    # Read file to check size
+    contents = await file.read()
+    if len(contents) > 10 * 1024 * 1024:  # 10MB limit
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File size must not exceed 10MB"
+        )
+    
+    # Create uploads directory if it doesn't exist
+    upload_dir = Path("uploads/organizations/logos")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Generate unique filename
+    file_extension = Path(file.filename).suffix
+    unique_filename = f"{org_id}_{uuid_lib.uuid4()}{file_extension}"
+    file_path = upload_dir / unique_filename
+    
+    # Save file
+    async with aiofiles.open(file_path, 'wb') as f:
+        await f.write(contents)
+    
+    # Update organization with logo URL
+    db = get_database()
+    logo_url = f"/uploads/organizations/logos/{unique_filename}"
+    await db.organizations.update_one(
+        {"id": org_id},
+        {"$set": {"logo_url": logo_url, "updated_at": datetime.utcnow()}}
+    )
+    
+    return {"message": "Logo uploaded successfully", "logo_url": logo_url}
+
+@router.post("/{org_id}/media/banner", response_model=dict)
+async def upload_organization_banner(
+    org_id: str,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Upload organization banner (admin only)"""
+    await require_org_permission(org_id, current_user, OrgMemberRole.ADMIN)
+    
+    # Validate file type and size
+    if not file.content_type.startswith('image/'):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File must be an image"
+        )
+    
+    # Read file to check size
+    contents = await file.read()
+    if len(contents) > 10 * 1024 * 1024:  # 10MB limit
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File size must not exceed 10MB"
+        )
+    
+    # Create uploads directory if it doesn't exist
+    upload_dir = Path("uploads/organizations/banners")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Generate unique filename
+    file_extension = Path(file.filename).suffix
+    unique_filename = f"{org_id}_{uuid_lib.uuid4()}{file_extension}"
+    file_path = upload_dir / unique_filename
+    
+    # Save file
+    async with aiofiles.open(file_path, 'wb') as f:
+        await f.write(contents)
+    
+    # Update organization with banner URL
+    db = get_database()
+    banner_url = f"/uploads/organizations/banners/{unique_filename}"
+    await db.organizations.update_one(
+        {"id": org_id},
+        {"$set": {"banner_url": banner_url, "updated_at": datetime.utcnow()}}
+    )
+    
+    return {"message": "Banner uploaded successfully", "banner_url": banner_url}
+
+# Join Request Endpoints
+@router.post("/{org_id}/join-requests", response_model=dict)
+async def create_join_request(
+    org_id: str,
+    request_data: JoinRequestCreate,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Create a join request for organizations with request-only policy"""
+    db = get_database()
+    
+    # Check if org exists
+    org_doc = await db.organizations.find_one({"id": org_id})
+    if not org_doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Organization not found"
+        )
+    
+    org = Organization(**org_doc)
+    
+    # Check if organization accepts join requests
+    if org.membership_policy != OrgMembershipPolicy.REQUEST_ONLY:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This organization accepts direct membership"
+        )
+    
+    # Check if already a member
+    existing_member = await db.org_members.find_one({
+        "org_id": org_id,
+        "user_id": current_user.id
+    })
+    if existing_member:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Already a member of this organization"
+        )
+    
+    # Check if already has pending request
+    existing_request = await db.join_requests.find_one({
+        "org_id": org_id,
+        "user_id": current_user.id,
+        "status": JoinRequestStatus.PENDING
+    })
+    if existing_request:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You already have a pending join request"
+        )
+    
+    # Create join request
+    join_request = JoinRequest(
+        org_id=org_id,
+        user_id=current_user.id,
+        **request_data.dict()
+    )
+    await db.join_requests.insert_one(join_request.dict())
+    
+    return {"message": "Join request submitted successfully"}
+
+@router.get("/{org_id}/join-requests", response_model=List[JoinRequestResponse])
+async def get_join_requests(
+    org_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Get join requests for organization (admin/moderator only)"""
+    await require_org_permission(org_id, current_user, OrgMemberRole.MODERATOR)
+    
+    db = get_database()
+    
+    # Get join requests with user details
+    pipeline = [
+        {"$match": {"org_id": org_id, "status": JoinRequestStatus.PENDING}},
+        {
+            "$lookup": {
+                "from": "users",
+                "localField": "user_id",
+                "foreignField": "id",
+                "as": "user"
+            }
+        },
+        {"$unwind": "$user"},
+        {
+            "$project": {
+                "id": 1,
+                "org_id": 1,
+                "user_id": 1,
+                "user_handle": "$user.handle",
+                "user_avatar_url": "$user.avatar_url",
+                "message": 1,
+                "status": 1,
+                "created_at": 1,
+                "processed_at": 1,
+                "processed_by": 1
+            }
+        },
+        {"$sort": {"created_at": -1}}
+    ]
+    
+    requests = []
+    async for request_doc in db.join_requests.aggregate(pipeline):
+        requests.append(JoinRequestResponse(**request_doc))
+    
+    return requests
+
+@router.patch("/{org_id}/join-requests/{request_id}", response_model=dict)
+async def process_join_request(
+    org_id: str,
+    request_id: str,
+    request_update: JoinRequestUpdate,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Accept or reject a join request (admin/moderator only)"""
+    await require_org_permission(org_id, current_user, OrgMemberRole.MODERATOR)
+    
+    db = get_database()
+    
+    # Get join request
+    request_doc = await db.join_requests.find_one({
+        "id": request_id,
+        "org_id": org_id,
+        "status": JoinRequestStatus.PENDING
+    })
+    if not request_doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Join request not found"
+        )
+    
+    # Update request status
+    await db.join_requests.update_one(
+        {"id": request_id},
+        {
+            "$set": {
+                "status": request_update.status,
+                "processed_at": datetime.utcnow(),
+                "processed_by": current_user.id
+            }
+        }
+    )
+    
+    # If accepted, add user as member
+    if request_update.status == JoinRequestStatus.ACCEPTED:
+        member = OrgMember(
+            org_id=org_id,
+            user_id=request_doc["user_id"],
+            role=OrgMemberRole.MEMBER
+        )
+        await db.org_members.insert_one(member.dict())
+        
+        # Update member count
+        await db.organizations.update_one(
+            {"id": org_id},
+            {"$inc": {"member_count": 1}}
+        )
+        
+        message = "Join request accepted and user added as member"
+    else:
+        message = "Join request rejected"
+    
+    return {"message": message}
+
+# Ownership Transfer Endpoint
+@router.post("/{org_id}/transfer-ownership", response_model=dict)
+async def transfer_ownership(
+    org_id: str,
+    transfer_request: OwnershipTransferRequest,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Transfer organization ownership (owner only)"""
+    db = get_database()
+    
+    # Check if user is owner
+    org_doc = await db.organizations.find_one({"id": org_id})
+    if not org_doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Organization not found"
+        )
+    
+    if org_doc["owner_id"] != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the owner can transfer ownership"
+        )
+    
+    if not transfer_request.confirmation:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ownership transfer must be confirmed"
+        )
+    
+    # Check if new owner is a member
+    new_owner_member = await db.org_members.find_one({
+        "org_id": org_id,
+        "user_id": transfer_request.new_owner_id
+    })
+    if not new_owner_member:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New owner must be a member of the organization"
+        )
+    
+    # Transfer ownership
+    await db.organizations.update_one(
+        {"id": org_id},
+        {"$set": {"owner_id": transfer_request.new_owner_id, "updated_at": datetime.utcnow()}}
+    )
+    
+    # Update roles: new owner becomes admin, old owner becomes admin
+    await db.org_members.update_one(
+        {"org_id": org_id, "user_id": transfer_request.new_owner_id},
+        {"$set": {"role": OrgMemberRole.ADMIN}}
+    )
+    await db.org_members.update_one(
+        {"org_id": org_id, "user_id": current_user.id},
+        {"$set": {"role": OrgMemberRole.ADMIN}}
+    )
+    
+    return {"message": "Ownership transferred successfully"}
+
+# Delete Organization Endpoint
+@router.delete("/{org_id}", response_model=dict)
+async def delete_organization(
+    org_id: str,
+    confirmation: bool = False,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Delete organization (owner only)"""
+    db = get_database()
+    
+    # Check if user is owner
+    org_doc = await db.organizations.find_one({"id": org_id})
+    if not org_doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Organization not found"
+        )
+    
+    if org_doc["owner_id"] != current_user.id and not current_user.is_site_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the owner can delete the organization"
+        )
+    
+    if not confirmation:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Organization deletion must be confirmed"
+        )
+    
+    # Delete related data
+    await db.org_members.delete_many({"org_id": org_id})
+    await db.join_requests.delete_many({"org_id": org_id})
+    await db.events.delete_many({"org_id": org_id})
+    await db.tournaments.delete_many({"org_id": org_id})
+    
+    # Delete organization
+    await db.organizations.delete_one({"id": org_id})
+    
+    return {"message": "Organization deleted successfully"}
