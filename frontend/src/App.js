@@ -181,6 +181,7 @@ function App() {
               <Route path="/organizations" element={<OrganizationsPage />} />
               <Route path="/organizations/create" element={<ProtectedRoute><CreateOrganizationPage /></ProtectedRoute>} />
               <Route path="/organizations/:id" element={<OrganizationDetailPage />} />
+              <Route path="/organizations/:id/manage" element={<ProtectedRoute><ManageOrganizationPage /></ProtectedRoute>} />
               <Route path="/organizations/:id/events/new" element={<ProtectedRoute><CreateEventPage /></ProtectedRoute>} />
               <Route path="/events" element={<EventsPage />} />
               <Route path="/events/:id" element={<EventDetailPage />} />
