@@ -218,7 +218,7 @@ const OrganizationDetailPage = () => {
                 <h1 className="text-4xl font-bold text-white mb-2 text-shadow">
                   {organization.name}
                 </h1>
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-4 mb-3">
                   <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                     organization.visibility === 'public' 
                       ? 'bg-green-100 text-green-800' 
@@ -230,6 +230,17 @@ const OrganizationDetailPage = () => {
                      organization.visibility === 'unlisted' ? 'Non listée' : 'Privée'}
                   </span>
                   
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                    organization.membership_policy === 'open'
+                      ? 'bg-blue-100 text-blue-800'
+                      : 'bg-orange-100 text-orange-800'
+                  }`}>
+                    {organization.membership_policy === 'open' ? 'Adhésion ouverte' : 'Sur demande'}
+                  </span>
+                </div>
+                
+                {/* Social Links */}
+                <div className="flex items-center space-x-4">
                   {organization.website_url && (
                     <a
                       href={organization.website_url}
@@ -239,6 +250,50 @@ const OrganizationDetailPage = () => {
                     >
                       <LinkIcon className="w-4 h-4 mr-1" />
                       Site web
+                    </a>
+                  )}
+                  
+                  {organization.discord_url && (
+                    <a
+                      href={organization.discord_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-indigo-400 hover:text-indigo-300 text-sm"
+                    >
+                      Discord
+                    </a>
+                  )}
+                  
+                  {organization.twitter_url && (
+                    <a
+                      href={organization.twitter_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 text-sm"
+                    >
+                      Twitter
+                    </a>
+                  )}
+                  
+                  {organization.youtube_url && (
+                    <a
+                      href={organization.youtube_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-red-400 hover:text-red-300 text-sm"
+                    >
+                      YouTube
+                    </a>
+                  )}
+                  
+                  {organization.twitch_url && (
+                    <a
+                      href={organization.twitch_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-purple-400 hover:text-purple-300 text-sm"
+                    >
+                      Twitch
                     </a>
                   )}
                 </div>
