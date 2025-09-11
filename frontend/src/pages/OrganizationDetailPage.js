@@ -115,6 +115,29 @@ const OrganizationDetailPage = () => {
     }
   };
 
+  const handleRequestJoin = () => {
+    setShowJoinRequestModal(true);
+  };
+
+  const handleSubmitJoinRequest = async () => {
+    try {
+      setJoining(true);
+      await organizationService.createJoinRequest(id, joinRequestMessage);
+      toast.success('Demande d\'adhésion soumise !');
+      setShowJoinRequestModal(false);
+      setJoinRequestMessage('');
+    } catch (error) {
+      console.error('Failed to create join request:', error);
+      if (error.response?.data?.detail) {
+        toast.error(error.response.data.detail);
+      } else {
+        toast.error('Erreur lors de la soumission de la demande');
+      }
+    } finally {
+      setJoining(false);
+    }
+  };
+
   const MemberCard = ({ member }) => {
     const ownerOfOrg = member.user_id === organization.owner_id;
     const badgeClasses = getRoleBadgeClasses(member.role, ownerOfOrg);
