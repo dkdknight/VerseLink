@@ -37,11 +37,7 @@ const OrganizationDetailPage = () => {
     }
   }, [id]);
 
-  useEffect(() => {
-    if (user && members.length > 0) {
-      setIsMember(members.some(member => member.user_id === user.id));
-    }
-  }, [user, members]);
+
 
   const loadOrganization = async () => {
     try {
