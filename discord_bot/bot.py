@@ -77,6 +77,7 @@ class VerselinkBot(commands.Bot):
             await self.load_extension('commands')
             await self.load_extension('admin_commands')
             await self.load_extension('interactive_events')
+            await self.load_extension('event_management')
             logger.info("All command extensions loaded")
             
             # Sync commands
