@@ -101,7 +101,7 @@ class AdminCommands(commands.Cog):
     
     @app_commands.command(name="bot-info", description="Informations techniques du bot")
     @is_bot_admin()
-    async def bot_info(self, interaction: discord.Interaction):
+    async def info_command(self, interaction: discord.Interaction):
         """Display bot technical information"""
         await interaction.response.defer()
         
