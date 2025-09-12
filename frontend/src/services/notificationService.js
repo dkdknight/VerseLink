@@ -1,4 +1,5 @@
 import { api } from './authService';
+import { ensureAuthenticated, handleAuthError } from '../utils/authUtils';
 
 export const notificationService = {
   // Get user notifications
