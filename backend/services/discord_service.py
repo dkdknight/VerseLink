@@ -34,10 +34,29 @@ class DiscordService:
         # Check if guild already exists
         existing_guild = await self.db.discord_guilds.find_one({"guild_id": guild_data.guild_id})
         if existing_guild:
+            # Auto-link existing guild if no organization is set and one is provided
+            if org_id and not existing_guild.get("org_id"):
+                await self.db.discord_guilds.update_one(
+                    {"guild_id": guild_data.guild_id},
+                    {"$set": {"org_id": org_id, "updated_at": datetime.utcnow()}}
+                )
+                await self.db.organizations.update_one(
+                    {"id": org_id},
+                    {"$set": {"discord_guild_id": guild_data.guild_id, "updated_at": datetime.utcnow()}}
+                )
+                linked_guild = await self.db.discord_guilds.find_one({"guild_id": guild_data.guild_id})
+                return DiscordGuild(**linked_guild)
             raise ValueError("Guild already registered")
         
         guild = DiscordGuild(**guild_data.dict(), org_id=org_id)
         await self.db.discord_guilds.insert_one(guild.dict())
+
+        # Link organization if provided
+        if org_id:
+            await self.db.organizations.update_one(
+                {"id": org_id},
+                {"$set": {"discord_guild_id": guild.guild_id, "updated_at": datetime.utcnow()}}
+            )
         
         # Create default reminder configurations
         await self._create_default_reminder_configs(guild.id)
