@@ -181,3 +181,104 @@ class VerselinkAPI:
             'content': content,
             'context': f'discord_user:{user_id}'
         })
+    
+    async def get_organization_discord_config(self, org_id: str) -> Optional[Dict[str, Any]]:
+        """Récupère la configuration Discord d'une organisation"""
+        try:
+            async with aiohttp.ClientSession() as session:
+                headers = self.get_headers()
+                async with session.get(
+                    f"{self.base_url}/orgs/{org_id}/discord-config",
+                    headers=headers
+                ) as response:
+                    if response.status == 200:
+                        return await response.json()
+                    elif response.status == 404:
+                        return None
+                    else:
+                        response.raise_for_status()
+        except aiohttp.ClientError as e:
+            logger.error(f"HTTP error in get_organization_discord_config: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Unexpected error in get_organization_discord_config: {e}")
+            return None
+    
+    async def update_organization_discord_config(self, org_id: str, config: Dict[str, Any]) -> Dict[str, Any]:
+        """Met à jour la configuration Discord d'une organisation"""
+        try:
+            async with aiohttp.ClientSession() as session:
+                headers = self.get_headers()
+                async with session.put(
+                    f"{self.base_url}/orgs/{org_id}/discord-config",
+                    headers=headers,
+                    json=config
+                ) as response:
+                    response.raise_for_status()
+                    return await response.json()
+        except aiohttp.ClientError as e:
+            logger.error(f"HTTP error in update_organization_discord_config: {e}")
+            raise Exception(f"Network error: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error in update_organization_discord_config: {e}")
+            raise e
+    
+    async def save_discord_message_mapping(self, mapping_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Sauvegarde le mapping entre message Discord et événement"""
+        try:
+            async with aiohttp.ClientSession() as session:
+                headers = self.get_headers()
+                async with session.post(
+                    f"{self.base_url}/discord/message-mappings",
+                    headers=headers,
+                    json=mapping_data
+                ) as response:
+                    response.raise_for_status()
+                    return await response.json()
+        except aiohttp.ClientError as e:
+            logger.error(f"HTTP error in save_discord_message_mapping: {e}")
+            raise Exception(f"Network error: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error in save_discord_message_mapping: {e}")
+            raise e
+    
+    async def get_discord_message_mapping(self, message_id: str) -> Optional[Dict[str, Any]]:
+        """Récupère le mapping d'un message Discord"""
+        try:
+            async with aiohttp.ClientSession() as session:
+                headers = self.get_headers()
+                async with session.get(
+                    f"{self.base_url}/discord/message-mappings/{message_id}",
+                    headers=headers
+                ) as response:
+                    if response.status == 200:
+                        return await response.json()
+                    elif response.status == 404:
+                        return None
+                    else:
+                        response.raise_for_status()
+        except aiohttp.ClientError as e:
+            logger.error(f"HTTP error in get_discord_message_mapping: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Unexpected error in get_discord_message_mapping: {e}")
+            return None
+    
+    async def save_discord_tournament_mapping(self, mapping_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Sauvegarde le mapping entre message Discord et tournoi"""
+        try:
+            async with aiohttp.ClientSession() as session:
+                headers = self.get_headers()
+                async with session.post(
+                    f"{self.base_url}/discord/tournament-mappings",
+                    headers=headers,
+                    json=mapping_data
+                ) as response:
+                    response.raise_for_status()
+                    return await response.json()
+        except aiohttp.ClientError as e:
+            logger.error(f"HTTP error in save_discord_tournament_mapping: {e}")
+            raise Exception(f"Network error: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error in save_discord_tournament_mapping: {e}")
+            raise e
