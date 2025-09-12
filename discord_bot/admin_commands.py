@@ -40,6 +40,25 @@ class AdminCommands(commands.Cog):
             inline=False
         )
         
+        # Interactive creation commands
+        embed.add_field(
+            name="🎯 Création Interactive",
+            value="`/create-event` - Créer un événement (guide interactif)\n"
+                  "`/create-tournament` - Créer un tournoi (guide interactif)\n"
+                  "💡 *Ces commandes vous guident étape par étape*",
+            inline=False
+        )
+        
+        # Event management commands
+        embed.add_field(
+            name="📅 Gestion d'Événements",
+            value="`/join-event <id>` - S'inscrire à un événement\n"
+                  "`/leave-event <id>` - Se désinscrire d'un événement\n"
+                  "`/my-events` - Voir mes événements\n"
+                  "`/event-participants <id>` - Voir les participants",
+            inline=False
+        )
+        
         # Admin commands
         if interaction.user.guild_permissions.manage_guild:
             embed.add_field(
