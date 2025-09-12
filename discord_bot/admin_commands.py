@@ -67,8 +67,9 @@ class AdminCommands(commands.Cog):
                       "`/config` - Voir la configuration\n"
                       "`/set-channel` - Définir les canaux\n"
                       "`/toggle` - Activer/désactiver des fonctions\n"
-                      "`/sync-message` - Synchroniser un message\n"
-                      "`/remind` - Programmer un rappel",
+                      "`/event-start <id>` - Démarrer un événement\n"
+                      "`/event-cancel <id>` - Annuler un événement\n"
+                      "`/event-edit <id>` - Modifier un événement",
                 inline=False
             )
         
