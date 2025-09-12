@@ -64,6 +64,10 @@ class EventService:
             {"$inc": {"event_count": 1}}
         )
         
+        # Trigger Discord integration if enabled
+        if event.discord_integration_enabled:
+            await self._trigger_discord_event_creation(event.id, org_id)
+        
         return event
     
     async def get_event(self, event_id: str) -> Optional[Event]:
@@ -93,7 +97,12 @@ class EventService:
             {"$set": update_dict}
         )
         
-        return await self.get_event(event_id)
+        # Trigger Discord integration update if enabled
+        updated_event = await self.get_event(event_id)
+        if updated_event and updated_event.discord_integration_enabled:
+            await self._trigger_discord_event_update(event_id, updated_event.org_id)
+        
+        return updated_event
     
     async def delete_event(self, event_id: str) -> bool:
         """Delete event and all related data"""
@@ -108,10 +117,18 @@ class EventService:
 
     async def cancel_event(self, event_id: str) -> bool:
         """Mark an event as cancelled"""
+        # Get event first to check Discord integration
+        event = await self.get_event(event_id)
+        
         result = await self.db.events.update_one(
             {"id": event_id},
             {"$set": {"state": EventState.CANCELLED, "updated_at": datetime.utcnow()}}
         )
+        
+        # Trigger Discord integration update if enabled
+        if result.modified_count > 0 and event and event.discord_integration_enabled:
+            await self._trigger_discord_event_update(event_id, event.org_id, action="cancelled")
+        
         return result.modified_count > 0
     
     async def signup_for_event(self, event_id: str, user_id: str, signup_data: EventSignupCreate) -> EventSignup:
@@ -422,3 +439,81 @@ class EventService:
             signups.append(EventSignup(**signup_doc))
         
         return signups
+    
+    # Discord Integration Methods
+    async def _trigger_discord_event_creation(self, event_id: str, org_id: str):
+        """Trigger Discord event creation for organization's guilds"""
+        try:
+            from services.discord_service import DiscordService
+            discord_service = DiscordService()
+            
+            # Get associated Discord guilds for the organization
+            guild_ids = []
+            async for guild_doc in self.db.discord_guilds.find({
+                "org_id": org_id,
+                "status": "active",
+                "reminder_enabled": True  # Using as feature flag for auto-events
+            }):
+                guild_ids.append(guild_doc["guild_id"])
+            
+            if guild_ids:
+                await discord_service.queue_discord_event_creation(
+                    event_id=event_id,
+                    guild_ids=guild_ids,
+                    create_channels=True,
+                    create_signup_message=True
+                )
+        except Exception as e:
+            # Log error but don't fail event creation
+            print(f"Failed to trigger Discord event creation: {e}")
+    
+    async def _trigger_discord_event_update(self, event_id: str, org_id: str, action: str = "updated"):
+        """Trigger Discord event update for organization's guilds"""
+        try:
+            from services.discord_service import DiscordService
+            discord_service = DiscordService()
+            
+            # Get guilds with existing Discord events for this event
+            guild_ids = []
+            async for discord_event_doc in self.db.discord_events.find({"verselink_event_id": event_id}):
+                guild_ids.append(discord_event_doc["guild_id"])
+            
+            if guild_ids:
+                await discord_service.queue_discord_event_update(event_id, guild_ids)
+                
+                # Queue cleanup if event is completed
+                if action == "completed":
+                    cleanup_time = datetime.utcnow() + timedelta(days=1)
+                    from models.discord_integration import DiscordJobCreate, JobType
+                    
+                    for guild_id in guild_ids:
+                        cleanup_job = DiscordJobCreate(
+                            job_type=JobType.CREATE_CHANNELS,
+                            guild_id=guild_id,
+                            event_id=event_id,
+                            scheduled_at=cleanup_time,
+                            payload={
+                                "action": "cleanup",
+                                "event_id": event_id
+                            }
+                        )
+                        await discord_service.queue_job(cleanup_job)
+        except Exception as e:
+            # Log error but don't fail the main operation
+            print(f"Failed to trigger Discord event update: {e}")
+    
+    async def mark_event_completed(self, event_id: str) -> bool:
+        """Mark an event as completed and trigger Discord cleanup"""
+        # Get event first to check Discord integration
+        event = await self.get_event(event_id)
+        
+        result = await self.db.events.update_one(
+            {"id": event_id},
+            {"$set": {"state": EventState.COMPLETED, "updated_at": datetime.utcnow()}}
+        )
+        
+        # Trigger Discord integration update if enabled
+        if result.modified_count > 0 and event and event.discord_integration_enabled:
+            await self._trigger_discord_event_update(event_id, event.org_id, action="completed")
+        
+        return result.modified_count > 0

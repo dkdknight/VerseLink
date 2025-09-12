@@ -46,6 +46,8 @@ async def register_guild_by_bot(guild_id: str, guild_data: dict):
             "status": "active",
             "sync_enabled": True,
             "reminder_enabled": True,
+            "auto_create_channels": guild_data.get("auto_create_channels", True),
+            "auto_manage_roles": guild_data.get("auto_manage_roles", True),
             "webhook_verified": False,
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow(),
@@ -123,6 +125,8 @@ async def register_discord_guild(
             sync_enabled=guild.sync_enabled,
             reminder_enabled=guild.reminder_enabled,
             webhook_verified=guild.webhook_verified,
+            auto_create_channels=guild.auto_create_channels,
+            auto_manage_roles=guild.auto_manage_roles,
             last_sync_at=guild.last_sync_at,
             created_at=guild.created_at
         )
@@ -160,6 +164,8 @@ async def list_discord_guilds(
             status=guild_doc["status"],
             sync_enabled=guild_doc["sync_enabled"],
             reminder_enabled=guild_doc["reminder_enabled"],
+            auto_create_channels=guild_doc.get("auto_create_channels", True),
+            auto_manage_roles=guild_doc.get("auto_manage_roles", True),
             webhook_verified=guild_doc["webhook_verified"],
             last_sync_at=guild_doc.get("last_sync_at"),
             created_at=guild_doc["created_at"]
@@ -194,6 +200,8 @@ async def get_discord_guild(
         status=guild.status,
         sync_enabled=guild.sync_enabled,
         reminder_enabled=guild.reminder_enabled,
+        auto_create_channels=guild.auto_create_channels,
+        auto_manage_roles=guild.auto_manage_roles,
         webhook_verified=guild.webhook_verified,
         last_sync_at=guild.last_sync_at,
         created_at=guild.created_at

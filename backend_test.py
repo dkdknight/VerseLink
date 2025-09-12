@@ -12,7 +12,7 @@ from typing import Dict, Any, Optional
 import io
 
 class VerselinkAPITester:
-    def __init__(self, base_url: str = "https://org-admin-revamp.preview.emergentagent.com"):
+    def __init__(self, base_url: str = "https://community-pulse-23.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.tests_run = 0
@@ -1127,6 +1127,99 @@ class VerselinkAPITester:
                 headers=headers
             )
 
+    def test_discord_events_integration(self):
+        """Test Discord Events Integration - New Implementation"""
+        print("\n" + "="*60)
+        print("TESTING DISCORD EVENTS INTEGRATION")
+        print("="*60)
+        
+        # Test Discord Events Health Check
+        success, response = self.run_test(
+            "Discord Events Health Check",
+            "GET",
+            "/api/v1/discord/events/health",
+            200
+        )
+        
+        if success:
+            self.log_test("Discord Events Health Response", True, f"Health status: {response.get('status', 'unknown')}")
+        
+        # Test Discord Events Stats (admin only - should fail without auth)
+        self.run_test(
+            "Discord Events Stats Without Auth",
+            "GET",
+            "/api/v1/discord/events/stats/events",
+            403
+        )
+        
+        # Test Discord Events Creation (should fail without auth)
+        test_event_data = {
+            "guild_ids": ["123456789012345678"],
+            "create_channels": True,
+            "create_signup_message": True
+        }
+        
+        self.run_test(
+            "Create Discord Events Without Auth",
+            "POST",
+            "/api/v1/discord/events/events/create/test-event",
+            403,
+            data=test_event_data
+        )
+        
+        # Test Discord Interactions Handler
+        interaction_data = {
+            "type": 1,  # PING
+            "id": "test-interaction-id",
+            "application_id": "test-app-id"
+        }
+        
+        success, response = self.run_test(
+            "Discord Interactions Handler - PING",
+            "POST",
+            "/api/v1/discord/events/interactions",
+            200,
+            data=interaction_data
+        )
+        
+        if success and response.get("type") == 1:
+            self.log_test("Discord Interactions PING Response", True, "PONG response received")
+        
+        # Test Discord Event Auto-Management
+        self.run_test(
+            "Discord Event Auto-Management Without Auth",
+            "POST",
+            "/api/v1/discord/events/auto-manage/test-event?action=created",
+            403
+        )
+        
+        # Test Discord Event Signup Message Creation
+        signup_message_data = {
+            "guild_id": "123456789012345678",
+            "channel_id": "987654321098765432"
+        }
+        
+        self.run_test(
+            "Create Discord Signup Message Without Auth",
+            "POST",
+            "/api/v1/discord/events/events/test-event/signup-message",
+            403,
+            data=signup_message_data
+        )
+        
+        # Test Discord Event Attendee Sync
+        sync_data = {
+            "guild_id": "123456789012345678"
+        }
+        
+        self.run_test(
+            "Sync Discord Event Attendees Without Auth",
+            "POST",
+            "/api/v1/discord/events/events/test-event/sync-attendees",
+            403,
+            data=sync_data
+        )
+
     def test_discord_api_structure(self):
         """Test Discord API structure and endpoint availability"""
         print("\n" + "="*60)
@@ -1168,6 +1261,18 @@ class VerselinkAPITester:
             # Legacy endpoints
             ("POST", "/api/v1/discord/events/announce", "Legacy Event Announce", 200),
             ("POST", "/api/v1/discord/matches/announce", "Legacy Match Announce", 200),
+            
+            # New Discord Events endpoints
+            ("GET", "/api/v1/discord/events/health", "Discord Events Health", 200),
+            ("POST", "/api/v1/discord/events/events/create/test-event", "Create Discord Events", 403),
+            ("PUT", "/api/v1/discord/events/events/update/test-event", "Update Discord Events", 403),
+            ("DELETE", "/api/v1/discord/events/events/delete/test-event", "Delete Discord Events", 403),
+            ("GET", "/api/v1/discord/events/events/test-event/discord", "Get Discord Events for Event", 403),
+            ("POST", "/api/v1/discord/events/events/test-event/signup-message", "Create Signup Message", 403),
+            ("POST", "/api/v1/discord/events/events/test-event/sync-attendees", "Sync Event Attendees", 403),
+            ("POST", "/api/v1/discord/events/interactions", "Discord Interactions Handler", 200),
+            ("POST", "/api/v1/discord/events/auto-manage/test-event", "Auto-manage Discord Event", 403),
+            ("GET", "/api/v1/discord/events/stats/events", "Discord Events Stats", 403),
         ]
         
         for method, endpoint, name, expected_status in discord_endpoints:
@@ -3108,6 +3213,10 @@ class VerselinkAPITester:
         self.test_phase6_api_structure()
         self.test_phase6_integration_scenarios()
         
+        # NEW: Discord Events Integration Testing
+        print("\n🎮 TESTING DISCORD EVENTS INTEGRATION")
+        self.test_discord_events_integration()
+        
         # Print summary
         self.print_summary()
 
@@ -3136,7 +3245,7 @@ class VerselinkAPITester:
 def main():
     """Main test runner"""
     # Use the external URL from frontend/.env for testing
-    base_url = "https://org-admin-revamp.preview.emergentagent.com"
+    base_url = "https://community-pulse-23.preview.emergentagent.com"
     
     print("VerseLink Phase 7 Backend API Test Suite - Tournament Management Features")
     print("=" * 90)

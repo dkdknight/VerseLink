@@ -9,7 +9,7 @@ from decouple import config
 import logging
 from pathlib import Path
 
-from routers import auth, users, organizations, events, tournaments, discord_integration, discord_integration_v2, notifications, moderation, auto_moderation, chat
+from routers import auth, users, organizations, events, tournaments, discord_integration, discord_integration_v2, discord_events, notifications, moderation, auto_moderation, chat
 from database import init_db
 from middleware.auth import get_current_user
 from services.discord_scheduler import start_discord_scheduler, stop_discord_scheduler
@@ -21,18 +21,25 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    await init_db()
-    logger.info("Database initialized")
-    
-    # Start Discord scheduler
-    await start_discord_scheduler()
-    logger.info("Discord scheduler started")
+    try:
+        await init_db()
+        logger.info("Database initialized")
+        
+        # Start Discord scheduler
+        await start_discord_scheduler()
+        logger.info("Discord scheduler started")
+    except Exception as e:
+        logger.error(f"Startup error: {e}")
+        # Continue without Discord scheduler if it fails
     
     yield
     
     # Shutdown
-    await stop_discord_scheduler()
-    logger.info("Discord scheduler stopped")
+    try:
+        await stop_discord_scheduler()
+        logger.info("Discord scheduler stopped")
+    except Exception as e:
+        logger.error(f"Shutdown error: {e}")
     logger.info("Application shutting down")
 
 app = FastAPI(
@@ -62,6 +69,7 @@ app.include_router(events.router, prefix="/api/v1/events", tags=["Events"])
 app.include_router(tournaments.router, prefix="/api/v1/tournaments", tags=["Tournaments"])
 app.include_router(discord_integration.router, prefix="/api/v1/integrations/discord", tags=["Discord Integration Legacy"])
 app.include_router(discord_integration_v2.router, prefix="/api/v1/discord", tags=["Discord Integration"])
+app.include_router(discord_events.router, prefix="/api/v1/discord/events", tags=["Discord Events"])
 app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["Notifications"])
 app.include_router(auto_moderation.router, prefix="/api/v1/auto-moderation", tags=["Auto Moderation"])
 app.include_router(moderation.router, prefix="/api/v1/moderation", tags=["Moderation"])
