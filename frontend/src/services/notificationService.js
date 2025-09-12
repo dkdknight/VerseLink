@@ -15,6 +15,12 @@ export const notificationService = {
   // Get notification statistics
   getNotificationStats: async () => {
     try {
+      // Ensure token is set before making request
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      
       const response = await api.get('/notifications/me/stats');
       return response.data;
     } catch (error) {
