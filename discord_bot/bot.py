@@ -78,6 +78,12 @@ class VerselinkBot(commands.Bot):
             await self.load_extension('admin_commands')
             await self.load_extension('interactive_events')
             await self.load_extension('event_management')
+            await self.load_extension('org_config')
+            
+            # Initialize auto publisher
+            from auto_publisher import setup as setup_auto_publisher
+            self.auto_publisher = await setup_auto_publisher(self)
+            
             logger.info("All command extensions loaded")
             
             # Sync commands
