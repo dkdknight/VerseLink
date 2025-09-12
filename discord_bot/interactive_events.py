@@ -161,7 +161,7 @@ class InteractiveEvents(commands.Cog):
         self.session_manager = SessionManager()
         
         # Gestionnaires spécialisés
-        self.event_handler = EventCreationHandler(self.api)
+        self.event_handler = EventCreationHandler(self.api, self.bot)
         self.tournament_handler = TournamentCreationHandler(self.api)
         
     async def cog_load(self):
