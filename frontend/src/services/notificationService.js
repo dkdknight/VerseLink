@@ -4,6 +4,12 @@ export const notificationService = {
   // Get user notifications
   getNotifications: async (params = {}) => {
     try {
+      // Ensure token is set before making request
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      
       const response = await api.get('/notifications/me', { params });
       return response.data;
     } catch (error) {
