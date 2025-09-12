@@ -5,34 +5,24 @@ export const notificationService = {
   // Get user notifications
   getNotifications: async (params = {}) => {
     try {
-      // Ensure token is set before making request
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-      
+      ensureAuthenticated();
       const response = await api.get('/notifications/me', { params });
       return response.data;
     } catch (error) {
       console.error('Failed to get notifications:', error);
-      throw error;
+      handleAuthError(error);
     }
   },
 
   // Get notification statistics
   getNotificationStats: async () => {
     try {
-      // Ensure token is set before making request
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-      
+      ensureAuthenticated();
       const response = await api.get('/notifications/me/stats');
       return response.data;
     } catch (error) {
       console.error('Failed to get notification stats:', error);
-      throw error;
+      handleAuthError(error);
     }
   },
 
