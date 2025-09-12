@@ -110,7 +110,7 @@ class AdminCommands(commands.Cog):
             memory = psutil.virtual_memory()
             disk = psutil.disk_usage('/')
             
-            uptime = datetime.utcnow() - self.bot.start_time
+            uptime = datetime.now(timezone.utc) - self.bot.start_time
             uptime_str = str(uptime).split('.')[0]
             
             embed = create_info_embed(
