@@ -18,6 +18,7 @@ const EditEventPage = () => {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     const loadEvent = async () => {
@@ -52,25 +53,58 @@ const EditEventPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMessage('');
     try {
       setSaving(true);
+      const startDate = new Date(formData.start_at_utc);
+      if (isNaN(startDate.getTime())) {
+        toast.error('Date de début invalide');
+        setSaving(false);
+        return;
+      }
+      if (startDate <= new Date()) {
+        toast.error('La date doit être dans le futur');
+        setSaving(false);
+        return;
+      }
+      const duration = parseInt(formData.duration_minutes, 10);
+      if (isNaN(duration) || duration <= 0) {
+        toast.error('La durée doit être un entier positif');
+        setSaving(false);
+        return;
+      }
       const payload = {
-        ...formData,
+        title: formData.title,
+        description: formData.description,
         type: formData.type.trim().toLowerCase(),
-        duration_minutes: parseInt(formData.duration_minutes, 10),
+        start_at_utc: startDate.toISOString(),
+        duration_minutes: duration,
+        location: formData.location || null,
         max_participants: formData.max_participants
           ? parseInt(formData.max_participants, 10)
           : null,
-        start_at_utc: new Date(formData.start_at_utc).toISOString()
+        discord_integration_enabled: formData.discord_integration_enabled
       };
       await eventService.updateEvent(id, payload);
       toast.success("Événement mis à jour");
       navigate(`/events/${id}`);
     } catch (error) {
       console.error('Failed to update event:', error);
-      const message =
-        error.response?.data?.detail || "Erreur lors de la mise à jour";
-      toast.error(message);
+      let message = "Erreur lors de la mise à jour";
+      if (error.response) {
+        try {
+          const data =
+            typeof error.response.data === 'string'
+              ? JSON.parse(error.response.data)
+              : error.response.data;
+          message = data?.detail || message;
+        } catch (err) {
+          message = error.response.data?.detail || message;
+        }
+      } else if (error.message) {
+        message = error.message;
+      }
+      setErrorMessage(message);
     } finally {
       setSaving(false);
     }
@@ -91,6 +125,9 @@ const EditEventPage = () => {
           <h1 className="text-2xl font-bold text-white mb-6">
             Modifier l'événement
           </h1>
+          {errorMessage && (
+            <div className="mb-4 text-red-400">{errorMessage}</div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-gray-300 mb-1">Titre</label>

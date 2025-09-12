@@ -288,6 +288,14 @@ async def update_event(
     updated_event = await event_service.update_event(event_id, update_data)
     return updated_event
 
+@router.post("/start")
+async def start_event(event_id: str):
+    """Start an event by verifying it exists first"""
+    event = await event_service.get_event(event_id)
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    return {"message": "Event started", "event_id": event_id}
+
 @router.post("/{event_id}/complete")
 async def complete_event(
     event_id: str,

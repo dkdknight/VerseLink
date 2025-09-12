@@ -28,7 +28,11 @@ export const eventService = {
   // Create event for organization
   createEvent: async (orgId, eventData) => {
     try {
-      const response = await api.post(`/orgs/${encodeURIComponent(orgId)}/events`, eventData);
+      const response = await api.post(
+        `/orgs/${encodeURIComponent(orgId)}/events`,
+        eventData,
+        { headers: { 'Content-Type': 'application/json' } }
+      );
       return response.data;
     } catch (error) {
       console.error('Failed to create event:', error.response?.data || error);
@@ -36,10 +40,25 @@ export const eventService = {
     }
   },
 
+  // Start event after creation
+  startEvent: async (eventId) => {
+    try {
+      const response = await api.post('/events/start', { event_id: eventId });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to start event:', error);
+      throw error;
+    }
+  },
+
   // Update event
   updateEvent: async (eventId, updateData) => {
     try {
-      const response = await api.patch(`/events/${eventId}`, updateData);
+      const response = await api.patch(
+        `/events/${eventId}`,
+        updateData,
+        { headers: { 'Content-Type': 'application/json' } }
+      );
       return response.data;
     } catch (error) {
       console.error('Failed to update event:', error);

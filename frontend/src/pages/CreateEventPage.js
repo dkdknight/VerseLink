@@ -21,6 +21,7 @@ const CreateEventPage = () => {
   const [orgVisibility, setOrgVisibility] = useState('all');
   const [allowedOrgs, setAllowedOrgs] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -46,35 +47,75 @@ const CreateEventPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMessage('');
     try {
       setLoading(true);
-      const startUtc = new Date(formData.start_at_utc).toISOString();
+      const startDate = new Date(formData.start_at_utc);
+      if (isNaN(startDate.getTime())) {
+        toast.error('Date de début invalide');
+        setLoading(false);
+        return;
+      }
+      if (startDate <= new Date()) {
+        toast.error('La date doit être dans le futur');
+        setLoading(false);
+        return;
+      }
+      const duration = parseInt(formData.duration_minutes, 10);
+      if (isNaN(duration) || duration <= 0) {
+        toast.error('La durée doit être un entier positif');
+        setLoading(false);
+        return;
+      }
       const allowedOrgIds =
         orgVisibility === 'selected'
           ? allowedOrgs.split(',').map(id => id.trim()).filter(Boolean)
           : [];
 
       const payload = {
-        ...formData,
+        title: formData.title,
+        description: formData.description,
         type: formData.type.trim().toLowerCase(),
-        duration_minutes: parseInt(formData.duration_minutes, 10),
+        start_at_utc: startDate.toISOString(),
+        duration_minutes: duration,
+        location: formData.location || null,
         max_participants: formData.max_participants ? parseInt(formData.max_participants, 10) : null,
-        start_at_utc: startUtc,
+        banner_url: formData.banner_url || null,
+        discord_integration_enabled: formData.discord_integration_enabled,
         roles: roles.map(r => ({
           name: r.name,
           capacity: parseInt(r.capacity, 10),
           description: r.description
         })),
-        allowed_org_ids: allowedOrgIds,
-        banner_url: formData.banner_url || null
+        allowed_org_ids: allowedOrgIds
       };
-      await eventService.createEvent(id, payload);
+      const result = await eventService.createEvent(id, payload);
       toast.success('Événement créé');
+      if (result?.event_id) {
+        try {
+          await eventService.startEvent(result.event_id);
+        } catch (err) {
+          console.error('Failed to start event:', err);
+        }
+      }
       navigate('/events');
     } catch (error) {
       console.error('Failed to create event:', error);
-      const message = error.response?.data?.detail || "Erreur lors de la création de l'événement";
-      toast.error(message);
+      let message = "Erreur lors de la création de l'événement";
+      if (error.response) {
+        try {
+          const data =
+            typeof error.response.data === 'string'
+              ? JSON.parse(error.response.data)
+              : error.response.data;
+          message = data?.detail || message;
+        } catch (err) {
+          message = error.response.data?.detail || message;
+        }
+      } else if (error.message) {
+        message = error.message;
+      }
+      setErrorMessage(message);
     } finally {
       setLoading(false);
     }
@@ -85,6 +126,9 @@ const CreateEventPage = () => {
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-dark-800 rounded-lg p-6 border border-dark-700">
           <h1 className="text-2xl font-bold text-white mb-6">Créer un événement</h1>
+          {errorMessage && (
+            <div className="mb-4 text-red-400">{errorMessage}</div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-gray-300 mb-1">Titre</label>
