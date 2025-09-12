@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-VerseLink Backend API Test Suite - Phase 6 Notifications, Moderation & Auto-Moderation System Testing
-Tests Phase 6 features: Notifications, Moderation, and Auto-Moderation systems for VerseLink application
+VerseLink Backend API Test Suite - Authentication & Event Creation Testing
+Tests authentication fixes and event creation functionality for VerseLink application
 """
 
 import requests
@@ -12,15 +12,14 @@ from typing import Dict, Any, Optional
 import io
 
 class VerselinkAPITester:
-    def __init__(self, base_url: str = "https://event-system-repair.preview.emergentagent.com"):
+    def __init__(self, base_url: str = "http://localhost:8001"):
         self.base_url = base_url
         self.token = None
         self.tests_run = 0
         self.tests_passed = 0
         self.test_results = []
-        self.created_tournament_id = None
-        self.created_team_id = None
-        self.created_match_id = None
+        self.test_user_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4OTBkNzFiNC1lMGEzLTRjZmUtODc3ZC0yYzA2NjAxMmEwOWMiLCJleHAiOjE3NTc3MTg0NDf9.o8rMbTP-0oNOXcBzRi1phDugNeJPV5OnJHIoayK4o_4"
+        self.test_org_id = "71b8818f-69c6-4813-ab76-914f7115bee1"
 
     def log_test(self, name: str, success: bool, details: str = ""):
         """Log test result"""
