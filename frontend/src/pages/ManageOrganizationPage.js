@@ -118,19 +118,36 @@ const ManageOrganizationPage = () => {
   const handleDiscordLink = async (e) => {
     e.preventDefault();
     try {
+      // Try to register the guild first
       await discordService.registerGuild(discordForm, organization.id);
-      toast.success('Serveur Discord lié avec succès');
-      setDiscordForm({
-        guild_id: '',
-        guild_name: '',
-        owner_id: '',
-        announcement_channel_id: '',
-        event_channel_id: ''
-      });
+      
     } catch (error) {
-      console.error('Failed to link Discord guild:', error);
-      toast.error("Erreur lors de la liaison du serveur Discord");
+      // If the guild is already registered, attempt to link it instead
+      if (
+        error.response?.status === 400 &&
+        error.response.data?.detail === 'Guild already registered'
+      ) {
+        try {
+          await discordService.linkGuild(discordForm.guild_id, organization.id);
+        } catch (linkError) {
+          console.error('Failed to link Discord guild:', linkError);
+          toast.error("Erreur lors de la liaison du serveur Discord");
+          return;
+        }
+      } else {
+        console.error('Failed to link Discord guild:', error);
+        toast.error("Erreur lors de la liaison du serveur Discord");
+        return;
+      }
     }
+    toast.success('Serveur Discord lié avec succès');
+    setDiscordForm({
+      guild_id: '',
+      guild_name: '',
+      owner_id: '',
+      announcement_channel_id: '',
+      event_channel_id: ''
+    });
   };
 
   const handleJoinRequestAction = async (requestId, action) => {
