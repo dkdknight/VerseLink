@@ -91,7 +91,161 @@ class VerselinkAPITester:
             self.log_test(name, False, f"Unexpected error: {str(e)}")
             return False, {}
 
-    def test_health_endpoints(self):
+    def test_authentication_with_token(self):
+        """Test authentication with provided token"""
+        print("\n" + "="*60)
+        print("TESTING AUTHENTICATION WITH PROVIDED TOKEN")
+        print("="*60)
+        
+        # Set the test token
+        self.token = self.test_user_token
+        
+        # Test auth check with token
+        success, response = self.run_test(
+            "Auth Check With Token",
+            "GET",
+            "/api/v1/auth/check",
+            200
+        )
+        
+        if success:
+            self.log_test("Token Authentication", True, f"User authenticated: {response.get('user', {}).get('id', 'unknown')}")
+        else:
+            self.log_test("Token Authentication", False, "Failed to authenticate with provided token")
+            
+        return success
+
+    def test_notifications_stats_api(self):
+        """Test the specific notifications stats API that was fixed"""
+        print("\n" + "="*60)
+        print("TESTING NOTIFICATIONS STATS API")
+        print("="*60)
+        
+        # Test the specific endpoint mentioned in the review request
+        success, response = self.run_test(
+            "Get Notification Stats",
+            "GET",
+            "/api/v1/notifications/me/stats",
+            200
+        )
+        
+        if success:
+            self.log_test("Notification Stats Response", True, f"Stats retrieved: {response}")
+        else:
+            self.log_test("Notification Stats Response", False, "Failed to get notification stats")
+            
+        return success
+
+    def test_event_creation_api(self):
+        """Test event creation with the test organization"""
+        print("\n" + "="*60)
+        print("TESTING EVENT CREATION API")
+        print("="*60)
+        
+        # Test event creation with test organization
+        event_data = {
+            "title": "Test Event - Authentication Fix",
+            "description": "Testing event creation after authentication fixes",
+            "type": "raid",
+            "start_at_utc": (datetime.utcnow() + timedelta(days=1)).isoformat(),
+            "duration_minutes": 120,
+            "location": "Stanton System",
+            "max_participants": 20,
+            "discord_integration_enabled": True,
+            "roles": [
+                {
+                    "name": "Pilot",
+                    "capacity": 10,
+                    "description": "Main pilots for the raid"
+                },
+                {
+                    "name": "Support",
+                    "capacity": 5,
+                    "description": "Support crew"
+                }
+            ],
+            "allowed_org_ids": []
+        }
+        
+        success, response = self.run_test(
+            "Create Event",
+            "POST",
+            f"/api/v1/orgs/{self.test_org_id}/events",
+            201,
+            data=event_data
+        )
+        
+        if success:
+            event_id = response.get('event_id')
+            self.log_test("Event Creation", True, f"Event created with ID: {event_id}")
+            
+            # Test getting the created event
+            if event_id:
+                success_get, event_details = self.run_test(
+                    "Get Created Event",
+                    "GET",
+                    f"/api/v1/events/{event_id}",
+                    200
+                )
+                
+                if success_get:
+                    self.log_test("Event Retrieval", True, f"Event retrieved: {event_details.get('title', 'Unknown')}")
+                
+        else:
+            self.log_test("Event Creation", False, "Failed to create event")
+            
+        return success
+
+    def test_validation_error_handling(self):
+        """Test validation error handling improvements"""
+        print("\n" + "="*60)
+        print("TESTING VALIDATION ERROR HANDLING")
+        print("="*60)
+        
+        # Test event creation with invalid data to check error handling
+        invalid_event_data = {
+            "title": "",  # Empty title should trigger validation error
+            "description": "Test validation",
+            "type": "invalid_type",  # Invalid type
+            "start_at_utc": "invalid_date",  # Invalid date
+            "duration_minutes": -1,  # Invalid duration
+        }
+        
+        success, response = self.run_test(
+            "Create Event With Invalid Data",
+            "POST",
+            f"/api/v1/orgs/{self.test_org_id}/events",
+            422,  # Expecting validation error
+            data=invalid_event_data
+        )
+        
+        if success:
+            self.log_test("Validation Error Format", True, f"Proper validation error returned: {response}")
+        else:
+            self.log_test("Validation Error Format", False, "Validation error handling not working properly")
+            
+        return success
+
+    def test_organization_endpoints(self):
+        """Test organization endpoints with authentication"""
+        print("\n" + "="*60)
+        print("TESTING ORGANIZATION ENDPOINTS")
+        print("="*60)
+        
+        # Test getting the test organization
+        success, response = self.run_test(
+            "Get Test Organization",
+            "GET",
+            f"/api/v1/orgs/{self.test_org_id}",
+            200
+        )
+        
+        if success:
+            self.log_test("Organization Retrieval", True, f"Organization: {response.get('name', 'Unknown')}")
+        else:
+            self.log_test("Organization Retrieval", False, "Failed to get test organization")
+            
+        return success
         """Test health check endpoints"""
         print("\n" + "="*50)
         print("TESTING HEALTH ENDPOINTS")
