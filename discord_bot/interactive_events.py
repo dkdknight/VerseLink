@@ -302,9 +302,9 @@ class InteractiveEvents(commands.Cog):
             
         # Traiter selon le type de session
         if session.session_type == 'event':
-            await self.handle_event_message(message, session)
+            await self.event_handler.handle_event_message(message, session)
         elif session.session_type == 'tournament':
-            await self.handle_tournament_message(message, session)
+            await self.tournament_handler.handle_tournament_message(message, session)
     
     async def cancel_session(self, message: discord.Message, session: InteractiveSession):
         """Annule une session"""
