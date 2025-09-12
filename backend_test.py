@@ -3395,6 +3395,52 @@ class VerselinkAPITester:
         
         return self.tests_passed == self.tests_run
 
+    def test_health_endpoints(self):
+        """Test health check endpoints"""
+        print("\n" + "="*50)
+        print("TESTING HEALTH ENDPOINTS")
+        print("="*50)
+        
+        # Main health check
+        self.run_test(
+            "Main Health Check",
+            "GET",
+            "/api/v1/health",
+            200
+        )
+        
+        # Root endpoint
+        self.run_test(
+            "Root Endpoint",
+            "GET",
+            "/",
+            200
+        )
+
+    def print_summary(self):
+        """Print test summary"""
+        print("\n" + "="*60)
+        print("TEST SUMMARY")
+        print("="*60)
+        
+        print(f"📊 Total Tests: {self.tests_run}")
+        print(f"✅ Passed: {self.tests_passed}")
+        print(f"❌ Failed: {self.tests_run - self.tests_passed}")
+        
+        if self.tests_run > 0:
+            print(f"📈 Success Rate: {(self.tests_passed/self.tests_run*100):.1f}%")
+        
+        # Show failed tests
+        failed_tests = [r for r in self.test_results if not r['success']]
+        if failed_tests:
+            print(f"\n❌ FAILED TESTS ({len(failed_tests)}):")
+            for test in failed_tests:
+                print(f"  • {test['test']}: {test['details']}")
+        
+        print(f"\n⏰ Completed at: {datetime.now().isoformat()}")
+        
+        return self.tests_passed == self.tests_run
+
 def main():
     """Main test execution"""
     print("🚀 Starting VerseLink Authentication & Event Creation Tests")
