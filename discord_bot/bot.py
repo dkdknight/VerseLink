@@ -54,7 +54,7 @@ class VerselinkBot(commands.Bot):
         )
         
         self.api = VerselinkAPI()
-        self.start_time = datetime.utcnow()
+        self.start_time = datetime.now(timezone.utc)
         self.web_app = web.Application()
         self.web_app.router.add_post('/dm', self.handle_dm)
         self._runner = None
