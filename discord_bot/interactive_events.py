@@ -10,6 +10,8 @@ import uuid
 from verselink_api import VerselinkAPI
 from utils import *
 from config import Config
+from event_handlers import EventCreationHandler
+from tournament_handlers import TournamentCreationHandler
 
 logger = logging.getLogger(__name__)
 
