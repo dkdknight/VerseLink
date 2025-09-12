@@ -102,20 +102,44 @@ const CreateEventPage = () => {
     } catch (error) {
       console.error('Failed to create event:', error);
       let message = "Erreur lors de la création de l'événement";
+      
       if (error.response) {
-        try {
-          const data =
-            typeof error.response.data === 'string'
-              ? JSON.parse(error.response.data)
+        console.log('Error response:', error.response);
+        if (error.response.status === 422) {
+          // Validation errors
+          const validationError = error.response.data;
+          if (validationError && validationError.detail && Array.isArray(validationError.detail)) {
+            const errorMessages = validationError.detail.map(err => {
+              if (err.loc && err.msg) {
+                const field = err.loc[err.loc.length - 1];
+                return `${field}: ${err.msg}`;
+              }
+              return err.msg || 'Erreur de validation';
+            });
+            message = `Erreurs de validation:\n${errorMessages.join('\n')}`;
+          } else if (validationError && validationError.detail) {
+            message = validationError.detail;
+          }
+        } else if (error.response.status === 401) {
+          message = "Erreur d'authentification. Veuillez vous reconnecter.";
+        } else if (error.response.status === 403) {
+          message = "Permissions insuffisantes pour créer un événement dans cette organisation.";
+        } else {
+          try {
+            const data = typeof error.response.data === 'string' 
+              ? JSON.parse(error.response.data) 
               : error.response.data;
-          message = data?.detail || message;
-        } catch (err) {
-          message = error.response.data?.detail || message;
+            message = data?.detail || message;
+          } catch (parseErr) {
+            message = error.response.data?.detail || `Erreur ${error.response.status}: ${error.response.statusText}`;
+          }
         }
       } else if (error.message) {
         message = error.message;
       }
+      
       setErrorMessage(message);
+      toast.error(message.split('\n')[0]); // Show first line in toast
     } finally {
       setLoading(false);
     }
