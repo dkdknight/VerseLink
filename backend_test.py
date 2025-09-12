@@ -3396,24 +3396,52 @@ class VerselinkAPITester:
         return self.tests_passed == self.tests_run
 
 def main():
-    """Main test runner"""
-    # Use the external URL from frontend/.env for testing
-    base_url = "https://event-system-repair.preview.emergentagent.com"
+    """Main test execution"""
+    print("🚀 Starting VerseLink Authentication & Event Creation Tests")
+    print("="*80)
     
-    print("VerseLink Phase 7 Backend API Test Suite - Tournament Management Features")
-    print("=" * 90)
+    tester = VerselinkAPITester()
     
-    tester = VerselinkAPITester(base_url)
-    
+    # Test sequence focusing on the fixes mentioned in review request
     try:
-        success = tester.run_all_tests()
-        return 0 if success else 1
-    except KeyboardInterrupt:
-        print("\n⚠️  Tests interrupted by user")
-        return 1
+        # 1. Test basic health endpoints
+        print("\n📋 Testing basic health endpoints...")
+        tester.test_health_endpoints()
+        
+        # 2. Test authentication with provided token
+        print("\n🔐 Testing authentication with provided token...")
+        auth_success = tester.test_authentication_with_token()
+        
+        if not auth_success:
+            print("❌ Authentication failed - stopping tests")
+            tester.print_summary()
+            return 1
+            
+        # 3. Test the specific notifications stats API that was fixed
+        print("\n📊 Testing notifications stats API...")
+        tester.test_notifications_stats_api()
+        
+        # 4. Test organization endpoints
+        print("\n🏢 Testing organization endpoints...")
+        tester.test_organization_endpoints()
+        
+        # 5. Test event creation with test organization
+        print("\n📅 Testing event creation...")
+        tester.test_event_creation_api()
+        
+        # 6. Test validation error handling improvements
+        print("\n✅ Testing validation error handling...")
+        tester.test_validation_error_handling()
+        
     except Exception as e:
-        print(f"\n💥 Test suite failed with error: {str(e)}")
+        print(f"❌ Test execution failed: {str(e)}")
         return 1
+    
+    # Print final results
+    tester.print_summary()
+    
+    # Return appropriate exit code
+    return 0 if tester.tests_passed == tester.tests_run else 1
 
 if __name__ == "__main__":
     sys.exit(main())
