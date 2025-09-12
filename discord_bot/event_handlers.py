@@ -47,7 +47,11 @@ class EventCreationHandler:
                 'location', 'max_participants', 'roles', 'visibility', 'confirmation']
         
         for step in steps:
-            if step not in session.data:
+            if step == 'organization':
+                # Pour l'organisation, on vérifie org_id ET org_name
+                if 'org_id' not in session.data or 'org_name' not in session.data:
+                    return step
+            elif step not in session.data:
                 return step
         return 'confirmation'
     
