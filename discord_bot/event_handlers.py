@@ -13,8 +13,9 @@ logger = logging.getLogger(__name__)
 class EventCreationHandler:
     """Gestionnaire pour la création d'événements"""
     
-    def __init__(self, api: VerselinkAPI):
+    def __init__(self, api: VerselinkAPI, bot=None):
         self.api = api
+        self.bot = bot
         
     async def handle_event_message(self, message: discord.Message, session):
         """Gère les messages pour la création d'événements"""
