@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Request
 from typing import Optional, Dict, Any, List
+from pydantic import BaseModel
 import json
 from datetime import datetime, timedelta
 
@@ -17,13 +18,20 @@ router = APIRouter()
 discord_service = DiscordService()
 discord_events_service = DiscordEventsService()
 
+class DiscordEventCreateRequest(BaseModel):
+    guild_ids: List[str]
+    create_channels: bool = True
+    create_signup_message: bool = True
+
+
+class DiscordEventGuildsRequest(BaseModel):
+    guild_ids: Optional[List[str]] = None
+
 # Discord Scheduled Events Management
 @router.post("/events/create/{event_id}")
 async def create_discord_events(
     event_id: str,
-    guild_ids: List[str],
-    create_channels: bool = True,
-    create_signup_message: bool = True,
+    payload: DiscordEventCreateRequest,
     current_user: User = Depends(get_current_active_user)
 ):
     """Create Discord scheduled events for VerseLink event across multiple guilds"""
@@ -57,16 +65,16 @@ async def create_discord_events(
         # Queue Discord event creation jobs
         await discord_service.queue_discord_event_creation(
             event_id=event_id,
-            guild_ids=guild_ids,
-            create_channels=create_channels,
-            create_signup_message=create_signup_message
+            guild_ids=payload.guild_ids,
+            create_channels=payload.create_channels,
+            create_signup_message=payload.create_signup_message,
         )
         
         return {
             "message": "Discord events creation queued",
             "event_id": event_id,
-            "guild_ids": guild_ids,
-            "jobs_queued": len(guild_ids)
+            "guild_ids": payload.guild_ids,
+            "jobs_queued": len(payload.guild_ids),
         }
         
     except HTTPException:
@@ -80,7 +88,7 @@ async def create_discord_events(
 @router.put("/events/update/{event_id}")
 async def update_discord_events(
     event_id: str,
-    guild_ids: Optional[List[str]] = None,
+    payload: Optional[DiscordEventGuildsRequest] = None,
     current_user: User = Depends(get_current_active_user)
 ):
     """Update Discord scheduled events for VerseLink event"""
@@ -94,6 +102,8 @@ async def update_discord_events(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Event not found"
             )
+
+        guild_ids = payload.guild_ids if payload and payload.guild_ids else None
         
         # If no guild_ids specified, get all guilds with Discord events for this event
         if not guild_ids:
@@ -129,12 +139,14 @@ async def update_discord_events(
 @router.delete("/events/delete/{event_id}")
 async def delete_discord_events(
     event_id: str,
-    guild_ids: Optional[List[str]] = None,
+    payload: Optional[DiscordEventGuildsRequest] = None,
     current_user: User = Depends(get_current_active_user)
 ):
     """Delete Discord scheduled events for VerseLink event"""
     try:
         db = get_database()
+
+        guild_ids = payload.guild_ids if payload and payload.guild_ids else None
         
         # If no guild_ids specified, get all guilds with Discord events for this event
         if not guild_ids:
