@@ -4,7 +4,7 @@ import asyncio
 import logging
 import sys
 import traceback
-from datetime import datetime
+from datetime import datetime, timezone
 from aiohttp import web
 
 from config import Config
