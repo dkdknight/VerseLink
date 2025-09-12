@@ -194,22 +194,7 @@ class VerselinkAPI:
     
     async def update_organization_discord_config(self, org_id: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Met à jour la configuration Discord d'une organisation"""
-        try:
-            async with aiohttp.ClientSession() as session:
-                headers = self.get_headers()
-                async with session.put(
-                    f"{self.base_url}/orgs/{org_id}/discord-config",
-                    headers=headers,
-                    json=config
-                ) as response:
-                    response.raise_for_status()
-                    return await response.json()
-        except aiohttp.ClientError as e:
-            logger.error(f"HTTP error in update_organization_discord_config: {e}")
-            raise Exception(f"Network error: {e}")
-        except Exception as e:
-            logger.error(f"Unexpected error in update_organization_discord_config: {e}")
-            raise e
+        return await self._request('PUT', f'/orgs/{org_id}/discord-config', json=config)
     
     async def save_discord_message_mapping(self, mapping_data: Dict[str, Any]) -> Dict[str, Any]:
         """Sauvegarde le mapping entre message Discord et événement"""
