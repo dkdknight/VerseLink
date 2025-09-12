@@ -185,23 +185,11 @@ class VerselinkAPI:
     async def get_organization_discord_config(self, org_id: str) -> Optional[Dict[str, Any]]:
         """Récupère la configuration Discord d'une organisation"""
         try:
-            async with aiohttp.ClientSession() as session:
-                headers = self.get_headers()
-                async with session.get(
-                    f"{self.base_url}/orgs/{org_id}/discord-config",
-                    headers=headers
-                ) as response:
-                    if response.status == 200:
-                        return await response.json()
-                    elif response.status == 404:
-                        return None
-                    else:
-                        response.raise_for_status()
-        except aiohttp.ClientError as e:
-            logger.error(f"HTTP error in get_organization_discord_config: {e}")
-            return None
+            return await self._request('GET', f'/orgs/{org_id}/discord-config')
         except Exception as e:
-            logger.error(f"Unexpected error in get_organization_discord_config: {e}")
+            if "404" in str(e):
+                return None
+            logger.error(f"Error in get_organization_discord_config: {e}")
             return None
     
     async def update_organization_discord_config(self, org_id: str, config: Dict[str, Any]) -> Dict[str, Any]:
