@@ -463,6 +463,11 @@ class EventService:
                     create_channels=True,
                     create_signup_message=True
                 )
+                await discord_service.announce_event(
+                    event_id=event_id,
+                    announcement_type="created",
+                    guild_ids=guild_ids
+                )
         except Exception as e:
             # Log error but don't fail event creation
             print(f"Failed to trigger Discord event creation: {e}")
@@ -480,6 +485,13 @@ class EventService:
             
             if guild_ids:
                 await discord_service.queue_discord_event_update(event_id, guild_ids)
+
+                if action in ["updated", "cancelled"]:
+                    await discord_service.announce_event(
+                        event_id=event_id,
+                        announcement_type=action,
+                        guild_ids=guild_ids
+                    )
                 
                 # Queue cleanup if event is completed
                 if action == "completed":

@@ -13,7 +13,8 @@ const EditEventPage = () => {
     start_at_utc: '',
     duration_minutes: 60,
     location: '',
-    max_participants: ''
+    max_participants: '',
+    discord_integration_enabled: true
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -30,7 +31,8 @@ const EditEventPage = () => {
           start_at_utc: new Date(event.start_at_utc).toISOString().slice(0, 16),
           duration_minutes: event.duration_minutes,
           location: event.location || '',
-          max_participants: event.max_participants || ''
+          max_participants: event.max_participants || '',
+          discord_integration_enabled: event.discord_integration_enabled
         });
       } catch (error) {
         console.error('Failed to load event:', error);
@@ -44,8 +46,8 @@ const EditEventPage = () => {
   }, [id, navigate]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
   const handleSubmit = async (e) => {
@@ -174,6 +176,15 @@ const EditEventPage = () => {
                 onChange={handleChange}
                 className="input-primary w-full"
               />
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                name="discord_integration_enabled"
+                checked={formData.discord_integration_enabled}
+                onChange={handleChange}
+              />
+              <span className="text-gray-300">Annoncer sur Discord</span>
             </div>
             <div className="flex justify-end">
               <button

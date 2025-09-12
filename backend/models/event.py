@@ -101,6 +101,7 @@ class EventBase(BaseModel):
     ruleset_id: Optional[str] = None
     banner_url: Optional[str] = None
     allowed_org_ids: List[str] = Field(default_factory=list)
+    discord_integration_enabled: bool = Field(default=True)
     
     @validator('start_at_utc')
     def start_at_must_be_future(cls, v):
@@ -126,6 +127,7 @@ class EventUpdate(BaseModel):
     ruleset_id: Optional[str] = None
     banner_url: Optional[str] = None
     allowed_org_ids: Optional[List[str]] = None
+    discord_integration_enabled: Optional[bool] = None
     
     @validator('start_at_utc')
     def start_at_must_be_future(cls, v):

@@ -14,7 +14,8 @@ const CreateEventPage = () => {
     duration_minutes: 60,
     location: '',
     max_participants: '',
-    banner_url: ''
+    banner_url: '',
+    discord_integration_enabled: true
   });
   const [roles, setRoles] = useState([]);
   const [orgVisibility, setOrgVisibility] = useState('all');
@@ -22,8 +23,8 @@ const CreateEventPage = () => {
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
   const handleRoleChange = (index, e) => {
@@ -179,6 +180,16 @@ const CreateEventPage = () => {
                 onChange={handleChange}
                 className="input-primary w-full"
               />
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                name="discord_integration_enabled"
+                checked={formData.discord_integration_enabled}
+                onChange={handleChange}
+                className=""
+              />
+              <span className="text-gray-300">Annoncer sur Discord</span>
             </div>
             <div>
               <label className="block text-gray-300 mb-1">Rôles</label>
