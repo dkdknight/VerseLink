@@ -424,13 +424,21 @@ class DiscordService:
         announcement_data = {
             "guild_id": job.guild_id,
             "type": payload["type"],
-            "action": payload["action"]
+            "action": payload["action"],
+            # Ensure required fields for the bot API
+            "data": payload.get("data") or {},
         }
         
         if payload["type"] == "event":
             announcement_data["event"] = payload["event"]
+            event_info = payload["event"]
+            slug = event_info.get("slug") or event_info.get("id")
+            announcement_data["url"] = payload.get("url") or f"/events/{slug}"
         elif payload["type"] == "tournament":
             announcement_data["tournament"] = payload["tournament"]
+            tournament_info = payload["tournament"]
+            slug = tournament_info.get("slug") or tournament_info.get("id")
+            announcement_data["url"] = payload.get("url") or f"/tournaments/{slug}"
         
         return await self.call_bot_api("announcements/send", data=announcement_data)
     
