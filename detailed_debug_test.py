@@ -70,7 +70,7 @@ async def check_database_connection():
 
 def test_discord_endpoints():
     """Test Discord endpoints with detailed error reporting"""
-    base_url = "https://community-pulse-23.preview.emergentagent.com"
+    base_url = "https://event-system-repair.preview.emergentagent.com"
     
     print("\n🔍 Testing Discord endpoints...")
     

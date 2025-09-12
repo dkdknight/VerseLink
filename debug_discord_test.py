@@ -6,7 +6,7 @@ Debug Discord Endpoint Issues
 import requests
 import json
 
-base_url = "https://community-pulse-23.preview.emergentagent.com"
+base_url = "https://event-system-repair.preview.emergentagent.com"
 
 def test_discord_config_endpoint():
     """Test the Discord config endpoint to see exact error"""
