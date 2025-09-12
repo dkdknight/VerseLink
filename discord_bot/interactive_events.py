@@ -160,17 +160,9 @@ class InteractiveEvents(commands.Cog):
         self.api = VerselinkAPI()
         self.session_manager = SessionManager()
         
-        # Étapes pour la création d'événements
-        self.event_steps = [
-            'type', 'title', 'description', 'organization', 'date', 'duration', 
-            'location', 'max_participants', 'roles', 'visibility', 'confirmation'
-        ]
-        
-        # Étapes pour la création de tournois
-        self.tournament_steps = [
-            'type', 'name', 'description', 'organization', 'game', 'tournament_type',
-            'start_date', 'max_participants', 'format', 'rules', 'prizes', 'confirmation'
-        ]
+        # Gestionnaires spécialisés
+        self.event_handler = EventCreationHandler(self.api)
+        self.tournament_handler = TournamentCreationHandler(self.api)
         
     async def cog_load(self):
         """Initialize the cog"""
