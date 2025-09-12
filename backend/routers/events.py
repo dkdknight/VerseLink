@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 import tempfile
 import os
 
+from pydantic import BaseModel
+
 from database import get_database
 from models.user import User
 from models.event import (
@@ -288,13 +290,16 @@ async def update_event(
     updated_event = await event_service.update_event(event_id, update_data)
     return updated_event
 
+class EventStartRequest(BaseModel):
+    event_id: str
+
 @router.post("/start")
-async def start_event(event_id: str):
+async def start_event(request: EventStartRequest):
     """Start an event by verifying it exists first"""
-    event = await event_service.get_event(event_id)
+    event = await event_service.get_event(request.event_id)
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
-    return {"message": "Event started", "event_id": event_id}
+    return {"message": "Event started", "event_id": request.event_id}
 
 @router.post("/{event_id}/complete")
 async def complete_event(
