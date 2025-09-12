@@ -13,9 +13,15 @@ from models.discord_integration import (
     WebhookEvent, WebhookType
 )
 from models.user import User
+from models.organization import OrgMemberRole
+from pydantic import BaseModel
+from routers.organizations import require_org_permission
 
 router = APIRouter()
 discord_service = DiscordService()
+
+class GuildLinkRequest(BaseModel):
+    org_id: str
 
 # Bot API Endpoints
 @router.post("/bot/verify")
@@ -205,6 +211,61 @@ async def get_discord_guild(
         webhook_verified=guild.webhook_verified,
         last_sync_at=guild.last_sync_at,
         created_at=guild.created_at
+    )
+
+@router.post("/guilds/{guild_id}/link", response_model=DiscordGuildResponse)
+async def link_discord_guild(
+    guild_id: str,
+    link_request: GuildLinkRequest,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Link an existing Discord guild to an organization"""
+    org_id = link_request.org_id
+
+    # Ensure user has permission in the organization
+    await require_org_permission(org_id, current_user, OrgMemberRole.ADMIN)
+
+    db = get_database()
+
+    guild_doc = await db.discord_guilds.find_one({"guild_id": guild_id})
+    if not guild_doc:
+        raise HTTPException(status_code=404, detail="Guild not found")
+    if guild_doc.get("org_id"):
+        raise HTTPException(status_code=400, detail="Guild already linked to an organization")
+
+    org_doc = await db.organizations.find_one({"id": org_id})
+    if not org_doc:
+        raise HTTPException(status_code=404, detail="Organization not found")
+    if org_doc.get("discord_guild_id"):
+        raise HTTPException(status_code=400, detail="Organization already linked to a Discord guild")
+
+    await db.discord_guilds.update_one(
+        {"guild_id": guild_id},
+        {"$set": {"org_id": org_id, "updated_at": datetime.utcnow()}}
+    )
+    await db.organizations.update_one(
+        {"id": org_id},
+        {"$set": {"discord_guild_id": guild_id, "updated_at": datetime.utcnow()}}
+    )
+
+    updated_guild = await db.discord_guilds.find_one({"guild_id": guild_id})
+    org_name = org_doc.get("name") if org_doc else None
+
+    return DiscordGuildResponse(
+        id=updated_guild["id"],
+        guild_id=updated_guild["guild_id"],
+        guild_name=updated_guild["guild_name"],
+        owner_id=updated_guild["owner_id"],
+        org_id=org_id,
+        org_name=org_name,
+        status=updated_guild["status"],
+        sync_enabled=updated_guild["sync_enabled"],
+        reminder_enabled=updated_guild["reminder_enabled"],
+        auto_create_channels=updated_guild.get("auto_create_channels", True),
+        auto_manage_roles=updated_guild.get("auto_manage_roles", True),
+        webhook_verified=updated_guild["webhook_verified"],
+        last_sync_at=updated_guild.get("last_sync_at"),
+        created_at=updated_guild["created_at"]
     )
 
 # Webhook Endpoints

@@ -2,12 +2,23 @@ import { api } from './authService';
 
 export const discordService = {
   // Guild Management
-  registerGuild: async (guildData) => {
+  registerGuild: async (guildData, orgId = null) => {
     try {
-      const response = await api.post('/discord/guilds', guildData);
+      const params = orgId ? { org_id: orgId } : {};
+      const response = await api.post('/discord/guilds', guildData, { params });
       return response.data;
     } catch (error) {
       console.error('Failed to register Discord guild:', error);
+      throw error;
+    }
+  },
+
+  linkGuild: async (guildId, orgId) => {
+    try {
+      const response = await api.post(`/discord/guilds/${guildId}/link`, { org_id: orgId });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to link Discord guild:', error);
       throw error;
     }
   },

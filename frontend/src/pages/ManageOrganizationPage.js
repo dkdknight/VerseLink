@@ -9,9 +9,11 @@ import {
   ArrowRightOnRectangleIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
-  XMarkIcon
+  XMarkIcon,
+  ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline';
 import { organizationService } from '../services/organizationService';
+import { discordService } from '../services/discordService';
 import { useAuth } from '../App';
 import { getMediaUrl } from '../utils/media';
 
@@ -40,6 +42,14 @@ const ManageOrganizationPage = () => {
     twitch_url: '',
     visibility: 'public',
     membership_policy: 'open'
+  });
+
+  const [discordForm, setDiscordForm] = useState({
+    guild_id: '',
+    guild_name: '',
+    owner_id: '',
+    announcement_channel_id: '',
+    event_channel_id: ''
   });
 
   useEffect(() => {
@@ -102,6 +112,24 @@ const ManageOrganizationPage = () => {
     } catch (error) {
       console.error('Failed to update organization:', error);
       toast.error('Erreur lors de la mise à jour');
+    }
+  };
+
+  const handleDiscordLink = async (e) => {
+    e.preventDefault();
+    try {
+      await discordService.registerGuild(discordForm, organization.id);
+      toast.success('Serveur Discord lié avec succès');
+      setDiscordForm({
+        guild_id: '',
+        guild_name: '',
+        owner_id: '',
+        announcement_channel_id: '',
+        event_channel_id: ''
+      });
+    } catch (error) {
+      console.error('Failed to link Discord guild:', error);
+      toast.error("Erreur lors de la liaison du serveur Discord");
     }
   };
 
@@ -268,6 +296,7 @@ const ManageOrganizationPage = () => {
   const tabs = [
     { id: 'profile', name: 'Profil', icon: PencilIcon, visible: isAdmin },
     { id: 'media', name: 'Médias', icon: PhotoIcon, visible: isAdmin },
+    { id: 'discord', name: 'Discord', icon: ChatBubbleLeftRightIcon, visible: isAdmin },
     { id: 'members', name: 'Membres', icon: UsersIcon, visible: isModerator },
     { id: 'requests', name: 'Demandes', icon: CheckCircleIcon, visible: isModerator && organization.membership_policy === 'request_only' },
     { id: 'danger', name: 'Zone de danger', icon: ExclamationTriangleIcon, visible: isOwner }
@@ -530,6 +559,67 @@ const ManageOrganizationPage = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeTab === 'discord' && (
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-6">Intégration Discord</h2>
+              <form onSubmit={handleDiscordLink} className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">ID du serveur</label>
+                    <input
+                      type="text"
+                      value={discordForm.guild_id}
+                      onChange={(e) => setDiscordForm({ ...discordForm, guild_id: e.target.value })}
+                      className="input-primary w-full"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Nom du serveur</label>
+                    <input
+                      type="text"
+                      value={discordForm.guild_name}
+                      onChange={(e) => setDiscordForm({ ...discordForm, guild_name: e.target.value })}
+                      className="input-primary w-full"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">ID du propriétaire</label>
+                    <input
+                      type="text"
+                      value={discordForm.owner_id}
+                      onChange={(e) => setDiscordForm({ ...discordForm, owner_id: e.target.value })}
+                      className="input-primary w-full"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">ID du canal d'annonces</label>
+                    <input
+                      type="text"
+                      value={discordForm.announcement_channel_id}
+                      onChange={(e) => setDiscordForm({ ...discordForm, announcement_channel_id: e.target.value })}
+                      className="input-primary w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">ID du canal d'événements</label>
+                    <input
+                      type="text"
+                      value={discordForm.event_channel_id}
+                      onChange={(e) => setDiscordForm({ ...discordForm, event_channel_id: e.target.value })}
+                      className="input-primary w-full"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <button type="submit" className="btn-primary">Lier le serveur Discord</button>
+                </div>
+              </form>
             </div>
           )}
 
