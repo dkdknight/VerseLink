@@ -62,19 +62,26 @@ const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('auth_token');
       
       if (token) {
-        // Set token in axios defaults
+        // Set token in axios defaults immediately
         authService.setAuthToken(token);
         
         // Verify token and get user
         const userData = await authService.checkAuth();
         setUser(userData.user);
         setIsAuthenticated(true);
+      } else {
+        // Clear any stale auth state
+        authService.clearAuthToken();
+        setUser(null);
+        setIsAuthenticated(false);
       }
     } catch (error) {
       console.error('Auth check failed:', error);
-      // Clear invalid token
+      // Clear invalid token and auth state
       localStorage.removeItem('auth_token');
       authService.clearAuthToken();
+      setUser(null);
+      setIsAuthenticated(false);
     } finally {
       setLoading(false);
     }
