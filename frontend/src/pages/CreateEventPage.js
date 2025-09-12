@@ -151,7 +151,10 @@ const CreateEventPage = () => {
         <div className="bg-dark-800 rounded-lg p-6 border border-dark-700">
           <h1 className="text-2xl font-bold text-white mb-6">Créer un événement</h1>
           {errorMessage && (
-            <div className="mb-4 text-red-400">{errorMessage}</div>
+            <div className="mb-4 p-4 bg-red-900/20 border border-red-500 rounded-lg">
+              <h4 className="text-red-400 font-semibold mb-2">Erreur</h4>
+              <div className="text-red-300 text-sm whitespace-pre-line">{errorMessage}</div>
+            </div>
           )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
