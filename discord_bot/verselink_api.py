@@ -203,23 +203,11 @@ class VerselinkAPI:
     async def get_discord_message_mapping(self, message_id: str) -> Optional[Dict[str, Any]]:
         """Récupère le mapping d'un message Discord"""
         try:
-            async with aiohttp.ClientSession() as session:
-                headers = self.get_headers()
-                async with session.get(
-                    f"{self.base_url}/discord/message-mappings/{message_id}",
-                    headers=headers
-                ) as response:
-                    if response.status == 200:
-                        return await response.json()
-                    elif response.status == 404:
-                        return None
-                    else:
-                        response.raise_for_status()
-        except aiohttp.ClientError as e:
-            logger.error(f"HTTP error in get_discord_message_mapping: {e}")
-            return None
+            return await self._request('GET', f'/discord/message-mappings/{message_id}')
         except Exception as e:
-            logger.error(f"Unexpected error in get_discord_message_mapping: {e}")
+            if "404" in str(e):
+                return None
+            logger.error(f"Error in get_discord_message_mapping: {e}")
             return None
     
     async def save_discord_tournament_mapping(self, mapping_data: Dict[str, Any]) -> Dict[str, Any]:
