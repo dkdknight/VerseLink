@@ -612,16 +612,49 @@ class EventCreationHandler:
             # Créer l'événement
             async with self.api as api:
                 result = await api.create_event(session.data['org_id'], event_data)
+                
+                # Récupérer la configuration Discord de l'organisation
+                org_config = await api.get_organization_discord_config(session.data['org_id'])
+                
+                # Publier automatiquement sur Discord si configuré
+                published_message = None
+                if org_config and org_config.get('auto_publish_events'):
+                    try:
+                        from auto_publisher import AutoPublisher
+                        # Obtenir le bot depuis la session ou le gestionnaire
+                        bot = getattr(self, 'bot', None)
+                        if bot:
+                            publisher = AutoPublisher(bot)
+                            
+                            # Enrichir les données avec l'ID et les infos org
+                            event_data['id'] = result['event_id']
+                            event_data['org_name'] = session.data['org_name']
+                            event_data['signups'] = []  # Nouvel événement
+                            
+                            published_message = await publisher.publish_event(event_data, org_config)
+                    except Exception as pub_error:
+                        logger.error(f"Erreur lors de la publication Discord: {pub_error}")
             
-            embed = create_success_embed(
-                "🎉 Événement créé avec succès !",
+            # Message de succès
+            success_message = (
                 f"**{session.data['title']}** a été créé !\n\n"
                 f"🔗 **Lien :** [Voir l'événement](http://localhost:3000/events/{result['event_id']})\n"
                 f"📅 **Début :** <t:{int(datetime.fromisoformat(session.data['start_at_utc']).timestamp())}:F>\n"
                 f"👥 **Organisation :** {session.data['org_name']}\n\n"
-                f"L'événement sera automatiquement annoncé sur les serveurs Discord configurés !"
             )
             
+            if published_message:
+                success_message += (
+                    f"📢 **Publié automatiquement sur Discord !**\n"
+                    f"💬 [Voir la publication](https://discord.com/channels/{published_message.guild.id}/{published_message.channel.id}/{published_message.id})\n\n"
+                    f"Les membres peuvent s'inscrire directement via les réactions Discord !"
+                )
+            else:
+                success_message += (
+                    f"L'événement sera automatiquement annoncé sur les serveurs Discord configurés !"
+                )
+            
+            embed = create_success_embed("🎉 Événement créé avec succès !", success_message)
             await message.channel.send(embed=embed)
             
             # Terminer la session
