@@ -457,7 +457,7 @@ const OrganizationDetailPage = () => {
               <OrganizationDiscordConfig 
                 orgId={organization.id}
                 orgName={organization.name}
-                isAdmin={isOwner || userMembership?.role === 'admin' || userMembership?.role === 'moderator'}
+                isAdmin={isOwner || userMember?.role === 'admin' || userMember?.role === 'moderator'}
               />
             )}
           </div>
