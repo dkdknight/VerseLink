@@ -52,6 +52,18 @@ class EventCreationHandler:
                 # Pour l'organisation, on vérifie org_id ET org_name
                 if 'org_id' not in session.data or 'org_name' not in session.data:
                     return step
+            elif step == 'date':
+                # Pour la date, on vérifie start_at_utc
+                if 'start_at_utc' not in session.data:
+                    return step
+            elif step == 'duration':
+                # Pour la durée, on vérifie duration_minutes
+                if 'duration_minutes' not in session.data:
+                    return step
+            elif step == 'max_participants':
+                # Pour les participants, on vérifie max_participants (peut être None)
+                if 'max_participants' not in session.data:
+                    return step
             elif step not in session.data:
                 return step
         return 'confirmation'
