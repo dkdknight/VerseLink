@@ -1,15 +1,46 @@
-from fastapi import APIRouter, HTTPException, status, Depends, Header
-from typing import Optional, Dict, Any
+from fastapi import APIRouter, HTTPException, status, Depends, Header, BackgroundTasks
+from pydantic import BaseModel
+from typing import Optional, Dict, Any, List
 import hmac
 import hashlib
+import httpx
+import json
+import logging
+from datetime import datetime
 from decouple import config
 
 from database import get_database
 from middleware.auth import get_current_active_user
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
-DISCORD_BOT_WEBHOOK_SECRET = config("DISCORD_BOT_WEBHOOK_SECRET", default="")
+DISCORD_BOT_WEBHOOK_SECRET = config("DISCORD_BOT_WEBHOOK_SECRET", default="your-super-secret-webhook-key-change-this-in-production")
+DISCORD_BOT_WEBHOOK_URL = config("DISCORD_BOT_WEBHOOK_URL", default="http://localhost:8050/webhook")
+
+# Modèles Pydantic pour les webhooks
+class EventWebhookData(BaseModel):
+    event: Dict[str, Any]
+    org_id: str
+
+class TournamentWebhookData(BaseModel):
+    tournament: Dict[str, Any]
+    org_id: str
+
+class TestConnectionData(BaseModel):
+    org_id: str
+    test_type: str = "connection"  # connection, events_channel, tournaments_channel
+
+class OrganizationDiscordConfig(BaseModel):
+    discord_guild_id: str
+    discord_guild_name: str
+    events_channel_id: str
+    events_channel_name: str
+    tournaments_channel_id: Optional[str] = None
+    tournaments_channel_name: Optional[str] = None
+    auto_publish_events: bool = True
+    auto_publish_tournaments: bool = True
 
 def verify_webhook_signature(payload: bytes, signature: str) -> bool:
     """Verify Discord webhook HMAC signature"""
