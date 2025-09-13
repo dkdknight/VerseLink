@@ -605,3 +605,231 @@ async def legacy_match_announce(
     )
     
     return {"message": "Match announcement received (legacy)", "payload": payload}
+
+# NOUVELLES ROUTES POUR PUBLICATION AUTOMATIQUE DEPUIS LE SITE WEB
+
+def create_webhook_signature(payload: bytes, secret: str) -> str:
+    """Crée une signature HMAC pour sécuriser les webhooks sortants"""
+    return hmac.new(
+        secret.encode('utf-8'),
+        payload,
+        hashlib.sha256
+    ).hexdigest()
+
+async def send_webhook_to_bot(endpoint: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Envoie un webhook au bot Discord"""
+    try:
+        payload = json.dumps(data).encode('utf-8')
+        signature = f"sha256={create_webhook_signature(payload, DISCORD_BOT_WEBHOOK_SECRET)}"
+        
+        headers = {
+            'Content-Type': 'application/json',
+            'X-Webhook-Signature': signature
+        }
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                f"{DISCORD_BOT_WEBHOOK_URL}/{endpoint}",
+                content=payload,
+                headers=headers
+            )
+            response.raise_for_status()
+            return response.json()
+            
+    except httpx.RequestError as e:
+        logger.error(f"Network error sending webhook to bot: {e}")
+        raise HTTPException(status_code=503, detail="Discord bot unavailable")
+    except httpx.HTTPStatusError as e:
+        logger.error(f"HTTP error from bot webhook: {e}")
+        raise HTTPException(status_code=e.response.status_code, detail=f"Bot webhook error: {e.response.text}")
+    except Exception as e:
+        logger.error(f"Unexpected error sending webhook: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@router.post("/publish-event")
+async def publish_event_to_discord(
+    webhook_data: EventWebhookData,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Publie un événement sur Discord depuis le site web"""
+    try:
+        # Vérifier que l'utilisateur a les permissions sur l'organisation
+        db = get_database()
+        org = await db.organizations.find_one({"_id": webhook_data.org_id})
+        
+        if not org:
+            raise HTTPException(status_code=404, detail="Organization not found")
+        
+        # Vérifier les permissions (owner ou admin)
+        if org["owner_id"] != current_user.id:
+            # Vérifier si l'utilisateur est admin de l'organisation
+            member = await db.organization_members.find_one({
+                "organization_id": webhook_data.org_id,
+                "user_id": current_user.id,
+                "role": {"$in": ["admin", "moderator"]}
+            })
+            if not member:
+                raise HTTPException(status_code=403, detail="Insufficient permissions")
+        
+        # Envoyer le webhook au bot Discord
+        result = await send_webhook_to_bot("event-created", webhook_data.dict())
+        
+        return {
+            "message": "Event publication triggered",
+            "discord_result": result
+        }
+        
+    except Exception as e:
+        logger.error(f"Error publishing event to Discord: {e}")
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/publish-tournament")
+async def publish_tournament_to_discord(
+    webhook_data: TournamentWebhookData,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Publie un tournoi sur Discord depuis le site web"""
+    try:
+        # Vérifications de permissions similaires
+        db = get_database()
+        org = await db.organizations.find_one({"_id": webhook_data.org_id})
+        
+        if not org:
+            raise HTTPException(status_code=404, detail="Organization not found")
+        
+        if org["owner_id"] != current_user.id:
+            member = await db.organization_members.find_one({
+                "organization_id": webhook_data.org_id,
+                "user_id": current_user.id,
+                "role": {"$in": ["admin", "moderator"]}
+            })
+            if not member:
+                raise HTTPException(status_code=403, detail="Insufficient permissions")
+        
+        result = await send_webhook_to_bot("tournament-created", webhook_data.dict())
+        
+        return {
+            "message": "Tournament publication triggered",
+            "discord_result": result
+        }
+        
+    except Exception as e:
+        logger.error(f"Error publishing tournament to Discord: {e}")
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/test-connection")
+async def test_discord_connection(
+    test_data: TestConnectionData,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Teste la connexion Discord pour une organisation depuis le site web"""
+    try:
+        # Vérifications de permissions
+        db = get_database()
+        org = await db.organizations.find_one({"_id": test_data.org_id})
+        
+        if not org:
+            raise HTTPException(status_code=404, detail="Organization not found")
+        
+        if org["owner_id"] != current_user.id:
+            member = await db.organization_members.find_one({
+                "organization_id": test_data.org_id,
+                "user_id": current_user.id,
+                "role": {"$in": ["admin", "moderator"]}
+            })
+            if not member:
+                raise HTTPException(status_code=403, detail="Insufficient permissions")
+        
+        result = await send_webhook_to_bot("test-connection", test_data.dict())
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error testing Discord connection: {e}")
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/orgs/{org_id}/discord-config")
+async def update_discord_config(
+    org_id: str,
+    config: OrganizationDiscordConfig,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Met à jour la configuration Discord d'une organisation"""
+    try:
+        db = get_database()
+        
+        # Vérifier les permissions
+        org = await db.organizations.find_one({"_id": org_id})
+        if not org:
+            raise HTTPException(status_code=404, detail="Organization not found")
+        
+        if org["owner_id"] != current_user.id:
+            member = await db.organization_members.find_one({
+                "organization_id": org_id,
+                "user_id": current_user.id,
+                "role": {"$in": ["admin", "moderator"]}
+            })
+            if not member:
+                raise HTTPException(status_code=403, detail="Insufficient permissions")
+        
+        # Mettre à jour la configuration Discord
+        config_data = config.dict()
+        config_data["updated_at"] = datetime.utcnow()
+        config_data["updated_by"] = current_user.id
+        config_data["organization_id"] = org_id
+        
+        result = await db.organization_discord_configs.update_one(
+            {"organization_id": org_id},
+            {"$set": config_data},
+            upsert=True
+        )
+        
+        return {
+            "message": "Discord configuration updated successfully",
+            "config": config_data
+        }
+        
+    except Exception as e:
+        logger.error(f"Error updating Discord config: {e}")
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/orgs/{org_id}/discord-config")
+async def get_discord_config(
+    org_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Récupère la configuration Discord d'une organisation"""
+    try:
+        db = get_database()
+        
+        # Vérifier l'accès à l'organisation
+        org = await db.organizations.find_one({"_id": org_id})
+        if not org:
+            raise HTTPException(status_code=404, detail="Organization not found")
+        
+        # Récupérer la configuration
+        config = await db.organization_discord_configs.find_one({"organization_id": org_id})
+        
+        if not config:
+            raise HTTPException(status_code=404, detail="Discord configuration not found")
+        
+        # Supprimer les champs internes MongoDB
+        config.pop("_id", None)
+        
+        return config
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting Discord config: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
