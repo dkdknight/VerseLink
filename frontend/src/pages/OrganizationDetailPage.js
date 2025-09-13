@@ -14,6 +14,7 @@ import {
 import { organizationService } from '../services/organizationService';
 import { useAuth } from '../App';
 import CopyButton from '../components/CopyButton';
+import OrganizationDiscordConfig from '../components/OrganizationDiscordConfig';
 import { getRoleBadgeClasses, getRoleLabel } from '../utils/roles';
 import { getMediaUrl } from '../utils/media';
 
