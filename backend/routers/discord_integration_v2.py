@@ -1,7 +1,12 @@
-from fastapi import APIRouter, HTTPException, status, Depends, Header, Request
+from fastapi import APIRouter, HTTPException, status, Depends, Header, Request, BackgroundTasks
 from typing import Optional, Dict, Any, List
 import json
+import hmac
+import hashlib
+import httpx
+import logging
 from datetime import datetime
+from decouple import config
 
 from database import get_database
 from middleware.auth import get_current_active_user, require_site_admin
@@ -17,8 +22,37 @@ from models.organization import OrgMemberRole
 from pydantic import BaseModel
 from routers.organizations import require_org_permission
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 discord_service = DiscordService()
+
+# Configuration webhook
+DISCORD_BOT_WEBHOOK_SECRET = config("DISCORD_BOT_WEBHOOK_SECRET", default="your-super-secret-webhook-key-change-this-in-production")
+DISCORD_BOT_WEBHOOK_URL = config("DISCORD_BOT_WEBHOOK_URL", default="http://localhost:8050/webhook")
+
+# Nouveaux modèles pour publication automatique
+class EventWebhookData(BaseModel):
+    event: Dict[str, Any]
+    org_id: str
+
+class TournamentWebhookData(BaseModel):
+    tournament: Dict[str, Any]
+    org_id: str
+
+class TestConnectionData(BaseModel):
+    org_id: str
+    test_type: str = "connection"
+
+class OrganizationDiscordConfig(BaseModel):
+    discord_guild_id: str
+    discord_guild_name: str
+    events_channel_id: str
+    events_channel_name: str
+    tournaments_channel_id: Optional[str] = None
+    tournaments_channel_name: Optional[str] = None
+    auto_publish_events: bool = True
+    auto_publish_tournaments: bool = True
 
 class GuildLinkRequest(BaseModel):
     org_id: str
