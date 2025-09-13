@@ -91,7 +91,31 @@ const CreateEventPage = () => {
         allowed_org_ids: allowedOrgIds
       };
       const result = await eventService.createEvent(id, payload);
-      toast.success('Événement créé');
+      
+      // Publier automatiquement sur Discord si possible
+      let discordPublished = false;
+      let discordError = null;
+      
+      try {
+        const discordResult = await discordService.publishEvent(payload, id);
+        if (discordResult.success) {
+          discordPublished = true;
+        }
+      } catch (discordErr) {
+        discordError = discordErr;
+        console.warn('Failed to publish to Discord:', discordErr);
+        // Ne pas faire échouer la création pour ça
+      }
+
+      // Toast selon le résultat
+      if (discordPublished) {
+        toast.success('🎉 Événement créé et publié sur Discord !');
+      } else if (discordError) {
+        toast.success('✅ Événement créé !');
+        toast('💬 Publication Discord non disponible', { icon: 'ℹ️' });
+      } else {
+        toast.success('✅ Événement créé avec succès !');
+      }
       if (result?.event_id) {
         try {
           await eventService.startEvent(result.event_id);
