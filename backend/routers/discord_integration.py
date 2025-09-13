@@ -55,6 +55,44 @@ def verify_webhook_signature(payload: bytes, signature: str) -> bool:
     
     return hmac.compare_digest(f"sha256={expected_signature}", signature)
 
+def create_webhook_signature(payload: bytes, secret: str) -> str:
+    """Crée une signature HMAC pour sécuriser les webhooks sortants"""
+    return hmac.new(
+        secret.encode('utf-8'),
+        payload,
+        hashlib.sha256
+    ).hexdigest()
+
+async def send_webhook_to_bot(endpoint: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Envoie un webhook au bot Discord"""
+    try:
+        payload = json.dumps(data).encode('utf-8')
+        signature = f"sha256={create_webhook_signature(payload, DISCORD_BOT_WEBHOOK_SECRET)}"
+        
+        headers = {
+            'Content-Type': 'application/json',
+            'X-Webhook-Signature': signature
+        }
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                f"{DISCORD_BOT_WEBHOOK_URL}/{endpoint}",
+                content=payload,
+                headers=headers
+            )
+            response.raise_for_status()
+            return response.json()
+            
+    except httpx.RequestError as e:
+        logger.error(f"Network error sending webhook to bot: {e}")
+        raise HTTPException(status_code=503, detail="Discord bot unavailable")
+    except httpx.HTTPStatusError as e:
+        logger.error(f"HTTP error from bot webhook: {e}")
+        raise HTTPException(status_code=e.response.status_code, detail=f"Bot webhook error: {e.response.text}")
+    except Exception as e:
+        logger.error(f"Unexpected error sending webhook: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
 @router.post("/events/announce")
 async def discord_event_announce(
     payload: Dict[str, Any],
