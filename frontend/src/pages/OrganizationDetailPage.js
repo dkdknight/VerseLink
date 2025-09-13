@@ -451,6 +451,15 @@ const OrganizationDetailPage = () => {
                 </div>
               )}
             </div>
+
+            {/* Discord Configuration - For admins only */}
+            {(isOwner || isMember) && (
+              <OrganizationDiscordConfig 
+                orgId={organization.id}
+                orgName={organization.name}
+                isAdmin={isOwner || userMembership?.role === 'admin' || userMembership?.role === 'moderator'}
+              />
+            )}
           </div>
         </div>
 
