@@ -72,6 +72,15 @@ class AdminCommands(commands.Cog):
                       "`/event-edit <id>` - Modifier un événement",
                 inline=False
             )
+            
+            # Organization Discord config commands
+            embed.add_field(
+                name="🏢 Configuration Organisations",
+                value="`/setup-org` - Configurer Discord pour votre organisation\n"
+                      "`/test-publish` - Tester la publication d'événements\n"
+                      "`/org-config` - Voir la configuration Discord org",
+                inline=False
+            )
         
         # User commands
         embed.add_field(
