@@ -213,3 +213,7 @@ class VerselinkAPI:
     async def save_discord_tournament_mapping(self, mapping_data: Dict[str, Any]) -> Dict[str, Any]:
         """Sauvegarde le mapping entre message Discord et tournoi"""
         return await self._request('POST', '/discord/tournament-mappings', json=mapping_data)
+    
+    async def notify_discord_signup(self, notification_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Notifie le backend d'une inscription via Discord"""
+        return await self._request('POST', '/discord/signup-notification', json=notification_data)
