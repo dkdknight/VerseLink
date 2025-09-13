@@ -348,10 +348,24 @@ class AutoPublisher:
                 async with self.api as api:
                     signup_data = {
                         'role_name': role_name,
-                        'notes': f'Inscription via Discord (réaction {emoji})'
+                        'notes': f'Inscription via Discord (réaction {emoji})',
+                        'discord_user_id': str(user.id),
+                        'discord_username': user.display_name
                     }
                     
                     result = await api.join_event(event_data['id'], str(user.id), signup_data)
+                    
+                    # Notifier le backend de l'inscription Discord
+                    try:
+                        from webhook_handler import WebhookHandler
+                        webhook_handler = WebhookHandler(self.bot)
+                        await webhook_handler.notify_signup_to_backend(
+                            event_data['id'], 
+                            str(user.id), 
+                            signup_data
+                        )
+                    except Exception as notify_error:
+                        logger.error(f"Failed to notify backend of signup: {notify_error}")
                     
                     # Envoyer confirmation en MP
                     try:
@@ -361,23 +375,31 @@ class AutoPublisher:
                             f"Vous êtes inscrit à **{event_data['title']}**{role_text} !\n\n"
                             f"📅 **Date :** <t:{int(datetime.fromisoformat(event_data['start_at_utc'].replace('Z', '+00:00')).timestamp())}:F>\n"
                             f"📍 **Lieu :** {event_data.get('location', 'Non spécifié')}\n\n"
-                            f"Vous recevrez des rappels avant l'événement."
+                            f"Vous recevrez des rappels avant l'événement.\n"
+                            f"🌐 Votre inscription est synchronisée avec le site web !"
                         )
                         await user.send(embed=embed)
                     except discord.Forbidden:
                         pass  # L'utilisateur n'accepte pas les MPs
                     
-                    # Mettre à jour le message (optionnel)
+                    # Mettre à jour le message
                     await self.update_event_message(message, event_data['id'])
                     
         except Exception as e:
             logger.error(f"Erreur lors de l'inscription: {e}")
             # Envoyer erreur en MP si possible
             try:
+                error_message = str(e)
+                if "already registered" in error_message.lower():
+                    error_text = f"Vous êtes déjà inscrit à {event_data['title']}."
+                elif "full" in error_message.lower() or "capacity" in error_message.lower():
+                    error_text = f"Le rôle sélectionné pour {event_data['title']} est complet. Essayez la liste d'attente (🟡)."
+                else:
+                    error_text = f"Impossible de vous inscrire à {event_data['title']}.\n\nRaison: {error_message}"
+                
                 embed = create_error_embed(
                     "❌ Erreur d'inscription",
-                    f"Impossible de vous inscrire à {event_data['title']}.\n\n"
-                    f"Raison possible: Événement complet ou vous êtes déjà inscrit."
+                    error_text
                 )
                 await user.send(embed=embed)
             except discord.Forbidden:
