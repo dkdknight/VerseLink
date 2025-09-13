@@ -212,19 +212,4 @@ class VerselinkAPI:
     
     async def save_discord_tournament_mapping(self, mapping_data: Dict[str, Any]) -> Dict[str, Any]:
         """Sauvegarde le mapping entre message Discord et tournoi"""
-        try:
-            async with aiohttp.ClientSession() as session:
-                headers = self.get_headers()
-                async with session.post(
-                    f"{self.base_url}/discord/tournament-mappings",
-                    headers=headers,
-                    json=mapping_data
-                ) as response:
-                    response.raise_for_status()
-                    return await response.json()
-        except aiohttp.ClientError as e:
-            logger.error(f"HTTP error in save_discord_tournament_mapping: {e}")
-            raise Exception(f"Network error: {e}")
-        except Exception as e:
-            logger.error(f"Unexpected error in save_discord_tournament_mapping: {e}")
-            raise e
+        return await self._request('POST', '/discord/tournament-mappings', json=mapping_data)
