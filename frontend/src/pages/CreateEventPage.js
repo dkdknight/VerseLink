@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { eventService } from '../services/eventService';
+import { discordService } from '../services/discordService';
 
 const CreateEventPage = () => {
   const { id } = useParams();
