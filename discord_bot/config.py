@@ -25,6 +25,10 @@ class Config:
     BOT_API_PORT = int(os.getenv('BOT_API_PORT', '8050'))
     BOT_API_TOKEN = os.getenv('BOT_API_TOKEN', '')
     
+    # Webhook configuration
+    WEBHOOK_SECRET = os.getenv('WEBHOOK_SECRET', 'your-webhook-secret-change-this')
+    WEBHOOK_PORT = int(os.getenv('WEBHOOK_PORT', '8050'))
+    
     # Validation
     @classmethod
     def validate(cls):
