@@ -84,6 +84,11 @@ class VerselinkBot(commands.Bot):
             from auto_publisher import setup as setup_auto_publisher
             self.auto_publisher = await setup_auto_publisher(self)
             
+            # Initialize webhook handler
+            from webhook_handler import WebhookHandler, setup_webhook_routes
+            self.webhook_handler = WebhookHandler(self)
+            setup_webhook_routes(self.web_app, self.webhook_handler)
+            
             logger.info("All command extensions loaded")
             
             # Sync commands
